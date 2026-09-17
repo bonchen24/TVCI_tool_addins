@@ -1,0 +1,25 @@
+﻿# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build & Release
+dist/
+release/
+debug.log
+*.log
+
+# Cache & Temporary
+.tmp/
+.codex/
+__pycache__/
+.vscode/
+.idea/
+
+# Local certificates
+certs/
+*.pfx
+temp-format-audit/
+*.pdf
+*.png
+*.xml
+test_*.docx

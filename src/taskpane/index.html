@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Biểu mẫu văn bản Viện và Trung tâm</title>
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/icon-16.png" />
+  <script>
+    window.onerror = function(msg, url, line, col, error) {
+      var el = document.getElementById('loading-status');
+      if (el) {
+        var isTrident = /Trident|MSIE/.test(navigator.userAgent);
+        var extra = isTrident
+          ? '<div style="margin-top:12px;padding:8px;background:#f0f6ff;border-radius:4px;color:#005a9e;font-size:12px;text-align:left;"><b>Lưu ý:</b> Word đang chạy chế độ Internet Explorer cũ.<br>Vui lòng chạy file <b>repair.cmd</b> để tự động kích hoạt Edge WebView2 cho Word.</div>'
+          : '<div style="font-size:11px;color:#888;margin-top:6px;">' + (url ? url.split('/').pop() : '') + ':' + line + ':' + col + '</div>';
+        el.innerHTML = '<span style="color:#d13438;font-weight:600;">Lỗi: ' + msg + '</span>' + extra;
+      }
+      return false;
+    };
+  </script>
+  <script src="/assets/office-js/office.js"></script>
+</head>
+<body style="margin: 0; padding: 0; background: #faf9f8;">
+  <div id="root">
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; padding: 40px 20px; text-align: center; color: #323130;">
+      <div style="width: 40px; height: 40px; margin: 0 auto 16px; border: 3px solid #e1dfdd; border-top-color: #0078d4; border-radius: 50%; animation: tvci-spin 1s linear infinite;"></div>
+      <div style="font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #0078d4;">TVCI Word Tools</div>
+      <div style="font-size: 13px; color: #605e5c;" id="loading-status">Đang khởi tạo Add-in...</div>
+    </div>
+    <style>
+      @keyframes tvci-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+  </div>
+</body>
+</html>
+

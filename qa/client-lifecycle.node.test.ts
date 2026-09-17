@@ -1,0 +1,113 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
+
+const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8")) as {
+  scripts: Record<string, string>;
+};
+
+test("client setup and uninstall commands are exposed", () => {
+  assert.match(packageJson.scripts.setup ?? "", /setup-client\.ps1/);
+  assert.match(packageJson.scripts["setup:local"] ?? "", /setup/);
+  assert.match(packageJson.scripts.repair ?? "", /setup-client\.ps1/);
+  assert.match(packageJson.scripts.repair ?? "", /SkipInstall/);
+  assert.match(packageJson.scripts["repair:local"] ?? "", /repair/);
+  assert.match(packageJson.scripts.uninstall ?? "", /uninstall-client\.ps1/);
+  assert.match(packageJson.scripts["uninstall:local"] ?? "", /uninstall/);
+  assert.match(packageJson.scripts["uninstall:local:purge-cert"] ?? "", /RemoveCertificate/);
+});
+
+test("client setup installs dependencies, certificate, autostart, and registers the manifest without opening a debug document", () => {
+  const script = fs.readFileSync("scripts/setup-client.ps1", "utf8");
+  const startScript = fs.readFileSync("scripts/start-local-client.ps1", "utf8");
+  assert.match(script, /npm\.cmd/);
+  assert.match(script, /Invoke-Npm\s+@\("ci"\)/);
+  assert.match(script, /Stop-ProjectHostForDependencyInstall/);
+  assert.match(script, /Stop-ProjectHostWatchdog/);
+  assert.match(script, /Stop-ProjectHost/);
+  assert.match(script, /hostStopMarkerPath/);
+  assert.match(script, /webpackEmitterPath/);
+  assert.match(script, /webpack\\\\hot\\\\emitter\.js/);
+  assert.match(script, /Thieu node_modules/);
+  const stopBeforeInstall = script.lastIndexOf("Stop-ProjectHostForDependencyInstall");
+  const npmCi = script.indexOf('Invoke-Npm @("ci")');
+  assert.equal(stopBeforeInstall > -1 && npmCi > -1 && stopBeforeInstall < npmCi, true);
+  assert.match(script, /office-addin-dev-certs\.cmd/);
+  assert.match(script, /install/);
+  assert.match(script, /Assert-CertificateReady/);
+  assert.match(script, /office-addin-dev-certs\.cmd.*verify|verify[\s\S]*trusted access/i);
+  assert.match(script, /local-startup\.ps1/);
+  assert.match(script, /-ProjectPath/);
+  assert.match(script, /Assert-StartupConfigured/);
+  assert.match(script, /startupShortcutPath/);
+  assert.match(script, /local-host-launcher\.vbs/);
+  assert.match(script, /Node\.js LTS/);
+  assert.match(script, /npm\.cmd/);
+  assert.match(script, /start-local-client\.ps1/);
+  assert.match(script, /Invoke-PowerShellScript\s+\$clientStartScriptPath/);
+  assert.doesNotMatch(script, /office-addin-debugging/);
+  assert.match(startScript, /office-addin-dev-settings\.cmd/);
+  assert.match(startScript, /register/);
+  assert.match(startScript, /Assert-LocalHostReady/);
+  assert.match(startScript, /check-local-host\.mjs/);
+  assert.match(startScript, /node\.exe/);
+  assert.match(startScript, /taskpane\.html/);
+  assert.match(startScript, /Start-Sleep/);
+  assert.match(startScript, /local-host-launcher\.vbs/);
+  assert.match(script, /SkipInstall/);
+  assert.match(script, /SkipCertificate/);
+  assert.match(script, /SkipAutostart/);
+  assert.match(script, /SkipSideload/);
+  assert.match(script, /SkipSideload[\s\S]*Remove-Item[\s\S]*hostStopMarkerPath/);
+  assert.match(script, /\[string\]\$ProjectPath\s*=\s*["']?["']/);
+  assert.match(script, /IsNullOrWhiteSpace\(\$ProjectPath\)/);
+});
+
+test("client uninstall unregisters the manifest and removes only project-owned startup state", () => {
+  const script = fs.readFileSync("scripts/uninstall-client.ps1", "utf8");
+  assert.match(script, /Invoke-BestEffortOfficeUnregister/);
+  assert.match(script, /unregister/);
+  assert.match(script, /Get-NetTCPConnection/);
+  assert.match(script, /LocalPort\s+38473/);
+  assert.match(script, /Stop-Process/);
+  assert.match(script, /local-startup\.ps1/);
+  assert.match(script, /-Uninstall/);
+  assert.match(script, /RemoveCertificate/);
+  assert.match(script, /office-addin-dev-certs\.cmd/);
+  assert.match(script, /office-addin-dev-settings\.cmd/);
+  assert.match(script, /registered/);
+  assert.match(script, /Test-OfficeAddInUnregistered/);
+  assert.match(script, /No add-ins are registered|registry key/i);
+  assert.match(script, /officeRegistrationVerified/);
+  assert.match(script, /Test-StartupRemoved/);
+  assert.match(script, /startupRemoved/);
+  assert.match(script, /Test-LocalHostStopped/);
+  assert.match(script, /hostStopped/);
+  assert.match(script, /Stop-LocalHostWatchdog/);
+  assert.match(script, /Test-LocalHostWatchdogStopped/);
+  assert.match(script, /hostStopMarkerPath/);
+  assert.match(script, /New-Item/);
+  assert.match(script, /exit 1/);
+  assert.match(script, /uninstall/);
+  assert.match(script, /node_modules/);
+  assert.match(script, /không xóa|không xoá|khong xoa/i);
+  assert.match(script, /\[string\]\$ProjectPath\s*=\s*["']?["']/);
+  assert.match(script, /IsNullOrWhiteSpace\(\$ProjectPath\)/);
+});
+
+test("double-click wrappers delegate to PowerShell lifecycle scripts", () => {
+  const setupCmd = fs.readFileSync("setup.cmd", "utf8");
+  const repairCmd = fs.readFileSync("repair.cmd", "utf8");
+  const uninstallCmd = fs.readFileSync("uninstall.cmd", "utf8");
+  assert.match(setupCmd, /setup-client\.ps1/);
+  assert.match(setupCmd, /%\*|%\*/);
+  assert.doesNotMatch(setupCmd, /-ProjectPath "%~dp0"/);
+  assert.match(setupCmd, /-ProjectPath "%~dp0\."/);
+  assert.match(repairCmd, /setup-client\.ps1/);
+  assert.match(repairCmd, /SkipInstall/);
+  assert.match(repairCmd, /%\*|%\*/);
+  assert.match(uninstallCmd, /uninstall-client\.ps1/);
+  assert.match(uninstallCmd, /%\*|%\*/);
+  assert.doesNotMatch(uninstallCmd, /-ProjectPath "%~dp0"/);
+  assert.match(uninstallCmd, /-ProjectPath "%~dp0\."/);
+});
