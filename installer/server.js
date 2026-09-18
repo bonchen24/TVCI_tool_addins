@@ -1,64 +1,55 @@
-const https = require('https');
-const fs = require('fs');
-const path = require('path');
+const https = require('node:https');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const PORT = 38473;
 const HOST = '127.0.0.1';
-const appDir = path.join(__dirname, '..', 'app');
-const certDir = path.join(__dirname, '..', 'certs');
-const logDir = path.join(__dirname, '..', 'logs');
-
-if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
-const logStream = fs.createWriteStream(path.join(logDir, 'server.log'), { flags: 'a' });
-function log(msg) {
-    const line = `[${new Date().toISOString()}] ${msg}\n`;
-    logStream.write(line);
-    console.log(line.trim());
+const root = path.resolve(__dirname, '..');
+const data = path.join(process.env.LOCALAPPDATA || root, 'TVCIWordTools');
+const app = path.join(root, 'app');
+const logs = path.join(data, 'logs');
+fs.mkdirSync(logs, { recursive: true });
+function log(message) {
+  fs.appendFileSync(path.join(logs, 'server.log'), `${new Date().toISOString()} ${message}\n`);
 }
-
-const mimeTypes = {
-    '.html': 'text/html',
-    '.js': 'text/javascript',
-    '.css': 'text/css',
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.svg': 'image/svg+xml',
-    '.json': 'application/json',
-    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+const mime = {
+  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.json': 'application/json',
+  '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
 };
-
-const options = {
-    pfx: fs.readFileSync(path.join(certDir, 'localhost.pfx')),
-    passphrase: 'tvci123'
-};
-
-const server = https.createServer(options, (req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    
-    // Simple api for logging if needed
-    if (req.method === 'POST' && req.url === '/api/log') {
-        let data = '';
-        req.on('data', chunk => data += chunk);
-        req.on('end', () => {
-            log(`[CLIENT] ${data}`);
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end('{"ok":true}');
-        });
-        return;
+try {
+  const certs = path.join(data, 'certs');
+  const server = https.createServer({
+    pfx: fs.readFileSync(path.join(certs, 'localhost.pfx')),
+    passphrase: fs.readFileSync(path.join(certs, 'password.txt'), 'utf8').trim()
+  }, (request, response) => {
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      response.writeHead(405); response.end(); return;
     }
-    
-    let filePath = path.join(appDir, req.url === '/' ? 'taskpane.html' : req.url.split('?')[0]);
-    if (!fs.existsSync(filePath)) {
-        res.writeHead(404);
-        res.end('Not found');
-        return;
+    let url;
+    try { url = new URL(request.url, `https://localhost:${PORT}`); }
+    catch { response.writeHead(400); response.end(); return; }
+    if (url.pathname === '/api/health') {
+      response.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+      response.end(JSON.stringify({ app: 'TVCIWordTools', status: 'ready' })); return;
     }
-    
-    const ext = path.extname(filePath).toLowerCase();
-    res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
-    fs.createReadStream(filePath).pipe(res);
-});
-
-server.listen(PORT, HOST, () => {
-    log(`TVCI Word Tools Server running at https://${HOST}:${PORT}/`);
-});
+    let relative;
+    try { relative = decodeURIComponent(url.pathname === '/' ? 'taskpane.html' : url.pathname.slice(1)); }
+    catch { response.writeHead(400); response.end(); return; }
+    const file = path.resolve(app, relative);
+    if (!file.startsWith(app + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+      response.writeHead(404); response.end(); return;
+    }
+    response.writeHead(200, { 'Content-Type': mime[path.extname(file).toLowerCase()] || 'application/octet-stream' });
+    if (request.method === 'HEAD') response.end(); else fs.createReadStream(file).pipe(response);
+  });
+  server.on('error', error => {
+    log(error.code === 'EADDRINUSE' ? 'Host failed: EADDRINUSE on port 38473; another process remains untouched.' : `Host failed: ${error.code || error.message}`);
+    process.exitCode = 1;
+  });
+  server.listen(PORT, HOST, () => log(`Host ready on ${HOST}:${PORT}, pid ${process.pid}`));
+} catch (error) {
+  log(`Host initialization failed: ${error.message}`);
+  process.exitCode = 1;
+}

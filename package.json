@@ -26,11 +26,11 @@
     "remove:local-startup": "powershell -ExecutionPolicy Bypass -File scripts/local-startup.ps1 -Uninstall",
     "package:client": "npm run build && node scripts/package-client.mjs",
     "package:local-client": "node scripts/package-local-client.mjs",
-    "package:exe": "node scripts/package-exe.mjs",
     "installer": "node scripts/package-installer.mjs",
+    "test:installer": "node scripts/verify-installer.mjs",
     "test:direct": "node --experimental-strip-types --test qa/direct-api.node.test.ts",
     "test:models": "node --experimental-strip-types --test qa/model-discovery.node.test.ts",
-    "test:qa": "node --experimental-strip-types --test qa/*.node.test.ts"
+    "test:qa": "node --experimental-strip-types --test --test-isolation=none qa/*.node.test.ts"
   },
   "dependencies": {
     "jszip": "^3.10.2",
