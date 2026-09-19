@@ -24,38 +24,71 @@ export async function applyA4Margins(): Promise<void> {
     });
 }
 
-export async function autoFitTableToWindow(): Promise<void> {
-    await Word.run(async (context) => {
+export async function autoFitTableToWindow(): Promise<boolean> {
+    return Word.run(async (context) => {
         const selection = context.document.getSelection();
-        const table = selection.tables.getFirstOrNullObject();
+        let table = selection.tables.getFirstOrNullObject();
         table.load('isNullObject');
         await context.sync();
         
+        if (table.isNullObject) {
+            // Check if cursor is placed inside a table cell
+            const parentTable = (selection as any).parentTableOrNullObject;
+            if (parentTable) {
+                parentTable.load('isNullObject');
+                await context.sync();
+                if (!parentTable.isNullObject) {
+                    table = parentTable;
+                }
+            }
+        }
+
+        if (table.isNullObject) {
+            // Fallback: if exactly 1 table exists in the document, autofit that table
+            const docTables = context.document.body.tables;
+            docTables.load('items');
+            await context.sync();
+            if (docTables.items.length === 1) {
+                table = docTables.items[0];
+            }
+        }
+
         if (!table.isNullObject) {
             table.autoFitWindow();
+            await context.sync();
+            return true;
         }
-        await context.sync();
+        return false;
     });
 }
 
-export async function cleanBlankPagesSafe(): Promise<void> {
-    await Word.run(async (context) => {
+export async function cleanBlankPagesSafe(): Promise<number> {
+    return Word.run(async (context) => {
         const paragraphs = context.document.body.paragraphs;
         paragraphs.load('items');
         await context.sync();
         
-        // Delete completely empty paragraphs at the end of the document
+        let deletedCount = 0;
+        let remainingCount = paragraphs.items.length;
+
+        // Delete completely empty paragraphs at the end of the document, but NEVER delete the only remaining paragraph
         for (let i = paragraphs.items.length - 1; i >= 0; i--) {
+            if (remainingCount <= 1) break;
             const p = paragraphs.items[i];
             p.load('text');
             await context.sync();
             if (p.text.trim() === '') {
                 p.delete();
+                deletedCount++;
+                remainingCount--;
             } else {
                 break;
             }
         }
-        await context.sync();
+        if (deletedCount > 0) {
+            await context.sync();
+        }
+        return deletedCount;
     });
 }
 

@@ -111,12 +111,16 @@ export async function applyTextIssueFix(issue: ValidationIssue): Promise<void> {
   });
 }
 
-export async function selectParagraphByTargetId(targetId: string): Promise<void> {
+export async function selectParagraphByTargetId(targetId: string): Promise<boolean> {
+  if (!targetId || targetId === "page" || targetId.startsWith("missing:") || targetId.startsWith("horizontal:")) {
+    // Non-paragraph targets cannot be selected via paragraph indices
+    return false;
+  }
   const documentMatch = /^doc:p:(\d+)$/.exec(targetId);
   const selectionMatch = /^p:(\d+)$/.exec(targetId);
-  if (!documentMatch && !selectionMatch) return;
+  if (!documentMatch && !selectionMatch) return false;
   const targetIndex = Number((documentMatch ?? selectionMatch)![1]);
-  await Word.run(async (context) => {
+  return Word.run(async (context) => {
     const paragraphs = documentMatch ? context.document.body.paragraphs : context.document.getSelection().paragraphs;
     paragraphs.load("items");
     await context.sync();
@@ -124,6 +128,44 @@ export async function selectParagraphByTargetId(targetId: string): Promise<void>
     if (paragraph) {
       paragraph.select();
       await context.sync();
+      return true;
     }
+    return false;
   });
 }
+
+export async function applyInversePatches(patches: ParagraphSnapshot[]): Promise<number> {
+  if (!patches || patches.length === 0) return 0;
+  return Word.run(async (context) => {
+    const paragraphs = context.document.body.paragraphs;
+    paragraphs.load("items");
+    await context.sync();
+
+    let restored = 0;
+    for (const patch of patches) {
+      const match = /^doc:p:(\d+)$/.exec(patch.id) ?? /^p:(\d+)$/.exec(patch.id);
+      if (!match) continue;
+      const index = Number(match[1]);
+      const p = paragraphs.items[index];
+      if (!p) continue;
+
+      if (patch.fontName) p.font.name = patch.fontName;
+      if (patch.fontSize) p.font.size = patch.fontSize;
+      if (patch.bold !== undefined) p.font.bold = patch.bold;
+      if (patch.italic !== undefined) p.font.italic = patch.italic;
+      if (patch.underline !== undefined) p.font.underline = patch.underline ? Word.UnderlineType.single : Word.UnderlineType.none;
+      if (patch.alignment) p.alignment = toWordAlignment(patch.alignment);
+      if (patch.spaceBefore !== undefined) p.spaceBefore = patch.spaceBefore;
+      if (patch.spaceAfter !== undefined) p.spaceAfter = patch.spaceAfter;
+      if (patch.firstLineIndentMm !== undefined) p.firstLineIndent = patch.firstLineIndentMm * POINTS_PER_MM;
+      if (patch.lineSpacingPt !== undefined) p.lineSpacing = patch.lineSpacingPt;
+      else if (patch.lineSpacingMultiple !== undefined) p.lineSpacing = patch.lineSpacingMultiple * 13;
+      restored++;
+    }
+    if (restored > 0) {
+      await context.sync();
+    }
+    return restored;
+  });
+}
+

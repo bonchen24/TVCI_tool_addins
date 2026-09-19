@@ -167,6 +167,102 @@ def icon_guidance() -> Image.Image:
     return image
 
 
+def icon_quick_standardize() -> Image.Image:
+    image, draw = canvas()
+    doc(draw, (14, 8, 56, 72))
+    # Lightning bolt in ACCENT
+    pts = [(44, 16), (30, 40), (42, 40), (34, 66), (56, 36), (44, 36), (50, 16)]
+    draw.polygon([(x * SCALE, y * SCALE) for x, y in pts], fill=ACCENT)
+    return image
+
+
+def icon_rollback() -> Image.Image:
+    image, draw = canvas()
+    # Undo circular arc
+    draw.arc((18 * SCALE, 18 * SCALE, 66 * SCALE, 66 * SCALE), start=45, end=270, fill=INK, width=6 * SCALE)
+    # Arrow head pointing left
+    draw.polygon([(12 * SCALE, 42 * SCALE), (26 * SCALE, 30 * SCALE), (26 * SCALE, 54 * SCALE)], fill=ACCENT)
+    return image
+
+
+def icon_a4_margins() -> Image.Image:
+    image, draw = canvas()
+    doc(draw, (14, 8, 66, 72))
+    # Margin rectangle inside
+    draw.rounded_rectangle((24 * SCALE, 20 * SCALE, 56 * SCALE, 60 * SCALE), radius=3 * SCALE, outline=ACCENT, width=3 * SCALE)
+    font = ImageFont.truetype("C:/Windows/Fonts/segoeuib.ttf", 20 * SCALE)
+    draw.text((40 * SCALE, 40 * SCALE), "A4", font=font, fill=INK, anchor="mm")
+    return image
+
+
+def icon_delete_blank_page() -> Image.Image:
+    image, draw = canvas()
+    doc(draw, (14, 8, 58, 72))
+    # Red circle with minus at bottom right
+    danger = "#D83B01"
+    draw.ellipse((40 * SCALE, 38 * SCALE, 72 * SCALE, 70 * SCALE), fill=danger)
+    draw.line([(47 * SCALE, 54 * SCALE), (65 * SCALE, 54 * SCALE)], fill="white", width=5 * SCALE)
+    return image
+
+
+def icon_table_fit() -> Image.Image:
+    image, draw = canvas()
+    rect(draw, (15, 20, 65, 60), width=4, radius=2)
+    line(draw, [(15, 34), (65, 34)], width=3)
+    line(draw, [(15, 47), (65, 47)], width=3)
+    line(draw, [(32, 20), (32, 60)], width=3)
+    line(draw, [(48, 20), (48, 60)], width=3)
+    # Inward arrows
+    line(draw, [(6, 40), (13, 40)], width=4, fill=ACCENT)
+    draw.polygon([(14 * SCALE, 40 * SCALE), (10 * SCALE, 35 * SCALE), (10 * SCALE, 45 * SCALE)], fill=ACCENT)
+    line(draw, [(74, 40), (67, 40)], width=4, fill=ACCENT)
+    draw.polygon([(66 * SCALE, 40 * SCALE), (70 * SCALE, 35 * SCALE), (70 * SCALE, 45 * SCALE)], fill=ACCENT)
+    return image
+
+
+def icon_convert_unicode() -> Image.Image:
+    image, draw = canvas()
+    font = ImageFont.truetype("C:/Windows/Fonts/segoeuib.ttf", 26 * SCALE)
+    draw.text((15 * SCALE, 40 * SCALE), "A", font=font, fill=INK, anchor="lm")
+    draw.text((46 * SCALE, 40 * SCALE), "U", font=font, fill=INK, anchor="lm")
+    # Conversion arrow in middle
+    line(draw, [(33, 40), (43, 40)], width=4, fill=ACCENT)
+    draw.polygon([(46 * SCALE, 40 * SCALE), (41 * SCALE, 35 * SCALE), (41 * SCALE, 45 * SCALE)], fill=ACCENT)
+    return image
+
+
+def icon_fix_spacing() -> Image.Image:
+    image, draw = canvas()
+    # Space bracket: [_____]
+    line(draw, [(14, 38), (14, 52), (66, 52), (66, 38)], width=5, fill=INK)
+    # Inward arrows above space bracket
+    line(draw, [(22, 28), (34, 28)], width=4, fill=ACCENT)
+    draw.polygon([(36 * SCALE, 28 * SCALE), (31 * SCALE, 23 * SCALE), (31 * SCALE, 33 * SCALE)], fill=ACCENT)
+    line(draw, [(58, 28), (46, 28)], width=4, fill=ACCENT)
+    draw.polygon([(44 * SCALE, 28 * SCALE), (49 * SCALE, 23 * SCALE), (49 * SCALE, 33 * SCALE)], fill=ACCENT)
+    return image
+
+
+def icon_fix_linebreaks() -> Image.Image:
+    image, draw = canvas()
+    # Background text lines
+    line(draw, [(16, 22), (64, 22)], width=4, fill="#B0C4DE")
+    line(draw, [(16, 38), (44, 38)], width=4, fill="#B0C4DE")
+    line(draw, [(16, 68), (56, 68)], width=4, fill="#B0C4DE")
+    # Return / Enter arrow (down and left)
+    line(draw, [(64, 38), (64, 53), (25, 53)], width=5, fill=INK)
+    draw.polygon([(20 * SCALE, 53 * SCALE), (30 * SCALE, 45 * SCALE), (30 * SCALE, 61 * SCALE)], fill=ACCENT)
+    return image
+
+
+def icon_punctuation() -> Image.Image:
+    image, draw = canvas()
+    font = ImageFont.truetype("C:/Windows/Fonts/georgiab.ttf", 46 * SCALE)
+    draw.text((22 * SCALE, 48 * SCALE), "\u201c", font=font, fill=INK, anchor="mm")
+    draw.text((58 * SCALE, 48 * SCALE), "\u201d", font=font, fill=ACCENT, anchor="mm")
+    return image
+
+
 ICON_BUILDERS: dict[str, Callable[[], Image.Image]] = {
     "read": icon_read,
     "open": icon_open,
@@ -184,7 +280,65 @@ ICON_BUILDERS: dict[str, Callable[[], Image.Image]] = {
     "builder": icon_builder,
     "fill": icon_fill,
     "guidance": icon_guidance,
+    "quick-standardize": icon_quick_standardize,
+    "rollback": icon_rollback,
+    "a4-margins": icon_a4_margins,
+    "delete-blank-page": icon_delete_blank_page,
+    "table-fit": icon_table_fit,
+    "convert-unicode": icon_convert_unicode,
+    "fix-spacing": icon_fix_spacing,
+    "fix-linebreaks": icon_fix_linebreaks,
+    "punctuation": icon_punctuation,
 }
+
+
+def generate_tvci_brand_icons() -> None:
+    logo_path = ROOT / "assets" / "logo-tvci.png"
+    if not logo_path.exists():
+        print(f"Warning: {logo_path} not found")
+        return
+    logo = Image.open(logo_path).convert("RGBA")
+    width, height = logo.size
+
+    # Crop out pure/near-white margins
+    min_x, min_y, max_x, max_y = width, height, 0, 0
+    for x in range(width):
+        for y in range(height):
+            r, g, b, a = logo.getpixel((x, y))
+            if r < 240 or g < 240 or b < 240:
+                min_x = min(min_x, x)
+                min_y = min(min_y, y)
+                max_x = max(max_x, x)
+                max_y = max(max_y, y)
+    cropped_rgb = logo.crop((min_x, min_y, max_x, max_y))
+
+    for size in SIZES:
+        canvas_img = Image.new("RGBA", (size, size), (255, 255, 255, 0))
+        draw = ImageDraw.Draw(canvas_img)
+        rad = max(2, size // 6)
+        draw.rounded_rectangle(
+            (0, 0, size - 1, size - 1),
+            radius=rad,
+            fill=(255, 255, 255, 255),
+            outline=(210, 218, 226, 255),
+            width=1,
+        )
+        pad = max(1, size // 16)
+        target_w = size - (pad * 2)
+        target_h = size - (pad * 2)
+        scale = min(target_w / cropped_rgb.width, target_h / cropped_rgb.height)
+        new_w = max(1, int(cropped_rgb.width * scale))
+        new_h = max(1, int(cropped_rgb.height * scale))
+        resized = cropped_rgb.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        x = (size - new_w) // 2
+        y = (size - new_h) // 2
+        canvas_img.paste(resized, (x, y), resized)
+
+        # Output to ribbon icons
+        canvas_img.save(OUTPUT_DIR / f"icon-brand-badge-{size}.png", optimize=True)
+        # Output to root assets (App icon)
+        canvas_img.save(ROOT / "assets" / f"icon-{size}.png", optimize=True)
+    print(f"Generated TVCI brand icons in {OUTPUT_DIR} and assets/")
 
 
 def main() -> None:
@@ -195,7 +349,9 @@ def main() -> None:
             output = source.resize((size, size), Image.Resampling.LANCZOS)
             output.save(OUTPUT_DIR / f"icon-{name}-{size}.png", optimize=True)
     print(f"Generated {len(ICON_BUILDERS) * len(SIZES)} Ribbon icons in {OUTPUT_DIR}")
+    generate_tvci_brand_icons()
 
 
 if __name__ == "__main__":
     main()
+

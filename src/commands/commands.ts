@@ -1,6 +1,6 @@
 import { applyA4Margins, autoFitTableToWindow, cleanBlankPagesSafe } from '../word/page-toolkit.service';
 import { TransactionManager, StandardizationTransaction } from '../word/transaction.service';
-import { inspectDocumentParagraphs, applyIssueFix, applyTextIssueFix } from '../word/formatting.service';
+import { inspectDocumentParagraphs, applyIssueFix, applyTextIssueFix, applyInversePatches } from '../word/formatting.service';
 import { validateParagraph } from '../rules/validator';
 import { getRuleProfile } from '../rules/profiles';
 import { configurePageNumbers } from '../word/drafting.service';
@@ -99,11 +99,12 @@ g.run1ClickStandardize = async (event: Office.AddinCommands.Event) => {
 g.runRollbackLastAction = async (event: Office.AddinCommands.Event) => {
     try {
         const tx = await txManager.getLatestTransaction();
-        if (tx && tx.inversePatches.length > 0) {
-            // Apply inverse patches logic...
+        if (tx && tx.inversePatches && tx.inversePatches.length > 0) {
+            await applyInversePatches(tx.inversePatches);
+            await txManager.clearHistory();
         }
     } catch (error) {
-        console.error(error);
+        console.error("Lỗi khi hoàn tác chuẩn hóa:", error);
     }
     event.completed();
 };

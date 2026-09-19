@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param()
 $ErrorActionPreference = 'Stop'
+$env:PSModulePath = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\Modules'
 . (Join-Path $PSScriptRoot 'common.ps1')
 $logDir = Join-Path $InstallDir 'logs'
 New-Item -ItemType Directory -Path $logDir -Force | Out-Null

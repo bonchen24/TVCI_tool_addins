@@ -58,38 +58,18 @@ function New-BrandBadge {
     $graphics.Clear([System.Drawing.Color]::White)
 
     try {
-        $border = [System.Drawing.Pen]::new([System.Drawing.Color]::FromArgb(13, 79, 139), [Math]::Max(1, [Math]::Round($Size / 24)))
-        $graphics.DrawRectangle($border, 1, 1, $Size - 3, $Size - 3)
+        $border = [System.Drawing.Pen]::new([System.Drawing.Color]::FromArgb(210, 218, 226), 1)
+        $graphics.DrawRectangle($border, 0, 0, $Size - 1, $Size - 1)
         $border.Dispose()
 
-        if ($Size -ge 80) {
-            Draw-ImageContain $graphics $iemm ([System.Drawing.RectangleF]::new(4, 4, 20, 20))
-            Draw-ImageContain $graphics $tvci ([System.Drawing.RectangleF]::new($Size - 24, 4, 20, 20))
-            $font = [System.Drawing.Font]::new("Segoe UI", 3.6, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Point)
-            $smallFont = [System.Drawing.Font]::new("Segoe UI", 3.4, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Point)
-            $creditFont = [System.Drawing.Font]::new("Segoe UI", 2.35, [System.Drawing.FontStyle]::Regular, [System.Drawing.GraphicsUnit]::Point)
-            $center = [System.Drawing.StringFormat]::new()
-            $center.Alignment = [System.Drawing.StringAlignment]::Center
-            $center.LineAlignment = [System.Drawing.StringAlignment]::Center
-            $center.FormatFlags = [System.Drawing.StringFormatFlags]::LineLimit
-            $brush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(15, 63, 103))
-            $graphics.DrawString($instituteName, $font, $brush, [System.Drawing.RectangleF]::new(2, 27, 76, 17), $center)
-            $graphics.DrawString($centerName, $smallFont, $brush, [System.Drawing.RectangleF]::new(2, 44, 76, 17), $center)
-            $graphics.DrawString($developerCredit, $creditFont, $brush, [System.Drawing.RectangleF]::new(3, 62, 74, 16), $center)
-            $brush.Dispose()
-            $center.Dispose()
-            $font.Dispose()
-            $smallFont.Dispose()
-            $creditFont.Dispose()
-        } else {
-            $gap = [Math]::Max(1, [Math]::Round($Size / 16))
-            $logoWidth = ($Size - ($gap * 3)) / 2
-            Draw-ImageContain $graphics $iemm ([System.Drawing.RectangleF]::new($gap, $gap, $logoWidth, $Size - ($gap * 2)))
-            Draw-ImageContain $graphics $tvci ([System.Drawing.RectangleF]::new($gap * 2 + $logoWidth, $gap, $logoWidth, $Size - ($gap * 2)))
-        }
+        $pad = [Math]::Max(1, [Math]::Round($Size / 16))
+        $bounds = [System.Drawing.RectangleF]::new($pad, $pad, $Size - ($pad * 2), $Size - ($pad * 2))
+        Draw-ImageContain $graphics $tvci $bounds
 
         $outputPath = Join-Path $ribbonRoot ("icon-brand-badge-{0}.png" -f $Size)
         $bitmap.Save($outputPath, [System.Drawing.Imaging.ImageFormat]::Png)
+        $rootAppIcon = Join-Path $assetRoot ("icon-{0}.png" -f $Size)
+        $bitmap.Save($rootAppIcon, [System.Drawing.Imaging.ImageFormat]::Png)
     } finally {
         $iemm.Dispose()
         $tvci.Dispose()

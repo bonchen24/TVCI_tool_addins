@@ -87,3 +87,34 @@ export interface FormattingPatch {
   lineSpacingRule?: LineSpacingRule;
   lineSpacingMultiple?: number;
 }
+
+export type RuleEvaluationStatus = "PASS" | "FAIL" | "MISSING" | "NOT_APPLICABLE";
+
+export type RuleCategory = "page" | "header" | "symbol_date" | "title" | "recipients" | "body" | "signer";
+
+export interface RuleEvaluationResult {
+  ruleId: string;
+  category: RuleCategory;
+  title: string;
+  status: RuleEvaluationStatus;
+  message?: string;
+  targetId?: string;
+  autoFixable?: boolean;
+  actual?: string | number | boolean;
+  expected?: string | number | boolean;
+  fixValue?: string | number | boolean;
+}
+
+export interface DocumentEvaluationSummary {
+  isBlankDocument: boolean;
+  totalRules: number;
+  applicableRules: number;
+  passedRules: number;
+  failedRules: number;
+  missingRules: number;
+  notApplicableRules: number;
+  healthScore: number;
+  results: RuleEvaluationResult[];
+  issues: ValidationIssue[];
+}
+

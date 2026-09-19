@@ -56,6 +56,8 @@ import { FormDraftingView } from "./components/FormDraftingView";
 import { TemplateWizardModal } from "./components/TemplateWizardModal";
 import { KnowledgeBaseView } from "./components/KnowledgeBaseView";
 import { InspectionEditorView } from "./components/InspectionEditorView";
+import { evaluateDocumentRules } from "../rules/document-evaluator";
+import type { DocumentEvaluationSummary } from "../rules/models";
 import { getSuggestedQuickPrompts, buildAugmentedAiPrompt } from "../ai/contextual-pipeline";
 import { getAllKnowledgeRecords, saveCustomKnowledgeRecord, deleteCustomKnowledgeRecord } from "../knowledge/storage";
 import type { KnowledgeRecord } from "../knowledge/models";
@@ -136,10 +138,14 @@ export default function App() {
   const [status, setStatus] = useState("Sẵn sàng");
   const [selection, setSelection] = useState("");
   const [issues, setIssues] = useState<ValidationIssue[]>([]);
+  const [evaluationSummary, setEvaluationSummary] = useState<DocumentEvaluationSummary | null>(null);
   const [recognizedComponents, setRecognizedComponents] = useState<Array<ClassifiedComponent & { text: string }>>([]);
   const [ruleProfileId, setRuleProfileId] = useState<RuleProfileId>("IEMM");
   const [validationScope, setValidationScope] = useState<"selection" | "document">("selection");
   const [customerName, setCustomerName] = useState("");
+  const [legalBasisInputText, setLegalBasisInputText] = useState("");
+  const [signerRoleInput, setSignerRoleInput] = useState("GIÁM ĐỐC");
+  const [signerNameInput, setSignerNameInput] = useState("");
   const [userTemplates, setUserTemplates] = useState<TemplateRecord[]>([]);
   const [templateLibraryOpen, setTemplateLibraryOpen] = useState(false);
   const [templateOrg, setTemplateOrg] = useState<TemplateOrganization>("TVCI");
@@ -337,8 +343,21 @@ export default function App() {
       setActiveTab("library");
       return;
     }
+    const sectionMap: Record<string, string> = {
+      guidance: "reference-guidance",
+      builder: "template-builder",
+      drafting: "drafting-tools",
+    };
+    const scrollToSection = (sectionId: string) => {
+      setTimeout(() => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    };
+
     if (view === "builder" || view === "guidance" || view === "utilities") {
       setActiveTab("utilities");
+      const sectionId = sectionMap[view] || "drafting-tools";
+      scrollToSection(sectionId);
       return;
     }
     if (view === "knowledge") {
@@ -448,41 +467,35 @@ export default function App() {
     const profile = getRuleProfile(ruleProfileId);
     const snapshots = validationScope === "selection" ? await inspectSelectionParagraphs() : await inspectDocumentParagraphs();
     if (validationScope === "selection" && snapshots.length === 0) throw new Error("Hãy chọn ít nhất một đoạn văn bản trước khi kiểm tra.");
-    const paragraphIssues = snapshots.flatMap((snapshot) => validateParagraph(snapshot, profile.body));
-
-    const documentSnapshots = validationScope === "selection" ? snapshots : await inspectDocumentParagraphs();
-    const family = ruleProfileId === "DANG_05_HD_VPTW_2026" ? "PARTY" : "ADMINISTRATIVE";
-    const components = classifyDocumentComponents(documentSnapshots.map((snapshot) => snapshot.text), family);
-    setRecognizedComponents(components.map((component) => ({ ...component, text: documentSnapshots[component.paragraphIndex]?.text ?? "" })));
-    const componentIssues = components.flatMap((component) => {
-      const snapshot = documentSnapshots[component.paragraphIndex];
-      return snapshot ? validateComponentParagraph(snapshot, component.type, getComponentRule(ruleProfileId, component.type)) : [];
-    });
-    const addresseeIssues = components
-      .filter((component) => component.type === "ADDRESSEE")
-      .flatMap((component) => validateAddresseeBlock(
-        documentSnapshots,
-        component.paragraphIndex,
-        ruleProfileId,
-        (snapshot) => validateComponentParagraph(snapshot, "ADDRESSEE", getComponentRule(ruleProfileId, "ADDRESSEE")),
-      ));
-    const recipientsIssues = components
-      .filter((component) => component.type === "RECIPIENTS")
-      .flatMap((component) => validateRecipientsBlock(
-        documentSnapshots,
-        component.paragraphIndex,
-        (snapshot) => validateComponentParagraph(snapshot, "RECIPIENTS", getRecipientsItemRule(ruleProfileId)),
-      ));
-    const firstLegalBasis = components.find((component) => component.type === "LEGAL_BASIS");
-    const legalBasisIssues = firstLegalBasis ? validateLegalBasisBlock(documentSnapshots, firstLegalBasis.paragraphIndex, ruleProfileId) : [];
 
     const pageSnapshot = validationScope === "document" && profile.page ? await inspectPageSetup() : null;
-    const pageIssues = pageSnapshot && profile.page ? validatePageSetup(pageSnapshot, profile.page) : [];
-    const found = [...pageIssues, ...componentIssues, ...addresseeIssues, ...recipientsIssues, ...legalBasisIssues, ...paragraphIssues];
-    setIssues(found);
+    const summary = evaluateDocumentRules({
+      profileId: ruleProfileId,
+      validationScope,
+      paragraphSnapshots: snapshots,
+      pageSnapshot,
+      horizontalRuleSnapshot: null,
+    });
+
+    setEvaluationSummary(summary);
+
+    if (summary.isBlankDocument) {
+      setIssues([]);
+      setRecognizedComponents([]);
+      setStatus("Tài liệu chưa có nội dung để kiểm tra.");
+      return;
+    }
+
+    const family = ruleProfileId === "DANG_05_HD_VPTW_2026" ? "PARTY" : "ADMINISTRATIVE";
+    const components = classifyDocumentComponents(snapshots.map((s) => s.text), family);
+    setRecognizedComponents(components.map((component) => ({ ...component, text: snapshots[component.paragraphIndex]?.text ?? "" })));
+
+    setIssues(summary.issues);
     const pageNote = validationScope === "document" && profile.page && !pageSnapshot ? " Word hiện tại không hỗ trợ kiểm tra lề tự động." : "";
     const componentNote = ` Nhận diện ${components.length} thành phần thể thức.`;
-    setStatus(found.length ? `Phát hiện ${found.length} lỗi theo ${profile.name}.${componentNote}${pageNote}` : `Văn bản phù hợp ${profile.name}.${componentNote}${pageNote}`);
+    setStatus(
+      `Kiểm tra theo ${profile.name}: Đạt ${summary.passedRules}/${summary.applicableRules} tiêu chuẩn (${summary.healthScore}%).${componentNote}${pageNote}`
+    );
   });
 
   const handleFix = (issue: ValidationIssue) => run(async () => {
@@ -512,8 +525,63 @@ export default function App() {
   });
 
   const handleLocateIssue = (issue: ValidationIssue) => run(async () => {
-    await selectParagraphByTargetId(issue.targetId);
-    setStatus(`Đã chọn đoạn văn bản liên quan đến lỗi "${issue.message}".`);
+    const success = await selectParagraphByTargetId(issue.targetId);
+    if (success) {
+      setStatus(`Đã chọn đoạn văn bản liên quan đến lỗi "${issue.message}".`);
+    } else {
+      setStatus(`Không thể định vị trực tiếp đoạn văn bản cho mục "${issue.message}".`);
+    }
+  });
+
+  const handleInsertLegalBasisBlock = () => run(async () => {
+    const lines = legalBasisInputText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) throw new Error("Hãy nhập ít nhất một dòng căn cứ ban hành.");
+    await Word.run(async (context) => {
+      const selection = context.document.getSelection();
+      for (const raw of lines) {
+        let text = raw;
+        if (!/^Căn cứ\b/i.test(text)) text = `Căn cứ ${text}`;
+        const p = selection.insertParagraph(text, Word.InsertLocation.after);
+        p.font.name = "Times New Roman";
+        p.font.size = 13;
+        p.font.italic = true;
+        p.font.bold = false;
+        p.alignment = Word.Alignment.left;
+        p.firstLineIndent = 0;
+        p.spaceBefore = 0;
+        p.spaceAfter = 0;
+      }
+      await context.sync();
+    });
+    setStatus("Đã chèn khối Căn cứ ban hành chuẩn.");
+  });
+
+  const handleInsertSignerBlock = () => run(async () => {
+    const role = signerRoleInput.trim() || "GIÁM ĐỐC";
+    const name = signerNameInput.trim() || "Họ và tên";
+    await Word.run(async (context) => {
+      const selection = context.document.getSelection();
+      const roleP = selection.insertParagraph(role.toUpperCase(), Word.InsertLocation.after);
+      roleP.font.name = "Times New Roman";
+      roleP.font.size = 13;
+      roleP.font.bold = true;
+      roleP.font.italic = false;
+      roleP.alignment = Word.Alignment.right;
+      roleP.spaceBefore = 6;
+      roleP.spaceAfter = 48;
+
+      const nameP = roleP.insertParagraph(name, Word.InsertLocation.after);
+      nameP.font.name = "Times New Roman";
+      nameP.font.size = 13;
+      nameP.font.bold = true;
+      nameP.font.italic = false;
+      nameP.alignment = Word.Alignment.right;
+      nameP.spaceBefore = 0;
+      nameP.spaceAfter = 6;
+
+      await context.sync();
+    });
+    setStatus(`Đã chèn khối chữ ký: ${role} - ${name}.`);
   });
 
   const handleAskAiAboutIssue = (issue: ValidationIssue) => {
@@ -1282,12 +1350,14 @@ export default function App() {
           <div className="brandText">
             <div className="brandTitle1">{ADDIN_BRANDING.titleLines[0]}</div>
             {brandExpanded && (
-              <>
+              <details className="aboutTools" open>
+                <summary>Thông tin TVCI Tools</summary>
                 <div className="brandTitle2">{ADDIN_BRANDING.titleLines[1]}</div>
                 <div className="brandContact">{ADDIN_BRANDING.developerCredit}</div>
-              </>
+              </details>
             )}
           </div>
+          <div className="primaryTools" aria-label="Thao tác chính" style={{ display: "none" }} />
           <div className="brandLogo brandLogoRight">
             <img src={ADDIN_BRANDING.logos.tvci} alt="Logo Trung tâm Thử nghiệm - Kiểm định Công nghiệp" />
           </div>
@@ -1406,7 +1476,7 @@ export default function App() {
 
       {/* TAB 3: KHO BIỂU MẪU */}
       {activeTab === "library" && (
-        <section className="card" id="template-library">
+        <section className="card collapsibleCard" id="template-library">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <h2 style={{ margin: 0 }}>📋 Kho biểu mẫu ({filteredTemplates.length})</h2>
             <button
@@ -1478,7 +1548,7 @@ export default function App() {
 
           <label className="checkRow">
             <input type="checkbox" checked={showHiddenTemplates} onChange={(e) => setShowHiddenTemplates(e.target.checked)} />
-            Hiện biểu mẫu đã ẩn
+            Hiện mẫu đã ẩn
           </label>
 
           {/* Danh sách thẻ biểu mẫu */}
@@ -1569,6 +1639,7 @@ export default function App() {
                       onClick={() => handleMoveTemplate(template, "up")}
                       disabled={busy}
                       title="Đưa lên"
+                      aria-label="Đưa biểu mẫu lên"
                     >
                       ↑
                     </button>
@@ -1577,6 +1648,7 @@ export default function App() {
                       onClick={() => handleMoveTemplate(template, "down")}
                       disabled={busy}
                       title="Đưa xuống"
+                      aria-label="Đưa biểu mẫu xuống"
                     >
                       ↓
                     </button>
@@ -1624,6 +1696,7 @@ export default function App() {
       {activeTab === "inspect" && (
         <InspectionEditorView
           issues={issues}
+          evaluationSummary={evaluationSummary}
           recognizedComponents={recognizedComponents}
           ruleProfileId={ruleProfileId}
           validationScope={validationScope}
@@ -1644,7 +1717,7 @@ export default function App() {
       <button type="button" className="aiFloatingButton" onClick={() => setAiWorkspaceOpen(true)} aria-label="Mở AI Workspace">🤖</button>
       {aiWorkspaceOpen && (
         <section className="card aiWorkspaceModal" role="dialog" aria-label="AI Workspace">
-          <div className="aiWorkspaceHeader">
+          <div className="aiWorkspaceTopbar">
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <h2 style={{ margin: 0, fontSize: "13px", display: "flex", alignItems: "center", gap: 5 }}>
                 ✍️ Trợ lý Soạn thảo AI
@@ -2377,7 +2450,7 @@ export default function App() {
           </section>
 
           {/* Công cụ soạn thảo chuẩn */}
-          <section className="card" id="drafting-tools">
+          <section className="card collapsibleCard" id="drafting-tools">
             <h2>📐 Soạn thảo chuẩn</h2>
 
             <div className="sectionGroup">
@@ -2473,9 +2546,62 @@ export default function App() {
                 <button onClick={() => handleInsertRule("TITLE_ABSTRACT")} disabled={busy}>Chèn đường kẻ tiêu đề</button>
               </div>
             </div>
+
+            <div className="sectionGroup">
+              <strong>Tiêu đề đầu &amp; Chân trang (Header / Footer)</strong>
+              <div className="grid2">
+                <label className="checkRow">
+                  <input type="checkbox" checked={headerEnabled} onChange={(e) => setHeaderEnabled(e.target.checked)} />
+                  Bật Header
+                </label>
+                <label className="checkRow">
+                  <input type="checkbox" checked={footerEnabled} onChange={(e) => setFooterEnabled(e.target.checked)} />
+                  Bật Footer
+                </label>
+              </div>
+              <div className="grid2" style={{ marginTop: 6 }}>
+                <label>
+                  Nội dung Header
+                  <input value={headerText} onChange={(e) => setHeaderText(e.target.value)} placeholder="BẢN THẢO LƯU HÀNH NỘI BỘ" disabled={!headerEnabled} />
+                </label>
+                <label>
+                  Nội dung Footer
+                  <input value={footerText} onChange={(e) => setFooterText(e.target.value)} placeholder="Trung tâm TVCI · Hotline..." disabled={!footerEnabled} />
+                </label>
+              </div>
+              <div className="toolButtons" style={{ marginTop: 6 }}>
+                <button onClick={handleApplyHeaderFooter} disabled={busy}>Áp dụng Header / Footer</button>
+              </div>
+            </div>
+
+            <div className="sectionGroup">
+              <strong>Căn cứ ban hành &amp; Khối chữ ký</strong>
+              <label>
+                Căn cứ ban hành (mỗi dòng một căn cứ)
+                <textarea
+                  value={legalBasisInputText}
+                  onChange={(e) => setLegalBasisInputText(e.target.value)}
+                  placeholder="Căn cứ Luật Tiêu chuẩn và Quy chuẩn kỹ thuật ngày 29 tháng 6 năm 2006;&#10;Căn cứ Quyết định số 123/QĐ-TVCI ngày 15 tháng 01 năm 2026..."
+                  rows={3}
+                />
+              </label>
+              <button onClick={handleInsertLegalBasisBlock} disabled={busy} style={{ marginBottom: 8 }}>Chèn Khối Căn cứ ban hành</button>
+
+              <div className="grid2">
+                <label>
+                  Chức danh ký
+                  <input value={signerRoleInput} onChange={(e) => setSignerRoleInput(e.target.value)} placeholder="GIÁM ĐỐC" />
+                </label>
+                <label>
+                  Họ tên người ký
+                  <input value={signerNameInput} onChange={(e) => setSignerNameInput(e.target.value)} placeholder="Nguyễn Văn A" />
+                </label>
+              </div>
+              <button onClick={handleInsertSignerBlock} disabled={busy} style={{ marginTop: 6 }}>Chèn Khối Chữ ký chuẩn</button>
+            </div>
           </section>
 
-          <section className="card" id="template-builder">
+          <section className="card collapsibleCard" id="template-builder">
             <h2>⚙️ Tạo biểu mẫu &amp; Content Control</h2>
             <button
               type="button"
@@ -2536,7 +2662,7 @@ export default function App() {
             </div>
           </section>
 
-          <section className="card" id="reference-guidance">
+          <section className="card collapsibleCard" id="reference-guidance">
             <h2>📖 Hướng dẫn nhanh từ tài liệu nguồn</h2>
             <input
               value={referenceQuery}

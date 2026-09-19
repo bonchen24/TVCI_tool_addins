@@ -1,4 +1,4 @@
-﻿# Dependencies
+# Dependencies
 node_modules/
 .pnpm-store/
 
@@ -22,4 +22,5 @@ temp-format-audit/
 *.pdf
 *.png
 *.xml
+!manifest/manifest.xml
 test_*.docx

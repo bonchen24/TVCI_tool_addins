@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from "react";
-import type { ValidationIssue } from "../../rules/models";
+import type { DocumentEvaluationSummary, ValidationIssue } from "../../rules/models";
 import type { ClassifiedComponent } from "../../rules/component-classifier";
 import { ACTIVE_RULE_PROFILES, getRuleProfile, type RuleProfileId } from "../../rules/profiles";
 
 export interface InspectionEditorViewProps {
   issues: ValidationIssue[];
+  evaluationSummary?: DocumentEvaluationSummary | null;
   recognizedComponents: Array<ClassifiedComponent & { text: string }>;
   ruleProfileId: RuleProfileId;
   validationScope: "selection" | "document";
@@ -58,6 +59,7 @@ function classifyIssueCategory(issue: ValidationIssue): IssueCategoryGroup {
 
 export function InspectionEditorView({
   issues,
+  evaluationSummary,
   recognizedComponents,
   ruleProfileId,
   validationScope,
@@ -175,40 +177,93 @@ export function InspectionEditorView({
       </section>
 
       {/* Document Health Status Card */}
-      <div
-        style={{
-          background: issues.length === 0 ? "#f0fdf4" : "#f8fafc",
-          border: issues.length === 0 ? "1px solid #bbf7d0" : "1px solid #e2e8f0",
-          borderRadius: "6px",
-          padding: "8px 10px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 6,
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <strong style={{ fontSize: "11.5px", color: "#0f172a" }}>📊 TÌNH TRẠNG THỂ THỨC VĂN BẢN</strong>
-          <span
-            style={{
-              fontSize: "11px",
-              fontWeight: 700,
-              color: issues.length === 0 ? "#166534" : issues.length > 5 ? "#b91c1c" : "#b45309",
-            }}
-          >
-            Đã đạt {Math.max(0, 27 - Math.min(issues.length, 27))} / 27 tiêu chuẩn kiểm tra
-          </span>
+      {evaluationSummary?.isBlankDocument ? (
+        <div
+          style={{
+            background: "#fffbeb",
+            border: "1px solid #fef3c7",
+            borderRadius: "6px",
+            padding: "10px 12px",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            color: "#92400e",
+            fontSize: "12px",
+          }}
+        >
+          <span style={{ fontSize: "18px" }}>ℹ️</span>
+          <div>
+            <strong>Tài liệu chưa có nội dung để kiểm tra.</strong>
+            <div style={{ fontSize: "11px", color: "#b45309", marginTop: 2 }}>
+              Hãy nhập hoặc dán nội dung văn bản để bắt đầu kiểm tra thể thức.
+            </div>
+          </div>
         </div>
+      ) : evaluationSummary ? (
+        <div
+          style={{
+            background: evaluationSummary.healthScore === 100 ? "#f0fdf4" : "#f8fafc",
+            border: evaluationSummary.healthScore === 100 ? "1px solid #bbf7d0" : "1px solid #e2e8f0",
+            borderRadius: "6px",
+            padding: "8px 10px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <strong style={{ fontSize: "11.5px", color: "#0f172a" }}>📊 TÌNH TRẠNG THỂ THỨC VĂN BẢN</strong>
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: 700,
+                color:
+                  evaluationSummary.healthScore >= 90
+                    ? "#166534"
+                    : evaluationSummary.healthScore >= 60
+                    ? "#b45309"
+                    : "#b91c1c",
+              }}
+            >
+              Đã đạt {evaluationSummary.passedRules} / {evaluationSummary.applicableRules} tiêu chuẩn kiểm tra ({evaluationSummary.healthScore}%)
+            </span>
+          </div>
 
-        {/* Health status checklist items */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 8px", fontSize: "11px" }}>
-          <div>{categoryCounts.page ? `✕ Bố cục trang: ${categoryCounts.page} lỗi` : "✓ Khổ giấy & lề A4"}</div>
-          <div>{categoryCounts.header ? `✕ Tiêu đề: ${categoryCounts.header} lỗi` : "✓ Quốc hiệu & Tiêu đề"}</div>
-          <div>{categoryCounts.symbol_date ? `✕ Số/ngày: ${categoryCounts.symbol_date} lỗi` : "✓ Số & Ngày tháng"}</div>
-          <div>{categoryCounts.recipients ? `⚠ Kính gửi/Nơi nhận: ${categoryCounts.recipients} lỗi` : "✓ Kính gửi & Nơi nhận"}</div>
-          <div>{categoryCounts.body ? `✕ Căn lề & khoảng cách: ${categoryCounts.body} lỗi` : "✓ Khoảng cách & phông chữ"}</div>
-          <div>✓ Chữ ký & Phụ lục</div>
+          {/* Health status checklist items */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 8px", fontSize: "11px" }}>
+            {(() => {
+              const renderCat = (cat: string, label: string) => {
+                const catRules = evaluationSummary.results.filter(
+                  (r) => r.category === cat && r.status !== "NOT_APPLICABLE",
+                );
+                if (catRules.length === 0) {
+                  return <span style={{ color: "#64748b" }}>- {label}: Không áp dụng</span>;
+                }
+                const failCount = catRules.filter((r) => r.status === "FAIL").length;
+                const missingCount = catRules.filter((r) => r.status === "MISSING").length;
+                if (failCount > 0) {
+                  return <span style={{ color: "#b91c1c" }}>✕ {label}: {failCount} lỗi</span>;
+                }
+                if (missingCount > 0) {
+                  return <span style={{ color: "#b45309" }}>⚠ {label}: Thiếu thành phần</span>;
+                }
+                return <span style={{ color: "#166534" }}>✓ {label}: Đạt chuẩn</span>;
+              };
+
+              return (
+                <>
+                  <div>{renderCat("page", "Bố cục trang & lề A4")}</div>
+                  <div>{renderCat("header", "Quốc hiệu & Tiêu đề")}</div>
+                  <div>{renderCat("symbol_date", "Số & Ngày tháng")}</div>
+                  <div>{renderCat("recipients", "Kính gửi & Nơi nhận")}</div>
+                  <div>{renderCat("body", "Khoảng cách & phông chữ")}</div>
+                  <div>{renderCat("signer", "Chữ ký & Họ tên")}</div>
+                </>
+              );
+            })()}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {/* Auto-fix toolbar when safe fixes exist */}
       {autoFixableCount > 0 && (
