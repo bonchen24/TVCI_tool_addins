@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./styles.css";
 import { readSelection, readDocumentText, replaceSelection, replaceSelectionIfMatches, insertBelowSelection, insertBelowSelectionIfMatches, replaceFirstInSelection } from "../word/selection.service";
-import { inspectSelectionParagraphs, inspectDocumentParagraphs, applyIssueFix, applyTextIssueFix, selectParagraphByTargetId } from "../word/formatting.service";
+import { inspectSelectionParagraphs, inspectDocumentParagraphs, applyIssueFix, applyTextIssueFix, selectParagraphByTargetId, applyInversePatches } from "../word/formatting.service";
+import { TransactionManager } from "../word/transaction.service";
 import { validateParagraph } from "../rules/validator";
 import { classifyDocumentComponents, type ClassifiedComponent } from "../rules/component-classifier";
 import { getComponentRule, getRecipientsItemRule } from "../rules/component-rules";
@@ -67,8 +68,22 @@ import { suggestMatchingTemplates, mapDraftToFormValues, decomposeDraftIntoFormF
 import { detectDocumentContext, type AutoDetectResult } from "../rules/auto-detect.service";
 import { profileStorage } from "../profiles/profile-storage";
 import { DraftingProfilesView } from "./components/DraftingProfilesView";
+import { AiTaskpaneView } from "./components/AiTaskpaneView";
+import { DocumentSettingsModal } from "./components/DocumentSettingsModal";
+import { InspectionModal } from "./components/InspectionModal";
+import { TemplateLibraryModal } from "./components/TemplateLibraryModal";
+import { KnowledgeModal } from "./components/KnowledgeModal";
+import { applyA4Margins } from "../word/page-toolkit.service";
+import {
+  loadSavedSettings,
+  saveDefaultSettings,
+  saveAndApplySettings,
+  applySettingsToWord,
+  type DocumentSettings,
+} from "../models/document-settings";
 
 type AppMainTab = "drafting" | "inspect" | "library" | "knowledge" | "utilities";
+type ActiveModalType = "none" | "document_settings" | "inspect" | "template_library" | "template_wizard" | "knowledge" | "ai_settings";
 
 const TEMPLATE_ORGANIZATIONS: Array<{ value: TemplateOrganization; label: string }> = [
   { value: "TVCI", label: "TVCI" },
@@ -135,6 +150,9 @@ export default function App() {
   };
 
   const [activeTab, setActiveTab] = useState<AppMainTab>("drafting");
+  const [activeModal, setActiveModal] = useState<ActiveModalType>("none");
+  const [documentSettings, setDocumentSettings] = useState<DocumentSettings>(() => loadSavedSettings());
+  const [templateLibraryFilter, setTemplateLibraryFilter] = useState<"all" | "recent" | "favorite">("all");
   const [status, setStatus] = useState("Sẵn sàng");
   const [selection, setSelection] = useState("");
   const [issues, setIssues] = useState<ValidationIssue[]>([]);
@@ -329,43 +347,38 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const view = params.get("view");
-    if (view === "ai" || view === "proofread") {
-      const tab = params.get("tab");
-      setAiWorkspaceOpen(true);
-      setAiWorkspaceTab(view === "proofread" ? "proofread" : tab === "template" ? "template" : "chat");
+    const filter = params.get("filter") as "recent" | "favorite" | null;
+
+    if (view === "settings" || view === "doc_settings") {
+      setActiveModal("document_settings");
       return;
     }
-    if (view === "standardize" || view === "inspect" || view === "addressee" || view === "recipients" || view === "appendix") {
-      setActiveTab("inspect");
+    if (view === "standardize" || view === "inspect") {
+      setActiveModal("inspect");
+      void handleCheck();
       return;
     }
     if (view === "library") {
-      setActiveTab("library");
+      setActiveModal("template_library");
+      if (filter === "recent" || filter === "favorite") {
+        setTemplateLibraryFilter(filter);
+      }
       return;
     }
-    const sectionMap: Record<string, string> = {
-      guidance: "reference-guidance",
-      builder: "template-builder",
-      drafting: "drafting-tools",
-    };
-    const scrollToSection = (sectionId: string) => {
-      setTimeout(() => {
-        document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
-    };
-
-    if (view === "builder" || view === "guidance" || view === "utilities") {
-      setActiveTab("utilities");
-      const sectionId = sectionMap[view] || "drafting-tools";
-      scrollToSection(sectionId);
+    if (view === "builder") {
+      setActiveModal("template_wizard");
       return;
     }
     if (view === "knowledge") {
-      setActiveTab("knowledge");
+      setActiveModal("knowledge");
       return;
     }
-    if (view === "drafting") {
-      setActiveTab("drafting");
+    if (view === "settings_modal") {
+      setActiveModal("ai_settings");
+      return;
+    }
+    if (view === "ai" || view === "proofread" || view === "drafting") {
+      setActiveModal("none");
       return;
     }
   }, []);
@@ -522,6 +535,24 @@ export default function App() {
     }
     await handleCheck();
     setStatus(`Đã tự động sửa thành công ${fixed}/${safeIssues.length} lỗi thể thức an toàn.`);
+  });
+
+  const handle1ClickStandardize = () => run(async () => {
+    await applyA4Margins();
+    await handleFixAllSafeIssues();
+    setStatus("Đã hoàn tất Chuẩn hóa 1-click (Lề A4 + Sửa toàn bộ lỗi an toàn).");
+  });
+
+  const handleRollbackLastAction = () => run(async () => {
+    const txManager = new TransactionManager();
+    const tx = await txManager.getLatestTransaction();
+    if (tx && tx.inversePatches && tx.inversePatches.length > 0) {
+      await applyInversePatches(tx.inversePatches);
+      await txManager.clearHistory();
+      setStatus("Đã hoàn tác thao tác chuẩn hóa gần nhất.");
+    } else {
+      setStatus("Không có thao tác nào trong lịch sử để hoàn tác.");
+    }
   });
 
   const handleLocateIssue = (issue: ValidationIssue) => run(async () => {
@@ -1340,1353 +1371,185 @@ export default function App() {
   });
 
   return (
-    <main className="app">
-      {/* Brand Header: Slim & Collapsible */}
-      <header className={`brandHeader ${brandExpanded ? "expanded" : "collapsed"}`}>
-        <div className="brandTopRow">
-          <div className="brandLogo brandLogoLeft">
-            <img src={ADDIN_BRANDING.logos.iemm} alt="Logo Viện Cơ khí Năng lượng và Mỏ - Vinacomin" />
-          </div>
-          <div className="brandText">
-            <div className="brandTitle1">{ADDIN_BRANDING.titleLines[0]}</div>
-            {brandExpanded && (
-              <details className="aboutTools" open>
-                <summary>Thông tin TVCI Tools</summary>
-                <div className="brandTitle2">{ADDIN_BRANDING.titleLines[1]}</div>
-                <div className="brandContact">{ADDIN_BRANDING.developerCredit}</div>
-              </details>
-            )}
-          </div>
-          <div className="primaryTools" aria-label="Thao tác chính" style={{ display: "none" }} />
-          <div className="brandLogo brandLogoRight">
-            <img src={ADDIN_BRANDING.logos.tvci} alt="Logo Trung tâm Thử nghiệm - Kiểm định Công nghiệp" />
-          </div>
+    <main className="app" style={{ height: "100vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      {status && (
+        <div
+          className="appStatusBanner"
+          aria-live="polite"
+          style={{
+            background: "#eff6ff",
+            color: "#1e40af",
+            padding: "6px 12px",
+            fontSize: "12px",
+            borderBottom: "1px solid #bfdbfe",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexShrink: 0,
+            zIndex: 10,
+          }}
+        >
+          <span>{status}</span>
           <button
             type="button"
-            className="brandToggleBtn"
-            onClick={toggleBrand}
-            title={brandExpanded ? "Thu gọn phần nhận diện" : "Mở rộng thông tin nhận diện"}
-            aria-label={brandExpanded ? "Thu gọn" : "Mở rộng"}
+            onClick={() => setStatus("")}
+            style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: "14px", lineHeight: 1 }}
+            aria-label="Đóng thông báo"
           >
-            {brandExpanded ? "▲" : "▼"}
+            ✕
           </button>
         </div>
-      </header>
-
-      {/* Main Navigation Tabs */}
-      <nav className="mainNav" aria-label="Điều hướng chính">
-        <button
-          type="button"
-          className={activeTab === "drafting" ? "navTab active" : "navTab"}
-          onClick={() => setActiveTab("drafting")}
-        >
-          <span className="navIcon">✍️</span>
-          <span>Soạn thảo</span>
-        </button>
-        <button
-          type="button"
-          className={activeTab === "inspect" ? "navTab active" : "navTab"}
-          onClick={() => setActiveTab("inspect")}
-        >
-          <span className="navIcon">🔍</span>
-          <span>Kiểm tra</span>
-        </button>
-        <button
-          type="button"
-          className={activeTab === "library" ? "navTab active" : "navTab"}
-          onClick={() => setActiveTab("library")}
-        >
-          <span className="navIcon">📋</span>
-          <span>Biểu mẫu</span>
-        </button>
-        <button
-          type="button"
-          className={activeTab === "knowledge" ? "navTab active" : "navTab"}
-          onClick={() => setActiveTab("knowledge")}
-        >
-          <span className="navIcon">💡</span>
-          <span>Kiến thức</span>
-        </button>
-        <button
-          type="button"
-          className={activeTab === "utilities" ? "navTab active" : "navTab"}
-          onClick={() => setActiveTab("utilities")}
-        >
-          <span className="navIcon">⚙️</span>
-          <span>Tiện ích</span>
-        </button>
-      </nav>
-
-      {/* Status Bar */}
-      <div role="status" aria-live="polite" className={`status ${busy ? "busy" : ""}`}>
-        {busy ? "Đang xử lý…" : status}
-      </div>
-
-      {/* TAB 1: SOẠN THẢO */}
-      {activeTab === "drafting" && (
-        <section className="tabContent" id="drafting-hub">
-          {activeFormTemplate && activeFormSchema ? (
-            <FormDraftingView
-              template={activeFormTemplate}
-              schema={activeFormSchema}
-              values={templateFormValues}
-              sourceText={templateFormSource}
-              suggestions={templateFormSuggestions}
-              busy={busy}
-              syncMessage={templateFormSyncMessage}
-              relatedKnowledgeCount={relatedKnowledgeCount}
-              onOpenRelatedKnowledge={() => setActiveTab("knowledge")}
-              onChange={handleTemplateFormChange}
-              onClose={handleCloseTemplateForm}
-              onInsertBlank={() => handleInsertTemplateBlank(activeFormTemplate)}
-              onInsertAndFill={() => handleInsertTemplateAndFill(activeFormTemplate)}
-              onApplyToWord={handleApplyTemplateForm}
-              onSaveDraft={handleSaveDraftExplicit}
-              onChangeTemplate={() => setActiveFormTemplate(null)}
-              onSourceTextChange={setTemplateFormSource}
-              onSuggestAi={handleSuggestTemplateForm}
-              onAcceptAi={handleAcceptTemplateFormAi}
-              onReviewAi={handleReviewTemplateFormAi}
-              onAiValueChange={handleTemplateFormAiValueChange}
-            />
-          ) : (
-            <SmartStartScreen
-              hasDocumentContent={hasDocumentContent}
-              docStats={docStats}
-              autoDetectResult={autoDetectResult}
-              pendingDraft={pendingDraft}
-              pendingDraftTemplateName={pendingDraftTemplateName}
-              recentTemplates={recentTemplates}
-              favoriteTemplates={favoriteTemplates}
-              onInspectDocument={() => {
-                setActiveTab("inspect");
-                void handleCheck();
-              }}
-              onNewDocument={() => setActiveTab("library")}
-              onChangeRuleProfile={() => setActiveTab("inspect")}
-              onResumeDraft={handleResumeDraft}
-              onDiscardDraft={handleDiscardDraft}
-              onSelectTemplate={handleOpenTemplateForm}
-              onToggleFavorite={handleToggleFavorite}
-              onOpenLibrary={() => setActiveTab("library")}
-            />
-          )}
-        </section>
       )}
-
-      {/* TAB 3: KHO BIỂU MẪU */}
-      {activeTab === "library" && (
-        <section className="card collapsibleCard" id="template-library">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <h2 style={{ margin: 0 }}>📋 Kho biểu mẫu ({filteredTemplates.length})</h2>
-            <button
-              type="button"
-              className="primary"
-              style={{ fontSize: "11px", padding: "4px 8px" }}
-              onClick={() => setWizardOpen(true)}
-              title="Mở Wizard hướng dẫn 5 bước tạo biểu mẫu mới"
-            >
-              ➕ Thêm mẫu mới
-            </button>
-          </div>
-
-          <div className="orgTabs">
-            {TEMPLATE_ORGANIZATIONS.map((org) => (
-              <button
-                key={org.value}
-                className={templateOrg === org.value ? "active" : ""}
-                onClick={() => handleTemplateOrgChange(org.value)}
-              >
-                {org.label}
-              </button>
-            ))}
-          </div>
-
-          {templateOrg === "TVCI" && (
-            <div className="tvciSubTabs">
-              {TVCI_TEMPLATE_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  disabled={!tab.enabled}
-                  title={tab.enabled ? tab.label : "Dành chỗ để bổ sung phòng ban sau"}
-                  className={templateDepartment === tab.label ? "subTab active" : "subTab"}
-                  onClick={() => tab.enabled && setTemplateDepartment(tab.label)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className="searchBar">
-            <input
-              value={templateQuery}
-              onChange={(e) => setTemplateQuery(e.target.value)}
-              placeholder="Tìm kiếm tên, ký hiệu biểu mẫu..."
-            />
-          </div>
-
-          <div className="grid2">
-            {templateOrg !== "TVCI" && templateOrg !== "DANG" && (
-              <label>
-                Phòng ban
-                <select value={templateDepartment} onChange={(e) => setTemplateDepartment(e.target.value)}>
-                  <option value="">Tất cả</option>
-                  {departments.map((value) => <option key={value}>{value}</option>)}
-                </select>
-              </label>
-            )}
-            <label>
-              Loại văn bản
-              <select value={templateType} onChange={(e) => setTemplateType(e.target.value)}>
-                <option value="">Tất cả</option>
-                {(templateOrg === "DANG" ? partyDocumentTypes : documentTypes).map((value) => <option key={value}>{value}</option>)}
-              </select>
-            </label>
-          </div>
-
-          <label className="checkRow">
-            <input type="checkbox" checked={showHiddenTemplates} onChange={(e) => setShowHiddenTemplates(e.target.checked)} />
-            Hiện mẫu đã ẩn
-          </label>
-
-          {/* Danh sách thẻ biểu mẫu */}
-          <div className="templateList">
-            {filteredTemplates.map((template) => (
-              <div className={`templateCard ${template.hidden ? "templateHidden" : ""}`} key={template.id}>
-                <div
-                  className="templateCardHeader"
-                  onClick={() => handleOpenTemplateForm(template)}
-                  style={{ cursor: "pointer" }}
-                  title="Bấm để mở biểu mẫu và soạn thảo"
-                >
-                  <div>
-                    <div className="templateName">
-                      {favoriteIds.includes(template.id) ? "⭐ " : template.isDefault ? "★ " : ""}{template.name}
-                    </div>
-                    <div className="templateTags">
-                      <span className="tagBadge">{template.organization}</span>
-                      <span className="tagBadge">{template.department}</span>
-                      <span className="tagBadge">{template.documentType}</span>
-                      <span className="tagBadge">v{template.version}</span>
-                      {template.source.kind === "user" && <span className="tagBadge user">Cá nhân</span>}
-                      {template.isDefault && <span className="tagBadge default">Mặc định</span>}
-                      {template.hidden && <span className="tagBadge">Đã ẩn</span>}
-                    </div>
-                  </div>
-                </div>
-
-                {(template.description || template.symbolHint || template.usageNotes?.length || template.referenceSources?.length) ? (
-                  <details className="templateDetails">
-                    <summary>Chi tiết mẫu &amp; hướng dẫn</summary>
-                    <div className="templateDetailsBody">
-                      {template.description && <small>{template.description}</small>}
-                      {template.symbolHint && <small><strong>Ký hiệu:</strong> {template.symbolHint}</small>}
-                      {template.usageNotes?.length ? <small><strong>Lưu ý:</strong> {template.usageNotes.join(" · ")}</small> : null}
-                      {template.referenceSources?.length ? <small>Tham chiếu: {template.referenceSources.join("; ")}</small> : null}
-                    </div>
-                  </details>
-                ) : null}
-
-                <div className="templateActionsRow">
-                  <div className="templatePrimaryActions">
-                    <button
-                      type="button"
-                      onClick={() => handleInsertTemplateBlank(template)}
-                      disabled={busy || template.hidden}
-                      title="Chèn nguyên văn bản mẫu vào Word"
-                    >
-                      Chèn mẫu trống
-                    </button>
-                    <button
-                      type="button"
-                      className="primary"
-                      onClick={() => handleOpenTemplateForm(template)}
-                      disabled={busy || template.hidden}
-                      title="Mở form để điền thông tin vào mẫu"
-                    >
-                      Mở form
-                    </button>
-                  </div>
-                  <div className="templateSecondaryActions">
-                    <button
-                      type="button"
-                      onClick={() => handleToggleFavorite(template.id)}
-                      disabled={busy}
-                      title={favoriteIds.includes(template.id) ? "Bỏ yêu thích" : "Đánh dấu yêu thích"}
-                    >
-                      {favoriteIds.includes(template.id) ? "⭐" : "☆"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSetDefault(template)}
-                      disabled={busy || template.hidden}
-                      title="Đặt làm biểu mẫu mặc định"
-                    >
-                      {template.isDefault ? "★" : "☆"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleToggleHidden(template)}
-                      disabled={busy}
-                      title={template.hidden ? "Hiện mẫu" : "Ẩn mẫu"}
-                    >
-                      {template.hidden ? "Hiện" : "Ẩn"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleMoveTemplate(template, "up")}
-                      disabled={busy}
-                      title="Đưa lên"
-                      aria-label="Đưa biểu mẫu lên"
-                    >
-                      ↑
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleMoveTemplate(template, "down")}
-                      disabled={busy}
-                      title="Đưa xuống"
-                      aria-label="Đưa biểu mẫu xuống"
-                    >
-                      ↓
-                    </button>
-                    {template.source.kind === "user" && (
-                      <>
-                        <button type="button" onClick={() => handleEditTemplate(template)} disabled={busy} title="Sửa thông tin">
-                          Sửa
-                        </button>
-                        <button type="button" onClick={() => handleDeleteTemplate(template)} disabled={busy} title="Xóa mẫu">
-                          Xóa
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {!filteredTemplates.length && <div className="empty">{templateEmptyMessage}</div>}
-
-          <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid #f1f5f9" }}>
-            <label>
-              Điền nhanh Tên khách hàng (Content Control)
-              <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="VD: CÔNG TY TNHH ABC..." />
-            </label>
-            <button onClick={handleFillCustomer} disabled={busy}>Điền trường TEN_KHACH_HANG</button>
-          </div>
-        </section>
-      )}
-
-      {/* TAB 4: KHO KIẾN THỨC */}
-      {activeTab === "knowledge" && (
-        <section className="card" id="knowledge-base" style={{ padding: 0, border: "none", background: "transparent" }}>
-          <KnowledgeBaseView
-            records={knowledgeRecords}
-            onSaveRecord={handleSaveKnowledgeRecord}
-            onDeleteRecord={handleDeleteKnowledgeRecord}
-            onNotify={(msg) => setStatus(msg)}
+      {/* If a template form is open, render FormDraftingView */}
+      {activeFormTemplate && activeFormSchema ? (
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          <FormDraftingView
+            template={activeFormTemplate}
+            schema={activeFormSchema}
+            values={templateFormValues}
+            sourceText={templateFormSource}
+            suggestions={templateFormSuggestions}
+            busy={busy}
+            syncMessage={templateFormSyncMessage}
+            relatedKnowledgeCount={relatedKnowledgeCount}
+            onOpenRelatedKnowledge={() => setActiveModal("knowledge")}
+            onChange={handleTemplateFormChange}
+            onClose={handleCloseTemplateForm}
+            onInsertBlank={() => handleInsertTemplateBlank(activeFormTemplate)}
+            onInsertAndFill={() => handleInsertTemplateAndFill(activeFormTemplate)}
+            onApplyToWord={handleApplyTemplateForm}
+            onSaveDraft={handleSaveDraftExplicit}
+            onChangeTemplate={() => setActiveFormTemplate(null)}
+            onSourceTextChange={setTemplateFormSource}
+            onSuggestAi={handleSuggestTemplateForm}
+            onAcceptAi={handleAcceptTemplateFormAi}
+            onReviewAi={handleReviewTemplateFormAi}
+            onAiValueChange={handleTemplateFormAiValueChange}
           />
-        </section>
-      )}
-
-      {/* TAB 2: KIỂM TRA THỂ THỨC */}
-      {activeTab === "inspect" && (
-        <InspectionEditorView
-          issues={issues}
-          evaluationSummary={evaluationSummary}
-          recognizedComponents={recognizedComponents}
-          ruleProfileId={ruleProfileId}
-          validationScope={validationScope}
-          selection={selection}
+        </div>
+      ) : (
+        /* Primary Taskpane View: Single-purpose, distraction-free AI Drafting */
+        <AiTaskpaneView
+          documentSettings={documentSettings}
+          onOpenDocumentSettings={() => setActiveModal("document_settings")}
+          onOpenAiSettings={() => setAiSettingsModalOpen(true)}
+          messages={chatHistory}
           busy={busy}
-          onRuleProfileChange={setRuleProfileId}
-          onValidationScopeChange={setValidationScope}
-          onReadSelection={handleRead}
-          onCheck={handleCheck}
-          onFixIssue={handleFix}
-          onFixAllSafe={handleFixAllSafeIssues}
-          onLocateIssue={handleLocateIssue}
-          onAskAiAboutIssue={handleAskAiAboutIssue}
+          onSendMessage={async (text, style, att) => {
+            if (att) setChatAttachments([att]);
+            setWritingStyle(style);
+            await handleSendChat(text);
+          }}
+          onNewConversation={handleNewChat}
+          onApplyText={async (text) => {
+            await run(async () => {
+              await applyActivePageRules();
+              if (selection.trim()) {
+                await replaceSelection(text);
+              } else {
+                await insertBelowSelection(text);
+              }
+              setStatus("Đã áp dụng nội dung AI vào văn bản.");
+            });
+          }}
+          onReplaceSelection={async (text) => {
+            await run(async () => {
+              await applyActivePageRules();
+              await replaceSelection(text);
+              setStatus("Đã thay thế đoạn đang chọn bằng văn bản AI.");
+            });
+          }}
+          onInsertBelow={async (text) => {
+            await run(async () => {
+              await applyActivePageRules();
+              await insertBelowSelection(text);
+              setStatus("Đã chèn nội dung AI bên dưới vùng chọn.");
+            });
+          }}
+          onCopyText={copyText}
+          onSaveToKnowledge={async (text) => {
+            try {
+              const rec: KnowledgeRecord = {
+                id: `k-custom-${Date.now()}`,
+                category: "experience",
+                scope: (documentSettings.agency.agencyAbbr as any) || "TVCI",
+                title: `Kinh nghiệm AI: ${text.slice(0, 40)}...`,
+                content: text,
+                tags: ["ai", "kinh-nghiem"],
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              };
+              await handleSaveKnowledgeRecord(rec);
+              setStatus("Đã lưu nội dung vào Kho Kiến thức nghiệp vụ.");
+            } catch (err) {
+              setStatus(`Lỗi lưu kiến thức: ${err instanceof Error ? err.message : String(err)}`);
+            }
+          }}
+          onRollback={handleRollbackLastAction}
+          hasSelection={Boolean(selection.trim())}
+          selectionWordCount={selection.trim() ? selection.trim().split(/\s+/).length : 0}
         />
       )}
 
-      {/* Floating AI Workspace */}
-      <button type="button" className="aiFloatingButton" onClick={() => setAiWorkspaceOpen(true)} aria-label="Mở AI Workspace">🤖</button>
-      {aiWorkspaceOpen && (
-        <section className="card aiWorkspaceModal" role="dialog" aria-label="AI Workspace">
-          <div className="aiWorkspaceTopbar">
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <h2 style={{ margin: 0, fontSize: "13px", display: "flex", alignItems: "center", gap: 5 }}>
-                ✍️ Trợ lý Soạn thảo AI
-              </h2>
-              <span
-                style={{
-                  fontSize: "10px",
-                  padding: "2px 6px",
-                  borderRadius: "8px",
-                  background: "#e0f2fe",
-                  color: "#0369a1",
-                  fontWeight: 600,
-                }}
-                title="Mô hình AI đang kết nối"
-              >
-                ⚡ {aiProvider === "gemini" ? "Gemini" : "OpenAI"}: {aiModel || defaultModelFor(aiProvider)}
-              </span>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <button
-                type="button"
-                onClick={() => setAiSettingsModalOpen(true)}
-                title="Cài đặt kết nối API AI & Quản lý mô hình"
-                style={{
-                  fontSize: "10.5px",
-                  padding: "3px 7px",
-                  background: "#f1f5f9",
-                  border: "1px solid #cbd5e1",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 3,
-                  fontWeight: 600,
-                  color: "#334155",
-                }}
-              >
-                ⚙️ Cài đặt
-              </button>
-              <button type="button" onClick={() => setAiWorkspaceOpen(false)} aria-label="Đóng AI Workspace" style={{ fontSize: "12px", padding: "2px 6px" }}>✕</button>
-            </div>
-          </div>
+      {/* MODAL 1: Thiết lập Văn bản */}
+      <DocumentSettingsModal
+        isOpen={activeModal === "document_settings"}
+        onClose={() => setActiveModal("none")}
+        onApply={async (s) => {
+          await applySettingsToWord(s);
+          setDocumentSettings(s);
+          setStatus("Đã áp dụng định dạng cho tài liệu hiện tại.");
+        }}
+        onSaveDefault={(s) => {
+          saveDefaultSettings(s);
+          setDocumentSettings(s);
+          setStatus("Đã lưu thiết lập mặc định.");
+        }}
+        onSaveAndApply={async (s) => {
+          await saveAndApplySettings(s);
+          setDocumentSettings(s);
+          setStatus("Đã lưu mặc định và áp dụng thành công.");
+        }}
+      />
 
-          {/* Context Recognition Banner */}
-          <div
-            style={{
-              background: "#e0f2fe",
-              border: "1px solid #bae6fd",
-              borderRadius: "5px",
-              padding: "4px 8px",
-              marginBottom: 6,
-              fontSize: "10.5px",
-              color: "#0369a1",
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-            }}
-          >
-            <span style={{ fontSize: "12px" }}>🎯</span>
-            <div>
-              <strong>Ngữ cảnh:</strong>{" "}
-              {activeFormTemplate
-                ? `Đang soạn "${activeFormTemplate.name}" (${activeFormTemplate.organization})`
-                : activeTab === "inspect"
-                ? `Kiểm tra thể thức (${issues.length} vấn đề)`
-                : activeTab === "library"
-                ? "Đang duyệt Kho biểu mẫu"
-                : activeTab === "knowledge"
-                ? "Đang tra cứu Kho kiến thức"
-                : "Soạn thảo văn bản"}
-            </div>
-          </div>
+      {/* MODAL 2: Kiểm tra Thể thức Văn bản */}
+      <InspectionModal
+        isOpen={activeModal === "inspect"}
+        onClose={() => setActiveModal("none")}
+        onCheck={handleCheck}
+        summary={evaluationSummary}
+        issues={issues}
+        onLocateIssue={handleLocateIssue}
+        onFixIssue={handleFix}
+        onFixAllSafe={handleFixAllSafeIssues}
+        on1ClickStandardize={handle1ClickStandardize}
+        onRollback={handleRollbackLastAction}
+        busy={busy}
+      />
 
-          {/* In-Modal Status & Alert Banner */}
-          {status && (
-            <div
-              className="aiModalStatus"
-              style={{
-                background: busy
-                  ? "#eff6ff"
-                  : status.startsWith("✓")
-                  ? "#ecfdf5"
-                  : status.toLowerCase().includes("lỗi") || status.toLowerCase().includes("chưa") || status.toLowerCase().includes("thất bại")
-                  ? "#fef2f2"
-                  : "#f8fafc",
-                border: `1px solid ${
-                  busy
-                    ? "#bfdbfe"
-                    : status.startsWith("✓")
-                    ? "#a7f3d0"
-                    : status.toLowerCase().includes("lỗi") || status.toLowerCase().includes("chưa") || status.toLowerCase().includes("thất bại")
-                    ? "#fecaca"
-                    : "#e2e8f0"
-                }`,
-                borderRadius: "5px",
-                padding: "5px 8px",
-                marginBottom: 6,
-                fontSize: "11px",
-                color: busy
-                  ? "#1d4ed8"
-                  : status.startsWith("✓")
-                  ? "#065f46"
-                  : status.toLowerCase().includes("lỗi") || status.toLowerCase().includes("chưa") || status.toLowerCase().includes("thất bại")
-                  ? "#991b1b"
-                  : "#334155",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 6,
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <span>
-                  {busy
-                    ? "⏳"
-                    : status.startsWith("✓")
-                    ? "✅"
-                    : status.toLowerCase().includes("lỗi") || status.toLowerCase().includes("chưa") || status.toLowerCase().includes("thất bại")
-                    ? "⚠️"
-                    : "ℹ️"}
-                </span>
-                <span>{busy ? "Đang xử lý dữ liệu và kết nối AI..." : status}</span>
-              </div>
-              {!aiApiKey && (
-                <button
-                  type="button"
-                  onClick={() => setAiSettingsModalOpen(true)}
-                  style={{
-                    fontSize: "11px",
-                    padding: "2px 8px",
-                    background: "#ef4444",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    fontWeight: 600,
-                  }}
-                >
-                  ⚙️ Cài đặt Key
-                </button>
-              )}
-            </div>
-          )}
+      {/* MODAL 3: Kho Biểu Mẫu */}
+      <TemplateLibraryModal
+        isOpen={activeModal === "template_library"}
+        onClose={() => setActiveModal("none")}
+        templates={allTemplates}
+        initialFilter={templateLibraryFilter}
+        onOpenForm={(tmpl) => {
+          setActiveModal("none");
+          void handleOpenTemplateForm(tmpl);
+        }}
+        onDirectInsert={(tmpl) => {
+          void handleInsertTemplateBlank(tmpl);
+        }}
+        onOpenWizard={() => setActiveModal("template_wizard")}
+      />
 
-          {/* Single Unified AI Chat Window */}
-          <div className="chatHistory">
-            {chatHistory.length === 0 ? (
-              <div className="chatEmpty" style={{ textAlign: "center", padding: "10px 8px" }}>
-                <div style={{ fontSize: "22px", marginBottom: 4 }}>✍️</div>
-                <div style={{ fontWeight: 700, fontSize: "12px", color: "#0f3f67", marginBottom: 3 }}>
-                  Trợ lý AI Soạn thảo văn bản hành chính
-                </div>
-                <div style={{ color: "#64748b", fontSize: "10.5px", marginBottom: 8 }}>
-                  Nhập yêu cầu, dàn ý hoặc đính kèm tài liệu nguồn (PDF, Word, Ảnh) để AI tự động soạn thảo và điền vào biểu mẫu chuẩn.
-                </div>
-
-                {/* Quick Prompts */}
-                <div style={{ textAlign: "left", background: "#f1f5f9", padding: "7px 9px", borderRadius: 6, border: "1px solid #e2e8f0" }}>
-                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#475569", marginBottom: 4 }}>
-                    💡 Gợi ý câu lệnh mẫu theo ngữ cảnh:
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                    {getSuggestedQuickPrompts({
-                      activeTab,
-                      template: activeFormTemplate,
-                      issueCount: issues.length,
-                      selection: aiTargetSelection,
-                    }).map((qp, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => setChatInput(qp.prompt)}
-                        style={{
-                          fontSize: "10px",
-                          padding: "2px 7px",
-                          borderRadius: "10px",
-                          background: "#fff",
-                          border: "1px solid #cbd5e1",
-                          color: "#0f3f67",
-                          cursor: "pointer",
-                          fontWeight: 500,
-                        }}
-                      >
-                        {qp.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Quick drafting parts */}
-                  <div style={{ marginTop: 6, paddingTop: 6, borderTop: "1px dashed #cbd5e1" }}>
-                    <div style={{ fontSize: "9.5px", fontWeight: 600, color: "#64748b", marginBottom: 3 }}>
-                      Viết nhanh từng phần văn bản:
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
-                      {QUICK_DRAFT_ACTIONS.map((action) => (
-                        <button
-                          key={action.id}
-                          type="button"
-                          onClick={() => handleQuickDraft(action.id)}
-                          disabled={busy}
-                          style={{ fontSize: "9.5px", padding: "2px 6px", borderRadius: 3, background: "#fff", border: "1px solid #cbd5e1", cursor: "pointer", color: "#334155" }}
-                        >
-                          {action.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              chatHistory.map((message, index) => {
-                const isAssistant = message.role === "assistant";
-                const isLatestAssistant = isAssistant && (
-                  message.content === aiPreview || index === chatHistory.length - 1 || (!aiPreview && index === chatHistory.map((m) => m.role).lastIndexOf("assistant"))
-                );
-
-                return (
-                  <div
-                    key={`${message.role}-${index}`}
-                    className={`chatBubble ${message.role}`}
-                    style={isAssistant ? { width: "100%", maxWidth: "100%", boxSizing: "border-box" } : undefined}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                      <strong style={{ fontSize: "11px", color: isAssistant ? "#166534" : "#0c3b66" }}>
-                        {isAssistant ? "🤖 Trợ lý AI TVCI" : "👤 Bạn"}
-                      </strong>
-                      {isAssistant && (
-                        <div style={{ display: "flex", gap: 4 }}>
-                          <button
-                            type="button"
-                            onClick={() => void copyText(message.content)}
-                            style={{ fontSize: "10px", padding: "1px 6px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: 4, cursor: "pointer" }}
-                            title="Sao chép nội dung này"
-                          >
-                            📋 Sao chép
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const userMsg = chatHistory[index - 1]?.content;
-                              const cleanPrompt = userMsg ? userMsg.split(" (Kèm ")[0] : "";
-                              if (cleanPrompt) setChatInput(cleanPrompt);
-                              void handleSendChat(cleanPrompt || undefined);
-                            }}
-                            style={{ fontSize: "10px", padding: "1px 6px", background: "#eff6ff", border: "1px solid #bfdbfe", color: "#1d4ed8", borderRadius: 4, cursor: "pointer", fontWeight: 600 }}
-                            title="Yêu cầu AI soạn thảo lại"
-                          >
-                            🔄 Soạn lại
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.45, fontSize: "11px", color: "#1e293b" }}>
-                      {message.content}
-                    </div>
-
-                    {/* Integrated Template Application Card for Assistant Draft */}
-                    {isAssistant && isLatestAssistant && (
-                      <div id="ai-proposal-section" style={{ marginTop: 8, borderTop: "1px dashed #cbd5e1", paddingTop: 6 }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            background: "#dcfce7",
-                            border: "1px solid #86efac",
-                            borderRadius: "5px",
-                            padding: "4px 8px",
-                            marginBottom: 6,
-                            color: "#166534",
-                            fontSize: "11px",
-                            fontWeight: 700,
-                          }}
-                        >
-                          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                            <span style={{ fontSize: "12px" }}>🎉</span>
-                            <span>Soạn thảo thành công!</span>
-                          </div>
-                          <span style={{ fontSize: "9.5px", fontWeight: 500, color: "#15803d" }}>
-                            Đã bóc tách trường &amp; sẵn sàng đưa vào Word
-                          </span>
-                        </div>
-
-                        {/* Template Selection Box */}
-                        <div className="aiTemplateMatchCard" style={{ margin: 0, padding: "6px 8px", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 5 }}>
-                          <div className="aiTemplateMatchHeader" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 5 }}>
-                            <div className="aiTemplateMatchTitle" style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                              <span style={{ fontSize: "11px" }}>🎯</span>
-                              <span style={{ fontWeight: 600, fontSize: "11px" }}>Biểu mẫu áp dụng:</span>
-                            </div>
-                            {selectedTemplateForMatch ? (
-                              <span style={{ fontSize: "10px", color: "#065f46", fontWeight: 700, background: "#dcfce7", padding: "1px 5px", borderRadius: 3 }}>
-                                📌 Đang chọn: {selectedTemplateForMatch.name}
-                              </span>
-                            ) : activeFormTemplate ? (
-                              <span style={{ fontSize: "10px", color: "#065f46", fontWeight: 700, background: "#dcfce7", padding: "1px 5px", borderRadius: 3 }}>
-                                📌 Đang chọn: {activeFormTemplate.name}
-                              </span>
-                            ) : null}
-                          </div>
-
-                          <div className="aiTemplateSelectRow" style={{ marginBottom: 6 }}>
-                            <select
-                              value={selectedTemplateForMatch?.id || matchedTemplateId}
-                              onChange={(e) => {
-                                const newId = e.target.value;
-                                setMatchedTemplateId(newId);
-                                const chosen = TEMPLATE_CATALOG.find((t) => t.id === newId);
-                                if (chosen) setActiveFormTemplate(chosen);
-                              }}
-                              disabled={busy}
-                              style={{ width: "100%", padding: "4px 6px", fontSize: "11px", borderRadius: 4, border: "1px solid #cbd5e1" }}
-                            >
-                              <optgroup label="⭐ Biểu mẫu gợi ý phù hợp nhất">
-                                {recommendedTemplates.slice(0, 4).map((t) => (
-                                  <option key={`rec-${t.id}`} value={t.id}>
-                                    {t.id === (selectedTemplateForMatch?.id || matchedTemplateId) ? "★ [Đang chọn] " : "★ "}{t.name} ({t.organization})
-                                  </option>
-                                ))}
-                              </optgroup>
-                              <optgroup label="Tất cả biểu mẫu TVCI">
-                                {TEMPLATE_CATALOG.filter((t) => t.organization === "TVCI").map((t) => (
-                                  <option key={`tvci-${t.id}`} value={t.id}>
-                                    {t.id === (selectedTemplateForMatch?.id || matchedTemplateId) ? "★ [Đang chọn] " : ""}{t.name}
-                                  </option>
-                                ))}
-                              </optgroup>
-                              <optgroup label="Tất cả biểu mẫu Viện (IEMM)">
-                                {TEMPLATE_CATALOG.filter((t) => t.organization === "IEMM").map((t) => (
-                                  <option key={`iemm-${t.id}`} value={t.id}>
-                                    {t.id === (selectedTemplateForMatch?.id || matchedTemplateId) ? "★ [Đang chọn] " : ""}{t.name}
-                                  </option>
-                                ))}
-                              </optgroup>
-                              <optgroup label="Văn bản Đảng">
-                                {TEMPLATE_CATALOG.filter((t) => t.organization === "DANG").map((t) => (
-                                  <option key={`dang-${t.id}`} value={t.id}>
-                                    {t.id === (selectedTemplateForMatch?.id || matchedTemplateId) ? "★ [Đang chọn] " : ""}{t.name}
-                                  </option>
-                                ))}
-                              </optgroup>
-                            </select>
-                          </div>
-
-                          {/* Segments Preview */}
-                          {segmentedFields && selectedTemplateSchema && (
-                            <div className="aiSegmentedFieldsPreview" style={{ marginBottom: 6 }}>
-                              <div className="segmentedHeader" style={{ fontSize: "10px", fontWeight: 600, color: "#475569", marginBottom: 3 }}>
-                                <span>🔍 Đã tự động bóc tách các trường của "{selectedTemplateForMatch?.name}":</span>
-                              </div>
-                              <div className="segmentedBadges" style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
-                                {selectedTemplateSchema.fields.map((field) => {
-                                  const val = segmentedFields[field.tag];
-                                  if (!val || (Array.isArray(val) && val.length === 0)) return null;
-                                  const displayVal = Array.isArray(val)
-                                    ? `${val.length} mục (${val[0]?.slice(0, 30)}...)`
-                                    : val.length > 50
-                                    ? `${val.slice(0, 50)}...`
-                                    : val;
-                                  return (
-                                    <div key={field.tag} className="segmentedBadge" style={{ fontSize: "9.5px", padding: "1px 5px", borderRadius: 3 }} title={`${field.label}: ${Array.isArray(val) ? val.join("\n") : val}`}>
-                                      <strong>{field.label}:</strong> <span>{displayVal}</span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Action Buttons */}
-                          <div className="aiApplyActions" style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                            <button
-                              type="button"
-                              className="aiApplyBtn direct"
-                              onClick={() => {
-                                const target = selectedTemplateForMatch || activeFormTemplate || recommendedTemplates[0];
-                                if (target) void handleApplyDraftDirectToTemplate(target);
-                              }}
-                              disabled={busy}
-                              title="Tự động áp dụng toàn bộ nội dung vừa soạn thảo vào biểu mẫu đã chọn trên Word"
-                              style={{
-                                background: "#16a34a",
-                                color: "#fff",
-                                padding: "6px 10px",
-                                fontSize: "11.5px",
-                                fontWeight: 700,
-                                borderRadius: 5,
-                                border: "none",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 5,
-                              }}
-                            >
-                              <span>🚀</span>
-                              <span>
-                                Áp dụng luôn vào biểu mẫu "{selectedTemplateForMatch?.name || activeFormTemplate?.name || 'đã chọn'}" (Đưa vào Word)
-                              </span>
-                            </button>
-
-                            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                              <button
-                                type="button"
-                                className="aiApplyBtn form"
-                                onClick={() => {
-                                  const target = selectedTemplateForMatch || activeFormTemplate || recommendedTemplates[0];
-                                  if (target) void handleOpenTemplateFormWithDraft(target);
-                                }}
-                                disabled={busy}
-                                style={{ flex: 1, fontSize: "10px", padding: "4px 6px", borderRadius: 4 }}
-                                title="Mở form chi tiết của mẫu này với các trường đã được điền sẵn để rà soát thêm"
-                              >
-                                📝 Mở Form chi tiết
-                              </button>
-                              <button
-                                type="button"
-                                onClick={handleApplyReplace}
-                                disabled={busy}
-                                style={{ flex: 1, fontSize: "10px", padding: "4px 6px", borderRadius: 4 }}
-                                title="Thay thế đoạn văn bản đang bôi đen trong Word bằng nội dung này"
-                              >
-                                📥 Thay đoạn chọn
-                              </button>
-                              <button
-                                type="button"
-                                onClick={handleApplyBelow}
-                                disabled={busy}
-                                style={{ flex: 1, fontSize: "10px", padding: "4px 6px", borderRadius: 4 }}
-                                title="Chèn nội dung này tiếp bên dưới vị trí con trỏ trong Word"
-                              >
-                                ➕ Chèn dưới con trỏ
-                              </button>
-                            </div>
-
-                            <div style={{ display: "flex", gap: 4, marginTop: 1 }}>
-                              <button
-                                type="button"
-                                onClick={handleEditAndRedraft}
-                                disabled={busy}
-                                style={{ fontSize: "10px", padding: "2px 6px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: 4, cursor: "pointer", color: "#334155" }}
-                                title="Nạp lại yêu cầu vào khung soạn thảo để chỉnh sửa và gửi lại"
-                              >
-                                ✏️ Sửa yêu cầu
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => void handleSaveAiExperience(aiPreview || message.content)}
-                                title="Lưu văn bản này vào Kho kiến thức nghiệp vụ để AI học tập cho các lần sau"
-                                style={{ fontSize: "10px", padding: "2px 6px", background: "#fef3c7", border: "1px solid #fde68a", color: "#92400e", borderRadius: 4, cursor: "pointer" }}
-                              >
-                                ⭐ Lưu kinh nghiệm
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Selection button for older assistant drafts */}
-                    {isAssistant && !isLatestAssistant && (
-                      <div style={{ marginTop: 4 }}>
-                        <button
-                          type="button"
-                          onClick={() => handleSelectAiDraft(message.content)}
-                          style={{ fontSize: "10px", padding: "2px 6px", background: "#f0fdf4", border: "1px solid #86efac", color: "#166534", borderRadius: 4, cursor: "pointer", fontWeight: 600 }}
-                        >
-                          🎯 Chọn bản này để áp dụng vào biểu mẫu
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Unified Chat Input Area at the bottom */}
-          <div className="aiDraftingContainer" style={{ marginTop: 8 }}>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={fileFilterAccept}
-              multiple
-              style={{ display: "none" }}
-              onChange={(e) => void handleFileInputChange(e)}
-            />
-
-            {/* Attachments Chips */}
-            {chatAttachments.length > 0 && (
-              <div className="aiAttachmentChips" style={{ marginBottom: 6 }}>
-                <div style={{ width: "100%", fontSize: "10.5px", fontWeight: 600, color: "#475569", marginBottom: 2 }}>
-                  Tài liệu nguồn ({chatAttachments.length}):
-                </div>
-                {chatAttachments.map((att) => {
-                  const icon = att.type === "pdf" ? "📑" : att.type === "word" ? "📄" : "🖼️";
-                  const sizeKb = Math.round(att.size / 1024);
-                  const sizeStr = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
-                  return (
-                    <div key={att.id} className={`aiAttachmentChip ${att.type}`}>
-                      <span>{icon}</span>
-                      <span className="chipName" title={att.name}>{att.name}</span>
-                      <span className="chipSize">({sizeStr})</span>
-                      <button
-                        type="button"
-                        className="chipRemove"
-                        onClick={() => handleRemoveAttachment(att.id)}
-                        title="Xóa tệp đính kèm này"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {attachmentLoading && (
-              <div style={{ fontSize: "11px", color: "#0284c7", marginBottom: 6, fontStyle: "italic" }}>
-                ⏳ Đang xử lý và trích xuất tài liệu đính kèm...
-              </div>
-            )}
-
-            {!aiApiKey && (
-              <div
-                style={{
-                  background: "#fffbeb",
-                  border: "1px solid #fde68a",
-                  borderRadius: 6,
-                  padding: "8px 10px",
-                  marginBottom: 8,
-                  fontSize: "11.5px",
-                  color: "#92400e",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 8,
-                }}
-              >
-                <span>⚠️ Chưa cài đặt API Key cho {aiProvider === "gemini" ? "Google Gemini" : "OpenAI"}.</span>
-                <button
-                  type="button"
-                  onClick={() => setAiSettingsModalOpen(true)}
-                  style={{
-                    padding: "3px 8px",
-                    fontSize: "11px",
-                    background: "#d97706",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 4,
-                    cursor: "pointer",
-                    fontWeight: 600,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  ⚙️ Cài đặt ngay
-                </button>
-              </div>
-            )}
-
-            {/* Input Toolbar */}
-            <div className="aiDraftingToolbar" style={{ marginBottom: 6, display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
-              <div className="aiAttachDropdownContainer">
-                <button
-                  type="button"
-                  className="aiAttachBtn"
-                  onClick={() => setAttachmentMenuOpen(!attachmentMenuOpen)}
-                  title="Đính kèm tài liệu nguồn (PDF, Word, Ảnh/Scan)"
-                  disabled={busy || attachmentLoading}
-                >
-                  📎 Đính kèm tệp ▾
-                </button>
-                {attachmentMenuOpen && (
-                  <div className="aiAttachDropdownMenu">
-                    <button
-                      type="button"
-                      className="aiAttachDropdownItem"
-                      onClick={() => {
-                        setAttachmentMenuOpen(false);
-                        handlePickAttachment(".pdf,application/pdf");
-                      }}
-                    >
-                      📑 Tệp PDF (.pdf)
-                    </button>
-                    <button
-                      type="button"
-                      className="aiAttachDropdownItem"
-                      onClick={() => {
-                        setAttachmentMenuOpen(false);
-                        handlePickAttachment(".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-                      }}
-                    >
-                      📄 Tệp Word (.docx)
-                    </button>
-                    <button
-                      type="button"
-                      className="aiAttachDropdownItem"
-                      onClick={() => {
-                        setAttachmentMenuOpen(false);
-                        handlePickAttachment("image/*");
-                      }}
-                    >
-                      🖼️ Ảnh chụp / Bản scan
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <button
-                type="button"
-                className="aiAttachBtn"
-                onClick={handleLoadSelectionForAi}
-                title="Lấy nội dung đang chọn trong Word đưa vào khung soạn thảo"
-                disabled={busy}
-                style={{ background: "#f8fafc", color: "#475569", borderColor: "#cbd5e1", fontSize: "10px", padding: "3px 6px" }}
-              >
-                ✂️ Lấy đoạn chọn
-              </button>
-              <button
-                type="button"
-                className="aiAttachBtn"
-                onClick={handleReadDocumentContext}
-                title="Đọc toàn bộ nội dung tài liệu Word hiện tại làm ngữ cảnh"
-                disabled={busy}
-                style={{ background: "#f8fafc", color: "#475569", borderColor: "#cbd5e1", fontSize: "10px", padding: "3px 6px" }}
-              >
-                📝 Đọc văn bản Word
-              </button>
-              <button
-                type="button"
-                className="aiAttachBtn"
-                onClick={handleNewChat}
-                title="Xóa nội dung và bắt đầu phiên soạn thảo mới"
-                disabled={busy}
-                style={{ background: "#f8fafc", color: "#475569", borderColor: "#cbd5e1", fontSize: "10px", padding: "3px 6px" }}
-              >
-                🔄 Làm mới
-              </button>
-
-              <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 3 }}>
-                <select
-                  value={writingStyle}
-                  onChange={(e) => setWritingStyle(e.target.value as WritingStyleId)}
-                  style={{ fontSize: "10px", padding: "2px 5px", borderRadius: 4, border: "1px solid #cbd5e1", background: "#f8fafc", color: "#334155" }}
-                  title="Chọn phong cách văn phong soạn thảo"
-                >
-                  {WRITING_STYLES.map((st) => (
-                    <option key={st.id} value={st.id}>
-                      {st.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Single Unified Textarea */}
-            <textarea
-              className="aiDraftingTextarea"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => {
-                if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-                  e.preventDefault();
-                  void handleSendChat();
-                }
-              }}
-              placeholder="Nhập yêu cầu, dàn ý hoặc thông tin cần soạn thảo... (Ctrl + Enter để gửi)&#10;AI hỗ trợ đọc nội dung từ file PDF, Word, Ảnh quét đính kèm để tự động soạn thảo văn bản hành chính hoàn chỉnh."
-              disabled={busy}
-              style={{ minHeight: "65px", fontSize: "11px", padding: "6px 8px" }}
-            />
-
-            {/* Send Buttons Row */}
-            <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-              <button
-                type="button"
-                className="aiDraftingSubmitBtn"
-                style={{ flex: 2, marginTop: 0, fontSize: "11px", padding: "6px 10px" }}
-                onClick={handleSendChat}
-                disabled={busy || (!chatInput.trim() && chatAttachments.length === 0)}
-              >
-                <span>⚡</span>
-                <span>{busy ? "ĐANG SOẠN..." : "GỬI AI SOẠN THẢO (Ctrl + Enter)"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleApplyInputDirectToTemplate}
-                disabled={busy || !chatInput.trim()}
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 3,
-                  fontSize: "10.5px",
-                  fontWeight: 600,
-                  background: "#f0fdf4",
-                  border: "1.5px solid #86efac",
-                  color: "#166534",
-                  borderRadius: 5,
-                  cursor: "pointer",
-                  padding: "6px 8px",
-                }}
-                title={
-                  (selectedTemplateForMatch || activeFormTemplate)
-                    ? `Áp dụng luôn nội dung vào toàn bộ biểu mẫu "${(selectedTemplateForMatch || activeFormTemplate)?.name}" đang chọn trên phần soạn thảo`
-                    : "Bỏ qua AI và dùng trực tiếp đoạn văn bản đang nhập để áp dụng vào biểu mẫu"
-                }
-              >
-                <span>📋</span>
-                <span>
-                  {(selectedTemplateForMatch || activeFormTemplate)
-                    ? `Áp dụng vào "${(selectedTemplateForMatch || activeFormTemplate)!.name.length > 15 ? (selectedTemplateForMatch || activeFormTemplate)!.name.slice(0, 15) + '...' : (selectedTemplateForMatch || activeFormTemplate)!.name}"`
-                    : "Áp dụng vào mẫu"}
-                </span>
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* TAB 5: TIỆN ÍCH & TẠO MẪU */}
-      {activeTab === "utilities" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <section className="card" id="user-profiles">
-            <h2>👤 Hồ sơ soạn thảo (Tự động điền)</h2>
-            <DraftingProfilesView />
-          </section>
-
-          {/* Công cụ soạn thảo chuẩn */}
-          <section className="card collapsibleCard" id="drafting-tools">
-            <h2>📐 Soạn thảo chuẩn</h2>
-
-            <div className="sectionGroup">
-              <strong>Phụ lục &amp; Bảng phụ lục</strong>
-              <label>
-                Tên phụ lục
-                <input value={appendixTitle} onChange={(e) => setAppendixTitle(e.target.value)} placeholder="PHỤ LỤC" />
-              </label>
-              <div className="grid3">
-                <label>Hàng<input type="number" min="1" max="50" value={appendixRows} onChange={(e) => setAppendixRows(Number(e.target.value))} /></label>
-                <label>Cột<input type="number" min="1" max="20" value={appendixColumns} onChange={(e) => setAppendixColumns(Number(e.target.value))} /></label>
-                <label className="checkRow"><input type="checkbox" checked={appendixHeaderRow} onChange={(e) => setAppendixHeaderRow(e.target.checked)} />Tiêu đề</label>
-              </div>
-              <div className="toolButtons" style={{ marginTop: 6 }}>
-                <button onClick={handleInsertAppendix} disabled={busy}>Thêm phụ lục</button>
-                <button onClick={handleCreateAppendixTable} disabled={busy}>Tạo bảng phụ lục</button>
-                <button onClick={handleNumberSelectedTable} disabled={busy}>Đánh số bảng</button>
-              </div>
-            </div>
-
-            <div className="sectionGroup">
-              <strong>Bảng &amp; Danh sách</strong>
-              <div className="grid3">
-                <label>Hàng<input type="number" min="1" max="50" value={tableRows} onChange={(e) => setTableRows(Number(e.target.value))} /></label>
-                <label>Cột<input type="number" min="1" max="20" value={tableColumns} onChange={(e) => setTableColumns(Number(e.target.value))} /></label>
-                <button onClick={handleCreateTable} disabled={busy}>Tạo bảng</button>
-              </div>
-              <div className="grid3" style={{ marginTop: 6 }}>
-                <label>Số mục<input type="number" min="1" max="20" value={listItems} onChange={(e) => setListItems(Number(e.target.value))} /></label>
-                <label>
-                  Cấp
-                  <select value={listLevel} onChange={(e) => setListLevel(Number(e.target.value))}>
-                    <option value={0}>Cấp 1</option>
-                    <option value={1}>Cấp 2</option>
-                    <option value={2}>Cấp 3</option>
-                  </select>
-                </label>
-                <button onClick={() => handleCreateList("BULLET")} disabled={busy}>Gạch đầu dòng</button>
-              </div>
-            </div>
-
-            <div className="sectionGroup">
-              <strong>Đề mục văn bản</strong>
-              <div className="toolButtons">
-                <button onClick={() => handleInsertOutline("PART")} disabled={busy}>Phần</button>
-                <button onClick={() => handleInsertOutline("CHAPTER")} disabled={busy}>Chương</button>
-                <button onClick={() => handleInsertOutline("SECTION")} disabled={busy}>Mục</button>
-                <button onClick={() => handleInsertOutline("ARTICLE")} disabled={busy}>Điều</button>
-                <button onClick={() => handleInsertOutline("CLAUSE")} disabled={busy}>Khoản</button>
-                <button onClick={() => handleInsertOutline("POINT")} disabled={busy}>Điểm</button>
-              </div>
-            </div>
-
-            <div className="sectionGroup">
-              <strong>Kính gửi &amp; Nơi nhận</strong>
-              <label>
-                Kính gửi (mỗi dòng một nơi)
-                <textarea value={addresseeText} onChange={(e) => setAddresseeText(e.target.value)} placeholder="Tập đoàn Công nghiệp Than - Khoáng sản Việt Nam" />
-              </label>
-              <button onClick={handleInsertAddressee} disabled={busy} style={{ marginBottom: 8 }}>Chèn Kính gửi chuẩn</button>
-
-              <label>
-                Thêm nơi nhận có sẵn
-                <select value={recipientPresetId} onChange={(e) => setRecipientPresetId(e.target.value)}>
-                  {RECIPIENT_PRESETS.map((preset) => <option key={preset.id} value={preset.id}>{preset.label}</option>)}
-                </select>
-              </label>
-              <div className="toolButtons" style={{ marginBottom: 6 }}>
-                <button onClick={handleAddRecipientPreset} disabled={busy}>Thêm dòng</button>
-                <button onClick={handleInsertRecipients} disabled={busy}>Chèn Nơi nhận chuẩn</button>
-              </div>
-              <textarea value={recipientsText} onChange={(e) => setRecipientsText(e.target.value)} placeholder="Như trên&#10;Lưu: VT, Văn phòng." />
-            </div>
-
-            <div className="sectionGroup">
-              <strong>Đánh số trang &amp; Đường kẻ</strong>
-              <div className="grid2">
-                <label className="checkRow">
-                  <input type="checkbox" checked={pageNumbersEnabled} onChange={(e) => setPageNumbersEnabled(e.target.checked)} />
-                  Đánh số trang
-                </label>
-                <label>
-                  Vị trí
-                  <select value={pageNumberPosition} onChange={(e) => setPageNumberPosition(e.target.value as PageNumberPosition)}>
-                    <option value="header-center">Giữa lề trên</option>
-                    <option value="footer-right">Phải Footer</option>
-                    <option value="footer-center">Giữa Footer</option>
-                  </select>
-                </label>
-              </div>
-              <div className="toolButtons" style={{ marginTop: 6 }}>
-                <button onClick={handleApplyPageNumbers} disabled={busy}>Áp dụng số trang</button>
-                <button onClick={() => handleInsertRule("TITLE_ABSTRACT")} disabled={busy}>Chèn đường kẻ tiêu đề</button>
-              </div>
-            </div>
-
-            <div className="sectionGroup">
-              <strong>Tiêu đề đầu &amp; Chân trang (Header / Footer)</strong>
-              <div className="grid2">
-                <label className="checkRow">
-                  <input type="checkbox" checked={headerEnabled} onChange={(e) => setHeaderEnabled(e.target.checked)} />
-                  Bật Header
-                </label>
-                <label className="checkRow">
-                  <input type="checkbox" checked={footerEnabled} onChange={(e) => setFooterEnabled(e.target.checked)} />
-                  Bật Footer
-                </label>
-              </div>
-              <div className="grid2" style={{ marginTop: 6 }}>
-                <label>
-                  Nội dung Header
-                  <input value={headerText} onChange={(e) => setHeaderText(e.target.value)} placeholder="BẢN THẢO LƯU HÀNH NỘI BỘ" disabled={!headerEnabled} />
-                </label>
-                <label>
-                  Nội dung Footer
-                  <input value={footerText} onChange={(e) => setFooterText(e.target.value)} placeholder="Trung tâm TVCI · Hotline..." disabled={!footerEnabled} />
-                </label>
-              </div>
-              <div className="toolButtons" style={{ marginTop: 6 }}>
-                <button onClick={handleApplyHeaderFooter} disabled={busy}>Áp dụng Header / Footer</button>
-              </div>
-            </div>
-
-            <div className="sectionGroup">
-              <strong>Căn cứ ban hành &amp; Khối chữ ký</strong>
-              <label>
-                Căn cứ ban hành (mỗi dòng một căn cứ)
-                <textarea
-                  value={legalBasisInputText}
-                  onChange={(e) => setLegalBasisInputText(e.target.value)}
-                  placeholder="Căn cứ Luật Tiêu chuẩn và Quy chuẩn kỹ thuật ngày 29 tháng 6 năm 2006;&#10;Căn cứ Quyết định số 123/QĐ-TVCI ngày 15 tháng 01 năm 2026..."
-                  rows={3}
-                />
-              </label>
-              <button onClick={handleInsertLegalBasisBlock} disabled={busy} style={{ marginBottom: 8 }}>Chèn Khối Căn cứ ban hành</button>
-
-              <div className="grid2">
-                <label>
-                  Chức danh ký
-                  <input value={signerRoleInput} onChange={(e) => setSignerRoleInput(e.target.value)} placeholder="GIÁM ĐỐC" />
-                </label>
-                <label>
-                  Họ tên người ký
-                  <input value={signerNameInput} onChange={(e) => setSignerNameInput(e.target.value)} placeholder="Nguyễn Văn A" />
-                </label>
-              </div>
-              <button onClick={handleInsertSignerBlock} disabled={busy} style={{ marginTop: 6 }}>Chèn Khối Chữ ký chuẩn</button>
-            </div>
-          </section>
-
-          <section className="card collapsibleCard" id="template-builder">
-            <h2>⚙️ Tạo biểu mẫu &amp; Content Control</h2>
-            <button
-              type="button"
-              className="primary full"
-              style={{ marginBottom: 10 }}
-              onClick={() => setWizardOpen(true)}
-              title="Mở Wizard 5 bước"
-            >
-              🧙‍♂️ Mở Wizard Tạo Biểu Mẫu (5 bước hướng dẫn)
-            </button>
-            <div className="grid2">
-              <label>
-                Tên mẫu
-                <input value={builderName} onChange={(e) => setBuilderName(e.target.value)} />
-              </label>
-              <label>
-                Nhóm
-                <select value={builderOrg} onChange={(e) => handleBuilderOrgChange(e.target.value as TemplateOrganization)}>
-                  {TEMPLATE_ORGANIZATIONS.map((org) => <option key={org.value} value={org.value}>{org.label}</option>)}
-                </select>
-              </label>
-            </div>
-            <div className="builderBox">
-              <label>
-                Đặt Content Control tại vùng chọn Word
-                <select value={builderField} onChange={(e) => setBuilderField(e.target.value)}>
-                  {CONTENT_CONTROL_FIELDS.map((field) => <option key={field}>{field}</option>)}
-                </select>
-              </label>
-              <button onClick={handleAddField} disabled={busy}>Đặt trường tại vùng chọn</button>
-            </div>
-            <div className="aiTemplateBox">
-              <div>
-                <strong>AI phân tích văn bản cũ</strong>
-                <small>Quét toàn bộ tài liệu đang mở để gợi ý tạo trường động.</small>
-              </div>
-              <button onClick={handleAnalyzeTemplate} disabled={busy}>Phân tích bằng AI</button>
-            </div>
-            {templateFieldSuggestions.length > 0 && (
-              <div style={{ display: "grid", gap: 5, marginBottom: 8 }}>
-                {templateFieldSuggestions.map((item, idx) => (
-                  <div className="issue" key={idx}>
-                    <div>
-                      <strong>{item.title} ({item.tag})</strong>
-                      <small>“{item.sourceText}” · {Math.round(item.confidence * 100)}%</small>
-                    </div>
-                    <button className="primary" onClick={() => handleApplyTemplateSuggestion(item)} disabled={busy}>Tạo trường</button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="actions">
-              <label className="fileButton">
-                Import file DOCX
-                <input type="file" accept=".docx" onChange={(e) => handleImportTemplate(e.target.files?.[0])} />
-              </label>
-              <button onClick={handleExportTemplate} disabled={busy}>Xuất DOCX mẫu</button>
-            </div>
-          </section>
-
-          <section className="card collapsibleCard" id="reference-guidance">
-            <h2>📖 Hướng dẫn nhanh từ tài liệu nguồn</h2>
-            <input
-              value={referenceQuery}
-              onChange={(e) => setReferenceQuery(e.target.value)}
-              placeholder="Tìm kiếm quy trình, quy chế, lưu ý..."
-            />
-            <div className="guidanceList">
-              {filteredGuidance.map((item) => (
-                <details className="guidanceItem" key={item.id}>
-                  <summary><span>{item.group}</span>{item.title}</summary>
-                  <p>{item.content}</p>
-                  <small>Nguồn: {item.source}</small>
-                </details>
-              ))}
-            </div>
-            {!filteredGuidance.length && <div className="empty">Không tìm thấy hướng dẫn phù hợp.</div>}
-          </section>
-        </div>
-      )}
-
-      {/* Template Creation Wizard Modal */}
+      {/* MODAL 4: Tạo Biểu Mẫu (Wizard) */}
       <TemplateWizardModal
-        isOpen={wizardOpen}
-        onClose={() => setWizardOpen(false)}
+        isOpen={activeModal === "template_wizard" || wizardOpen}
+        onClose={() => {
+          setActiveModal("none");
+          setWizardOpen(false);
+        }}
         onSaved={(newTemplate) => {
           void refreshUserTemplates();
           void handleOpenTemplateForm(newTemplate);
@@ -2695,10 +1558,23 @@ export default function App() {
         onError={(msg) => setStatus(`Lỗi tạo mẫu: ${msg}`)}
       />
 
-      {/* AI Settings Dedicated Modal */}
+      {/* MODAL 5: Kho Kiến Thức */}
+      <KnowledgeModal
+        isOpen={activeModal === "knowledge"}
+        onClose={() => setActiveModal("none")}
+        records={knowledgeRecords}
+        onSaveRecord={handleSaveKnowledgeRecord}
+        onDeleteRecord={handleDeleteKnowledgeRecord}
+        onNotify={setStatus}
+      />
+
+      {/* MODAL 6: Cài Đặt AI */}
       <AiSettingsModal
-        isOpen={aiSettingsModalOpen}
-        onClose={() => setAiSettingsModalOpen(false)}
+        isOpen={activeModal === "ai_settings" || aiSettingsModalOpen}
+        onClose={() => {
+          setActiveModal("none");
+          setAiSettingsModalOpen(false);
+        }}
         aiProvider={aiProvider}
         onProviderChange={handleProviderChange}
         aiModel={aiModel}

@@ -178,6 +178,113 @@ g.normalizePunctuationCmd = async (event: Office.AddinCommands.Event) => {
     event.completed();
 };
 
+import { insertAddressee, insertRecipients, insertAppendix, insertOutline } from '../word/drafting.service';
+import { quickInsertLegalBasis, quickInsertSigner } from '../drafting/quick-insert.service';
+import { isolateTableLandscape } from '../word/page-toolkit.service';
+
+g.runSafeFix = async (event: Office.AddinCommands.Event) => {
+    try {
+        const profileId = 'IEMM';
+        const profile = getRuleProfile(profileId);
+        const snapshots = await inspectDocumentParagraphs();
+        const issues = snapshots.flatMap(snapshot => validateParagraph(snapshot, profile.body));
+        const safeIssues = issues.filter(i => i.autoFixable);
+        for (const issue of safeIssues) {
+            try {
+                if (issue.ruleId.startsWith("text.")) await applyTextIssueFix(issue);
+                else await applyIssueFix(issue);
+            } catch {}
+        }
+    } catch (error) {
+        console.error("Lỗi khi sửa lỗi an toàn:", error);
+    }
+    event.completed();
+};
+
+g.insertAddresseeCmd = async (event: Office.AddinCommands.Event) => {
+    try {
+        await insertAddressee('NĐ30_TVCI', ['Kính gửi: Các phòng ban, đơn vị trực thuộc.']);
+    } catch (error) {
+        console.error(error);
+    }
+    event.completed();
+};
+
+g.insertLegalBasisCmd = async (event: Office.AddinCommands.Event) => {
+    try {
+        await quickInsertLegalBasis('NĐ30_TVCI', 'Căn cứ quy chế hoạt động và phân công nhiệm vụ;');
+    } catch (error) {
+        console.error(error);
+    }
+    event.completed();
+};
+
+g.insertRecipientsCmd = async (event: Office.AddinCommands.Event) => {
+    try {
+        await insertRecipients('NĐ30_TVCI', ['Như Kính gửi;', 'Lưu: VT, VP.']);
+    } catch (error) {
+        console.error(error);
+    }
+    event.completed();
+};
+
+g.insertSignerCmd = async (event: Office.AddinCommands.Event) => {
+    try {
+        await quickInsertSigner('NĐ30_TVCI', 'GIÁM ĐỐC', 'Nguyễn Văn A');
+    } catch (error) {
+        console.error(error);
+    }
+    event.completed();
+};
+
+g.insertAppendixCmd = async (event: Office.AddinCommands.Event) => {
+    try {
+        await insertAppendix('NĐ30_TVCI', 'Phụ lục: DANH MỤC TÀI LIỆU KÈM THEO');
+    } catch (error) {
+        console.error(error);
+    }
+    event.completed();
+};
+
+g.insertOutlineCmd = async (event: Office.AddinCommands.Event) => {
+    try {
+        await insertOutline('NĐ30_TVCI', 'ARTICLE');
+    } catch (error) {
+        console.error(error);
+    }
+    event.completed();
+};
+
+g.toggleOrientationCmd = async (event: Office.AddinCommands.Event) => {
+    try {
+        await isolateTableLandscape();
+    } catch (error) {
+        console.error(error);
+    }
+    event.completed();
+};
+
+g.cleanExtraSpacesCmd = async (event: Office.AddinCommands.Event) => {
+    try {
+        await Word.run(async (context) => {
+            const range = context.document.getSelection();
+            range.load("text");
+            await context.sync();
+            let text = range.text;
+            if (text && text.trim()) {
+                text = cleanExtraSpaces(text);
+                text = fixManualLineBreaks(text);
+                text = normalizePunctuation(text);
+                range.insertText(text, "Replace");
+                await context.sync();
+            }
+        });
+    } catch (error) {
+        console.error(error);
+    }
+    event.completed();
+};
+
 Office.onReady(function () {
   // Ribbon commands ready
 });

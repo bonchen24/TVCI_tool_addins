@@ -3046,6 +3046,1124 @@ body {
   justify-self: start;
 }
 
+/* ==========================================================================
+   3-TIER UX/UI REDESIGN STYLES
+   ========================================================================== */
+
+/* 1. Document Settings Modal */
+.docSettingsModalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(3px);
+}
+
+.docSettingsModalDialog {
+  background: #ffffff;
+  width: 100%;
+  max-width: 920px;
+  height: 88vh;
+  max-height: 720px;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+}
+
+.docSettingsModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.docSettingsModalTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #0f3f67;
+}
+
+.docSettingsIcon {
+  font-size: 22px;
+}
+
+.docSettingsModalBody {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.docSettingsSidebar {
+  width: 190px;
+  min-width: 190px;
+  background: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.docSettingsTabBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.docSettingsTabBtn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.docSettingsTabBtn.active {
+  background: #0f3f67;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.docSettingsContent {
+  flex: 1;
+  padding: 18px 22px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.docSettingsSectionTitle {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f3f67;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 6px;
+}
+
+.docSettingsFieldGroup {
+  margin-bottom: 12px;
+}
+
+.docSettingsLabel {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+.docSettingsInput,
+.docSettingsSelect,
+.docSettingsTextarea {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.docSettingsInput:focus,
+.docSettingsSelect:focus,
+.docSettingsTextarea:focus {
+  border-color: #0f3f67;
+  box-shadow: 0 0 0 2px rgba(15, 63, 103, 0.15);
+}
+
+.docSettingsHint {
+  display: block;
+  font-size: 10.5px;
+  color: #64748b;
+  margin-top: 3px;
+}
+
+.docSettingsPresetChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.docSettingsPresetChip {
+  padding: 5px 10px;
+  border-radius: 16px;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  font-size: 11px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+}
+
+.docSettingsPresetChip.active {
+  background: #0f3f67;
+  color: #ffffff;
+  border-color: #0f3f67;
+}
+
+.docSettingsPresetGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.docSettingsPresetCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: #ffffff;
+  transition: all 0.15s;
+}
+
+.docSettingsPresetCard:hover {
+  border-color: #0f3f67;
+  background: #f8fafc;
+}
+
+.docSettingsPresetCard.active {
+  border-color: #0f3f67;
+  background: #f0f7ff;
+  box-shadow: 0 0 0 1px #0f3f67;
+}
+
+.docSettingsPresetCardTitle {
+  font-weight: 700;
+  font-size: 12.5px;
+  color: #0f3f67;
+  margin-bottom: 3px;
+}
+
+.docSettingsPresetCardDesc {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.docSettingsPreviewArea {
+  width: 250px;
+  min-width: 250px;
+  background: #f1f5f9;
+  border-left: 1px solid #e2e8f0;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.docSettingsPreviewLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 8px;
+  align-self: flex-start;
+}
+
+.a4LiveSheet {
+  background: #ffffff;
+  width: 220px;
+  min-height: 310px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e2e8f0;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  font-family: "Times New Roman", Times, serif;
+}
+
+.a4HeaderGrid {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  border-bottom: 1px dashed #cbd5e1;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.a4HeaderLeft,
+.a4HeaderRight {
+  flex: 1;
+  text-align: center;
+}
+
+.a4TextSmall {
+  font-size: 6.5px;
+  color: #334155;
+  line-height: 1.2;
+}
+
+.a4TextBold {
+  font-size: 7px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.a4TextMotto {
+  font-size: 6.5px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.a4TextItalic {
+  font-size: 6px;
+  font-style: italic;
+  color: #475569;
+}
+
+.a4TextMicro {
+  font-size: 6px;
+  color: #475569;
+  line-height: 1.2;
+}
+
+.a4RuleShort {
+  width: 30px;
+  height: 0.5px;
+  background: #0f172a;
+  margin: 2px auto;
+}
+
+.a4RuleMedium {
+  width: 45px;
+  height: 0.5px;
+  background: #0f172a;
+  margin: 2px auto;
+}
+
+.a4TitleBlock {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.a4DocType {
+  font-size: 7.5px;
+  font-weight: 700;
+  color: #0f3f67;
+}
+
+.a4DocSubject {
+  font-size: 6.5px;
+  font-style: italic;
+  color: #334155;
+  line-height: 1.2;
+  margin-top: 1px;
+}
+
+.a4BodyLines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 10px;
+}
+
+.a4Line {
+  height: 2px;
+  background: #cbd5e1;
+  border-radius: 1px;
+}
+
+.a4FooterGrid {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  gap: 6px;
+}
+
+.a4RecipientsBox {
+  flex: 1;
+  border: 0.5px dashed #cbd5e1;
+  padding: 3px;
+  border-radius: 2px;
+}
+
+.a4SignerBox {
+  flex: 1;
+  text-align: center;
+}
+
+.a4SignatureSpace {
+  font-size: 5.5px;
+  font-style: italic;
+  color: #94a3b8;
+  margin: 6px 0;
+}
+
+.a4MarginInfo {
+  position: absolute;
+  bottom: 2px;
+  right: 6px;
+  font-size: 5.5px;
+  color: #94a3b8;
+  font-family: sans-serif;
+}
+
+.docSettingsModalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.docSettingsBtnPrimary {
+  background: #0f3f67;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.docSettingsBtnPrimary:hover {
+  background: #0c3353;
+}
+
+.docSettingsBtnOutline {
+  background: #ffffff;
+  color: #0f3f67;
+  border: 1px solid #0f3f67;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.docSettingsBtnOutline:hover {
+  background: #f0f7ff;
+}
+
+.docSettingsBtnSecondary {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.docSettingsBtnSecondary:hover {
+  background: #e2e8f0;
+}
+
+.docSettingsStatusBanner {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  margin-bottom: 12px;
+}
+
+.docSettingsStatusBanner.success {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.docSettingsStatusBanner.error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.docSettingsStatusBanner.info {
+  background: #f0f9ff;
+  color: #075985;
+  border: 1px solid #bae6fd;
+}
+
+/* 2. AI Taskpane View */
+.aiTaskpaneContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #ffffff;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.aiTaskpaneHeader {
+  padding: 10px 12px 6px;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.aiBrandRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aiBrandName {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f3f67;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aiSparkleIcon {
+  font-size: 14px;
+}
+
+.aiHeaderActions {
+  display: flex;
+  gap: 4px;
+}
+
+.aiHeaderBtn {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 11px;
+  color: #475569;
+  cursor: pointer;
+}
+
+.aiHeaderBtn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.aiContextChipRow {
+  margin-top: 6px;
+}
+
+.aiContextChipBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 4px 8px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #166534;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.aiContextChipBtn:hover {
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.aiContextChipDot {
+  color: #16a34a;
+  font-size: 8px;
+}
+
+.aiContextChipOrg {
+  font-weight: 700;
+}
+
+.aiContextChipDivider {
+  color: #86efac;
+}
+
+.aiContextChipType {
+  color: #15803d;
+}
+
+.aiContextChipEdit {
+  margin-left: auto;
+  font-size: 10px;
+  color: #166534;
+  opacity: 0.8;
+}
+
+.aiScopeBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 10.5px;
+}
+
+.aiScopeBadge {
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.aiScopeBadge.document {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.aiScopeBadge.selection {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.aiScopeAttachmentBadge {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 1px 6px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.aiRemoveAttachmentBtn {
+  background: none;
+  border: none;
+  font-size: 9px;
+  cursor: pointer;
+  color: #92400e;
+  padding: 0;
+}
+
+.aiQuickPromptsBar {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 6px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  scrollbar-width: thin;
+}
+
+.aiQuickPromptChip {
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 10.5px;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.aiQuickPromptChip:hover {
+  background: #f0f7ff;
+  border-color: #0f3f67;
+  color: #0f3f67;
+}
+
+.aiChatThread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f8fafc;
+}
+
+.aiEmptyChatState {
+  text-align: center;
+  padding: 40px 16px;
+  color: #64748b;
+}
+
+.aiEmptyChatIcon {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.aiEmptyChatTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f3f67;
+  margin-bottom: 4px;
+}
+
+.aiEmptyChatDesc {
+  font-size: 11px;
+  line-height: 1.4;
+  max-width: 240px;
+  margin: 0 auto;
+}
+
+.aiMessageBubble {
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.aiMessageBubble.user {
+  background: #0f3f67;
+  color: #ffffff;
+  align-self: flex-end;
+  max-width: 85%;
+}
+
+.aiMessageBubble.user .aiMessageSender {
+  color: #93c5fd;
+}
+
+.aiMessageBubble.assistant {
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  align-self: flex-start;
+  width: 100%;
+}
+
+.aiMessageSender {
+  font-size: 10px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.aiMessageActionToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.aiActionBtn {
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.12s;
+}
+
+.aiActionBtn.primary {
+  background: #0f3f67;
+  color: #ffffff;
+}
+
+.aiActionBtn.primary:hover {
+  background: #0c3353;
+}
+
+.aiActionBtn.outline {
+  background: #ffffff;
+  border-color: #0f3f67;
+  color: #0f3f67;
+}
+
+.aiActionBtn.outline:hover {
+  background: #f0f7ff;
+}
+
+.aiActionBtn.secondary {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+.aiActionBtn.secondary:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.aiTypingIndicator {
+  display: flex;
+  gap: 4px;
+}
+
+.aiTypingIndicator span {
+  width: 6px;
+  height: 6px;
+  background: #0f3f67;
+  border-radius: 50%;
+  animation: typing 1s infinite alternate;
+}
+
+@keyframes typing {
+  0% { opacity: 0.3; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1.1); }
+}
+
+.aiInputFooter {
+  padding: 8px 12px 10px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+}
+
+.aiInputControlsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.aiStyleSelect {
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #334155;
+  outline: none;
+}
+
+.aiAttachBtn {
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #475569;
+  cursor: pointer;
+}
+
+.aiTextareaWrapper {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.aiChatTextarea {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+}
+
+.aiChatTextarea:focus {
+  border-color: #0f3f67;
+  box-shadow: 0 0 0 2px rgba(15, 63, 103, 0.15);
+}
+
+.aiSendBtn {
+  background: #0f3f67;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.aiSendBtn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* 3. Inspection Modal styles */
+.inspectionModalDialog {
+  max-width: 600px;
+}
+
+.inspectionBlankBanner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.inspectionScoreCard {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.inspectionScoreHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.inspectionScoreNumber {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f3f67;
+}
+
+.inspectionProgressBarTrack {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.inspectionProgressBarFill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.inspectionStatsRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.statBadge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.statBadge.pass { background: #dcfce7; color: #15803d; }
+.statBadge.fail { background: #fee2e2; color: #b91c1c; }
+.statBadge.missing { background: #fef3c7; color: #b45309; }
+.statBadge.na { background: #f1f5f9; color: #64748b; }
+
+.inspectionFilterBar {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  margin-bottom: 10px;
+  padding-bottom: 4px;
+}
+
+.inspectionFilterBtn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  font-size: 11px;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.inspectionFilterBtn.active {
+  background: #0f3f67;
+  color: #ffffff;
+  border-color: #0f3f67;
+  font-weight: 600;
+}
+
+.inspectionRulesList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inspectionRuleItem {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #ffffff;
+}
+
+.inspectionRuleItem.fail { border-left: 3px solid #dc2626; }
+.inspectionRuleItem.missing { border-left: 3px solid #d97706; }
+.inspectionRuleItem.pass { border-left: 3px solid #16a34a; }
+.inspectionRuleItem.not_applicable { border-left: 3px solid #94a3b8; }
+
+.inspectionRuleHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+
+.inspectionRuleStatusTag {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.inspectionRuleStatusTag.pass { background: #dcfce7; color: #166534; }
+.inspectionRuleStatusTag.fail { background: #fee2e2; color: #991b1b; }
+.inspectionRuleStatusTag.missing { background: #fef3c7; color: #92400e; }
+.inspectionRuleStatusTag.not_applicable { background: #f1f5f9; color: #64748b; }
+
+.inspectionRuleTitle {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.inspectionRuleMsg {
+  font-size: 11px;
+  color: #475569;
+}
+
+.inspectionRuleActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.ruleActionBtn {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.ruleActionBtn.primary { background: #0f3f67; color: #ffffff; }
+.ruleActionBtn.secondary { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+
+/* 4. Template Library Modal styles */
+.templateLibraryModalDialog {
+  max-width: 680px;
+}
+
+.templateCardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.templateCardItem {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.15s;
+}
+
+.templateCardItem:hover {
+  border-color: #0f3f67;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.templateCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.templateOrgBadge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.templateFavBtn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  color: #94a3b8;
+  padding: 0;
+  line-height: 1;
+}
+
+.templateFavBtn.active {
+  color: #eab308;
+}
+
+.templateCardTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f3f67;
+  line-height: 1.3;
+}
+
+.templateCardDesc {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.templateCardMeta {
+  font-size: 10px;
+  color: #94a3b8;
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.templateCardActions {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.templateActionBtn {
+  flex: 1;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+}
+
+.templateActionBtn.primary {
+  background: #0f3f67;
+  color: #ffffff;
+  border: none;
+}
+
+.templateActionBtn.outline {
+  background: #ffffff;
+  color: #0f3f67;
+  border: 1px solid #0f3f67;
+}
+
+/* 5. Knowledge Modal styles */
+.knowledgeModalDialog {
+  max-width: 680px;
+}
+
+
 
 
 

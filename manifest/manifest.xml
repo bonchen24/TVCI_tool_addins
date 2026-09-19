@@ -5,7 +5,7 @@
            xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
            xsi:type="TaskPaneApp">
   <Id>8d912cc6-37a5-4b7a-8c41-6f661a999b36</Id>
-  <Version>1.0.0.10</Version>
+  <Version>1.0.0.11</Version>
   <ProviderName>TVCI</ProviderName>
   <DefaultLocale>vi-VN</DefaultLocale>
   <DisplayName DefaultValue="TVCI Word Tools"/>
@@ -28,13 +28,51 @@
           <FunctionFile resid="Commands.Url"/>
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
             <CustomTab id="TabTVCI">
-                            <Group id="GroupStandardize">
-                <Label resid="StandardizeGroup.Label"/>
+
+              <!-- NHÓM 1: SOẠN THẢO (AI) -->
+              <Group id="GroupAi">
+                <Label resid="AiGroup.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.Ai.16"/>
+                  <bt:Image size="32" resid="Icon.Ai.32"/>
+                  <bt:Image size="80" resid="Icon.Ai.80"/>
+                </Icon>
+                <Control xsi:type="Button" id="AiWorkspaceButton">
+                  <Label resid="AiWorkspace.Label"/>
+                  <Supertip><Title resid="AiWorkspace.Label"/><Description resid="AiWorkspace.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Ai.16"/>
+                    <bt:Image size="32" resid="Icon.Ai.32"/>
+                    <bt:Image size="80" resid="Icon.Ai.80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Ai.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+
+              <!-- NHÓM 2: VĂN BẢN (THIẾT LẬP & KIỂM TRA & CHUẨN HÓA) -->
+              <Group id="GroupDocument">
+                <Label resid="DocumentGroup.Label"/>
                 <Icon>
                   <bt:Image size="16" resid="Icon.Proofread.16"/>
                   <bt:Image size="32" resid="Icon.Proofread.32"/>
                   <bt:Image size="80" resid="Icon.Proofread.80"/>
                 </Icon>
+                <Control xsi:type="Button" id="DocumentSettingsButton">
+                  <Label resid="DocumentSettings.Label"/>
+                  <Supertip><Title resid="DocumentSettings.Label"/><Description resid="DocumentSettings.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Drafting.16"/>
+                    <bt:Image size="32" resid="Icon.Drafting.32"/>
+                    <bt:Image size="80" resid="Icon.Drafting.80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Settings.Url"/>
+                  </Action>
+                </Control>
                 <Control xsi:type="Button" id="CheckDocumentButton">
                   <Label resid="CheckDocument.Label"/>
                   <Supertip><Title resid="CheckDocument.Label"/><Description resid="CheckDocument.Tooltip"/></Supertip>
@@ -43,7 +81,10 @@
                     <bt:Image size="32" resid="Icon.Proofread.32"/>
                     <bt:Image size="80" resid="Icon.Proofread.80"/>
                   </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Standardize.Url"/></Action>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Inspect.Url"/>
+                  </Action>
                 </Control>
                 <Control xsi:type="Button" id="QuickStandardizeButton">
                   <Label resid="QuickStandardize.Label"/>
@@ -54,6 +95,16 @@
                     <bt:Image size="80" resid="Icon.QuickStandardize.80"/>
                   </Icon>
                   <Action xsi:type="ExecuteFunction"><FunctionName>run1ClickStandardize</FunctionName></Action>
+                </Control>
+                <Control xsi:type="Button" id="SafeFixButton">
+                  <Label resid="SafeFix.Label"/>
+                  <Supertip><Title resid="SafeFix.Label"/><Description resid="SafeFix.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Proofread.16"/>
+                    <bt:Image size="32" resid="Icon.Proofread.32"/>
+                    <bt:Image size="80" resid="Icon.Proofread.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>runSafeFix</FunctionName></Action>
                 </Control>
                 <Control xsi:type="Button" id="RollbackButton">
                   <Label resid="Rollback.Label"/>
@@ -66,23 +117,77 @@
                   <Action xsi:type="ExecuteFunction"><FunctionName>runRollbackLastAction</FunctionName></Action>
                 </Control>
               </Group>
-              <Group id="GroupDrafting">
-                <Label resid="DraftingGroup.Label"/>
+
+              <!-- NHÓM 3: BIỂU MẪU (TEMPLATES) -->
+              <Group id="GroupTemplates">
+                <Label resid="TemplatesGroup.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.Library.16"/>
+                  <bt:Image size="32" resid="Icon.Library.32"/>
+                  <bt:Image size="80" resid="Icon.Library.80"/>
+                </Icon>
+                <Control xsi:type="Button" id="TemplateLibraryButton">
+                  <Label resid="TemplateLibrary.Label"/>
+                  <Supertip><Title resid="TemplateLibrary.Label"/><Description resid="TemplateLibrary.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Library.16"/>
+                    <bt:Image size="32" resid="Icon.Library.32"/>
+                    <bt:Image size="80" resid="Icon.Library.80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Library.Url"/>
+                  </Action>
+                </Control>
+                <Control xsi:type="Button" id="RecentTemplatesButton">
+                  <Label resid="RecentTemplates.Label"/>
+                  <Supertip><Title resid="RecentTemplates.Label"/><Description resid="RecentTemplates.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Open.16"/>
+                    <bt:Image size="32" resid="Icon.Open.32"/>
+                    <bt:Image size="80" resid="Icon.Open.80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Recent.Url"/>
+                  </Action>
+                </Control>
+                <Control xsi:type="Button" id="FavoriteTemplatesButton">
+                  <Label resid="FavoriteTemplates.Label"/>
+                  <Supertip><Title resid="FavoriteTemplates.Label"/><Description resid="FavoriteTemplates.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Brand.16"/>
+                    <bt:Image size="32" resid="Icon.Brand.32"/>
+                    <bt:Image size="80" resid="Icon.Brand.80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Favorite.Url"/>
+                  </Action>
+                </Control>
+                <Control xsi:type="Button" id="TemplateBuilderButton">
+                  <Label resid="TemplateBuilder.Label"/>
+                  <Supertip><Title resid="TemplateBuilder.Label"/><Description resid="TemplateBuilder.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Builder.16"/>
+                    <bt:Image size="32" resid="Icon.Builder.32"/>
+                    <bt:Image size="80" resid="Icon.Builder.80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Builder.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+
+              <!-- NHÓM 4: CHÈN NHANH (QUICK INSERT) -->
+              <Group id="GroupQuickInsert">
+                <Label resid="QuickInsertGroup.Label"/>
                 <Icon>
                   <bt:Image size="16" resid="Icon.Drafting.16"/>
                   <bt:Image size="32" resid="Icon.Drafting.32"/>
                   <bt:Image size="80" resid="Icon.Drafting.80"/>
                 </Icon>
-                <Control xsi:type="Button" id="StandardDraftingButton">
-                  <Label resid="StandardDrafting.Label"/>
-                  <Supertip><Title resid="StandardDrafting.Label"/><Description resid="StandardDrafting.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.Drafting.16"/>
-                    <bt:Image size="32" resid="Icon.Drafting.32"/>
-                    <bt:Image size="80" resid="Icon.Drafting.80"/>
-                  </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Drafting.Url"/></Action>
-                </Control>
                 <Control xsi:type="Button" id="AddresseeButton">
                   <Label resid="Addressee.Label"/>
                   <Supertip><Title resid="Addressee.Label"/><Description resid="Addressee.Tooltip"/></Supertip>
@@ -91,7 +196,17 @@
                     <bt:Image size="32" resid="Icon.Addressee.32"/>
                     <bt:Image size="80" resid="Icon.Addressee.80"/>
                   </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Addressee.Url"/></Action>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>insertAddresseeCmd</FunctionName></Action>
+                </Control>
+                <Control xsi:type="Button" id="LegalBasisButton">
+                  <Label resid="LegalBasis.Label"/>
+                  <Supertip><Title resid="LegalBasis.Label"/><Description resid="LegalBasis.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Rule.16"/>
+                    <bt:Image size="32" resid="Icon.Rule.32"/>
+                    <bt:Image size="80" resid="Icon.Rule.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>insertLegalBasisCmd</FunctionName></Action>
                 </Control>
                 <Control xsi:type="Button" id="RecipientsButton">
                   <Label resid="Recipients.Label"/>
@@ -101,30 +216,42 @@
                     <bt:Image size="32" resid="Icon.Recipients.32"/>
                     <bt:Image size="80" resid="Icon.Recipients.80"/>
                   </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Recipients.Url"/></Action>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>insertRecipientsCmd</FunctionName></Action>
                 </Control>
-                <Control xsi:type="Button" id="HorizontalRuleButton">
-                  <Label resid="HorizontalRule.Label"/>
-                  <Supertip><Title resid="HorizontalRule.Label"/><Description resid="HorizontalRule.Tooltip"/></Supertip>
+                <Control xsi:type="Button" id="SignerButton">
+                  <Label resid="Signer.Label"/>
+                  <Supertip><Title resid="Signer.Label"/><Description resid="Signer.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Drafting.16"/>
+                    <bt:Image size="32" resid="Icon.Drafting.32"/>
+                    <bt:Image size="80" resid="Icon.Drafting.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>insertSignerCmd</FunctionName></Action>
+                </Control>
+                <Control xsi:type="Button" id="AppendixButton">
+                  <Label resid="Appendix.Label"/>
+                  <Supertip><Title resid="Appendix.Label"/><Description resid="Appendix.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Appendix.16"/>
+                    <bt:Image size="32" resid="Icon.Appendix.32"/>
+                    <bt:Image size="80" resid="Icon.Appendix.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>insertAppendixCmd</FunctionName></Action>
+                </Control>
+                <Control xsi:type="Button" id="OutlineButton">
+                  <Label resid="Outline.Label"/>
+                  <Supertip><Title resid="Outline.Label"/><Description resid="Outline.Tooltip"/></Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.Rule.16"/>
                     <bt:Image size="32" resid="Icon.Rule.32"/>
                     <bt:Image size="80" resid="Icon.Rule.80"/>
                   </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Drafting.Url"/></Action>
-                </Control>
-                <Control xsi:type="Button" id="PageNumbersButton">
-                  <Label resid="PageNumbers.Label"/>
-                  <Supertip><Title resid="PageNumbers.Label"/><Description resid="PageNumbers.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.PageNumbers.16"/>
-                    <bt:Image size="32" resid="Icon.PageNumbers.32"/>
-                    <bt:Image size="80" resid="Icon.PageNumbers.80"/>
-                  </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Drafting.Url"/></Action>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>insertOutlineCmd</FunctionName></Action>
                 </Control>
               </Group>
-                            <Group id="GroupPageLayout">
+
+              <!-- NHÓM 5: BỐ CỤC (LAYOUT) -->
+              <Group id="GroupLayout">
                 <Label resid="PageLayoutGroup.Label"/>
                 <Icon>
                   <bt:Image size="16" resid="Icon.A4Margins.16"/>
@@ -141,15 +268,25 @@
                   </Icon>
                   <Action xsi:type="ExecuteFunction"><FunctionName>applyA4Margins</FunctionName></Action>
                 </Control>
-                <Control xsi:type="Button" id="DeleteBlankPagesButton">
-                  <Label resid="DeleteBlankPages.Label"/>
-                  <Supertip><Title resid="DeleteBlankPages.Label"/><Description resid="DeleteBlankPages.Tooltip"/></Supertip>
+                <Control xsi:type="Button" id="ToggleOrientationButton">
+                  <Label resid="ToggleOrientation.Label"/>
+                  <Supertip><Title resid="ToggleOrientation.Label"/><Description resid="ToggleOrientation.Tooltip"/></Supertip>
                   <Icon>
-                    <bt:Image size="16" resid="Icon.DeleteBlankPages.16"/>
-                    <bt:Image size="32" resid="Icon.DeleteBlankPages.32"/>
-                    <bt:Image size="80" resid="Icon.DeleteBlankPages.80"/>
+                    <bt:Image size="16" resid="Icon.A4Margins.16"/>
+                    <bt:Image size="32" resid="Icon.A4Margins.32"/>
+                    <bt:Image size="80" resid="Icon.A4Margins.80"/>
                   </Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>cleanBlankPagesSafe</FunctionName></Action>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>toggleOrientationCmd</FunctionName></Action>
+                </Control>
+                <Control xsi:type="Button" id="PageNumbersButton">
+                  <Label resid="PageNumbers.Label"/>
+                  <Supertip><Title resid="PageNumbers.Label"/><Description resid="PageNumbers.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.PageNumbers.16"/>
+                    <bt:Image size="32" resid="Icon.PageNumbers.32"/>
+                    <bt:Image size="80" resid="Icon.PageNumbers.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>togglePageNumbers</FunctionName></Action>
                 </Control>
                 <Control xsi:type="Button" id="FixTableOverflowButton">
                   <Label resid="FixTableOverflow.Label"/>
@@ -161,15 +298,36 @@
                   </Icon>
                   <Action xsi:type="ExecuteFunction"><FunctionName>autoFitTableToWindow</FunctionName></Action>
                 </Control>
+                <Control xsi:type="Button" id="DeleteBlankPagesButton">
+                  <Label resid="DeleteBlankPages.Label"/>
+                  <Supertip><Title resid="DeleteBlankPages.Label"/><Description resid="DeleteBlankPages.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.DeleteBlankPages.16"/>
+                    <bt:Image size="32" resid="Icon.DeleteBlankPages.32"/>
+                    <bt:Image size="80" resid="Icon.DeleteBlankPages.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>cleanBlankPagesSafe</FunctionName></Action>
+                </Control>
               </Group>
-              
-              <Group id="GroupLegacyTools">
-                <Label resid="LegacyToolsGroup.Label"/>
+
+              <!-- NHÓM 6: CÔNG CỤ (TOOLS) -->
+              <Group id="GroupTools">
+                <Label resid="ToolsGroup.Label"/>
                 <Icon>
-                  <bt:Image size="16" resid="Icon.ConvertUnicode.16"/>
-                  <bt:Image size="32" resid="Icon.ConvertUnicode.32"/>
-                  <bt:Image size="80" resid="Icon.ConvertUnicode.80"/>
+                  <bt:Image size="16" resid="Icon.FixSpacing.16"/>
+                  <bt:Image size="32" resid="Icon.FixSpacing.32"/>
+                  <bt:Image size="80" resid="Icon.FixSpacing.80"/>
                 </Icon>
+                <Control xsi:type="Button" id="CleanTextButton">
+                  <Label resid="CleanText.Label"/>
+                  <Supertip><Title resid="CleanText.Label"/><Description resid="CleanText.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.FixSpacing.16"/>
+                    <bt:Image size="32" resid="Icon.FixSpacing.32"/>
+                    <bt:Image size="80" resid="Icon.FixSpacing.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>cleanExtraSpacesCmd</FunctionName></Action>
+                </Control>
                 <Control xsi:type="Button" id="ConvertUnicodeButton">
                   <Label resid="ConvertUnicode.Label"/>
                   <Supertip><Title resid="ConvertUnicode.Label"/><Description resid="ConvertUnicode.Tooltip"/></Supertip>
@@ -180,131 +338,34 @@
                   </Icon>
                   <Action xsi:type="ExecuteFunction"><FunctionName>convertSelectionToUnicode</FunctionName></Action>
                 </Control>
-                <Control xsi:type="Button" id="FixSpacingButton">
-                  <Label resid="FixSpacing.Label"/>
-                  <Supertip><Title resid="FixSpacing.Label"/><Description resid="FixSpacing.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.FixSpacing.16"/>
-                    <bt:Image size="32" resid="Icon.FixSpacing.32"/>
-                    <bt:Image size="80" resid="Icon.FixSpacing.80"/>
-                  </Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>fixSpacingQuick</FunctionName></Action>
-                </Control>
-                <Control xsi:type="Button" id="FixLineBreaksButton">
-                  <Label resid="FixLineBreaks.Label"/>
-                  <Supertip><Title resid="FixLineBreaks.Label"/><Description resid="FixLineBreaks.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.FixLineBreaks.16"/>
-                    <bt:Image size="32" resid="Icon.FixLineBreaks.32"/>
-                    <bt:Image size="80" resid="Icon.FixLineBreaks.80"/>
-                  </Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>fixManualLineBreaksCmd</FunctionName></Action>
-                </Control>
-                <Control xsi:type="Button" id="PunctuationFormatButton">
-                  <Label resid="PunctuationFormat.Label"/>
-                  <Supertip><Title resid="PunctuationFormat.Label"/><Description resid="PunctuationFormat.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.Punctuation.16"/>
-                    <bt:Image size="32" resid="Icon.Punctuation.32"/>
-                    <bt:Image size="80" resid="Icon.Punctuation.80"/>
-                  </Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>normalizePunctuationCmd</FunctionName></Action>
-                </Control>
-              </Group>
-              <Group id="GroupLibraryAi">
-                <Label resid="LibraryAiGroup.Label"/>
-                <Icon>
-                  <bt:Image size="16" resid="Icon.Library.16"/>
-                  <bt:Image size="32" resid="Icon.Library.32"/>
-                  <bt:Image size="80" resid="Icon.Library.80"/>
-                </Icon>
-                <Control xsi:type="Button" id="TemplateLibraryButton">
-                  <Label resid="TemplateLibrary.Label"/>
-                  <Supertip><Title resid="TemplateLibrary.Label"/><Description resid="TemplateLibrary.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.Library.16"/>
-                    <bt:Image size="32" resid="Icon.Library.32"/>
-                    <bt:Image size="80" resid="Icon.Library.80"/>
-                  </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Library.Url"/></Action>
-                </Control>
-                <Control xsi:type="Button" id="AiWorkspaceButton">
-                  <Label resid="AiWorkspace.Label"/>
-                  <Supertip><Title resid="AiWorkspace.Label"/><Description resid="AiWorkspace.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.Ai.16"/>
-                    <bt:Image size="32" resid="Icon.Ai.32"/>
-                    <bt:Image size="80" resid="Icon.Ai.80"/>
-                  </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Ai.Url"/></Action>
-                </Control>
-                <Control xsi:type="Button" id="ProofreadButton">
-                  <Label resid="Proofread.Label"/>
-                  <Supertip><Title resid="Proofread.Label"/><Description resid="Proofread.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.Proofread.16"/>
-                    <bt:Image size="32" resid="Icon.Proofread.32"/>
-                    <bt:Image size="80" resid="Icon.Proofread.80"/>
-                  </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Proofread.Url"/></Action>
-                </Control>
-                <Control xsi:type="Button" id="TemplateBuilderButton">
-                  <Label resid="TemplateBuilder.Label"/>
-                  <Supertip><Title resid="TemplateBuilder.Label"/><Description resid="TemplateBuilder.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.Builder.16"/>
-                    <bt:Image size="32" resid="Icon.Builder.32"/>
-                    <bt:Image size="80" resid="Icon.Builder.80"/>
-                  </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Builder.Url"/></Action>
-                </Control>
-              </Group>
-              <Group id="GroupUtilities">
-                <Label resid="UtilitiesGroup.Label"/>
-                <Icon>
-                  <bt:Image size="16" resid="Icon.Guidance.16"/>
-                  <bt:Image size="32" resid="Icon.Guidance.32"/>
-                  <bt:Image size="80" resid="Icon.Guidance.80"/>
-                </Icon>
-                <Control xsi:type="Button" id="TemplateFillButton">
-                  <Label resid="TemplateFill.Label"/>
-                  <Supertip><Title resid="TemplateFill.Label"/><Description resid="TemplateFill.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.Fill.16"/>
-                    <bt:Image size="32" resid="Icon.Fill.32"/>
-                    <bt:Image size="80" resid="Icon.Fill.80"/>
-                  </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.TemplateFill.Url"/></Action>
-                </Control>
-                <Control xsi:type="Button" id="GuidanceButton">
-                  <Label resid="Guidance.Label"/>
-                  <Supertip><Title resid="Guidance.Label"/><Description resid="Guidance.Tooltip"/></Supertip>
+                <Control xsi:type="Button" id="KnowledgeButton">
+                  <Label resid="Knowledge.Label"/>
+                  <Supertip><Title resid="Knowledge.Label"/><Description resid="Knowledge.Tooltip"/></Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.Guidance.16"/>
                     <bt:Image size="32" resid="Icon.Guidance.32"/>
                     <bt:Image size="80" resid="Icon.Guidance.80"/>
                   </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Guidance.Url"/></Action>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Knowledge.Url"/>
+                  </Action>
                 </Control>
-              </Group>
-              <Group id="GroupBrand">
-                <Label resid="BrandGroup.Label"/>
-                <Icon>
-                  <bt:Image size="16" resid="Icon.Brand.16"/>
-                  <bt:Image size="32" resid="Icon.Brand.32"/>
-                  <bt:Image size="80" resid="Icon.Brand.80"/>
-                </Icon>
-                <Control xsi:type="Button" id="OpenTaskpaneButton">
-                  <Label resid="BrandButton.Label"/>
-                  <Supertip><Title resid="BrandButton.Label"/><Description resid="BrandButton.Tooltip"/></Supertip>
+                <Control xsi:type="Button" id="SettingsButton">
+                  <Label resid="Settings.Label"/>
+                  <Supertip><Title resid="Settings.Label"/><Description resid="Settings.Tooltip"/></Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.Brand.16"/>
                     <bt:Image size="32" resid="Icon.Brand.32"/>
                     <bt:Image size="80" resid="Icon.Brand.80"/>
                   </Icon>
-                  <Action xsi:type="ShowTaskpane"><TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId><SourceLocation resid="Taskpane.Url"/></Action>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
+                    <SourceLocation resid="Taskpane.SettingsModal.Url"/>
+                  </Action>
                 </Control>
               </Group>
+
               <Label resid="Tab.Label"/>
             </CustomTab>
           </ExtensionPoint>
@@ -343,9 +404,6 @@
         <bt:Image id="Icon.Table.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-16.png"/>
         <bt:Image id="Icon.Table.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-32.png"/>
         <bt:Image id="Icon.Table.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-80.png"/>
-        <bt:Image id="Icon.Numbering.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-numbering-16.png"/>
-        <bt:Image id="Icon.Numbering.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-numbering-32.png"/>
-        <bt:Image id="Icon.Numbering.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-numbering-80.png"/>
         <bt:Image id="Icon.Library.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-library-16.png"/>
         <bt:Image id="Icon.Library.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-library-32.png"/>
         <bt:Image id="Icon.Library.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-library-80.png"/>
@@ -373,9 +431,9 @@
         <bt:Image id="Icon.A4Margins.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-a4-margins-16.png"/>
         <bt:Image id="Icon.A4Margins.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-a4-margins-32.png"/>
         <bt:Image id="Icon.A4Margins.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-a4-margins-80.png"/>
-        <bt:Image id="Icon.DeleteBlankPages.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-page-16.png"/>
-        <bt:Image id="Icon.DeleteBlankPages.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-page-32.png"/>
-        <bt:Image id="Icon.DeleteBlankPages.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-page-80.png"/>
+        <bt:Image id="Icon.DeleteBlankPages.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-pages-16.png"/>
+        <bt:Image id="Icon.DeleteBlankPages.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-pages-32.png"/>
+        <bt:Image id="Icon.DeleteBlankPages.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-pages-80.png"/>
         <bt:Image id="Icon.TableFit.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-fit-16.png"/>
         <bt:Image id="Icon.TableFit.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-fit-32.png"/>
         <bt:Image id="Icon.TableFit.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-fit-80.png"/>
@@ -395,86 +453,85 @@
       <bt:Urls>
         <bt:Url id="Commands.Url" DefaultValue="https://localhost:38473/commands.html"/>
         <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:38473/taskpane.html"/>
-        <bt:Url id="Taskpane.Standardize.Url" DefaultValue="https://localhost:38473/taskpane.html?view=standardize"/>
-        <bt:Url id="Taskpane.Drafting.Url" DefaultValue="https://localhost:38473/taskpane.html?view=drafting"/>
-        <bt:Url id="Taskpane.Appendix.Url" DefaultValue="https://localhost:38473/taskpane.html?view=appendix"/>
-        <bt:Url id="Taskpane.Addressee.Url" DefaultValue="https://localhost:38473/taskpane.html?view=addressee"/>
-        <bt:Url id="Taskpane.Recipients.Url" DefaultValue="https://localhost:38473/taskpane.html?view=recipients"/>
-        <bt:Url id="Taskpane.Library.Url" DefaultValue="https://localhost:38473/taskpane.html?view=library"/>
         <bt:Url id="Taskpane.Ai.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai"/>
-        <bt:Url id="Taskpane.Proofread.Url" DefaultValue="https://localhost:38473/taskpane.html?view=proofread"/>
+        <bt:Url id="Taskpane.Settings.Url" DefaultValue="https://localhost:38473/taskpane.html?view=settings"/>
+        <bt:Url id="Taskpane.Inspect.Url" DefaultValue="https://localhost:38473/taskpane.html?view=inspect"/>
+        <bt:Url id="Taskpane.Library.Url" DefaultValue="https://localhost:38473/taskpane.html?view=library"/>
+        <bt:Url id="Taskpane.Recent.Url" DefaultValue="https://localhost:38473/taskpane.html?view=library&amp;filter=recent"/>
+        <bt:Url id="Taskpane.Favorite.Url" DefaultValue="https://localhost:38473/taskpane.html?view=library&amp;filter=favorite"/>
         <bt:Url id="Taskpane.Builder.Url" DefaultValue="https://localhost:38473/taskpane.html?view=builder"/>
-        <bt:Url id="Taskpane.TemplateFill.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai&amp;tab=template"/>
-        <bt:Url id="Taskpane.Guidance.Url" DefaultValue="https://localhost:38473/taskpane.html?view=guidance"/>
+        <bt:Url id="Taskpane.Knowledge.Url" DefaultValue="https://localhost:38473/taskpane.html?view=knowledge"/>
+        <bt:Url id="Taskpane.SettingsModal.Url" DefaultValue="https://localhost:38473/taskpane.html?view=settings_modal"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Tab.Label" DefaultValue="TVCI Tools"/>
-        <bt:String id="StandardizeGroup.Label" DefaultValue="Chuẩn hóa"/>
-        <bt:String id="DraftingGroup.Label" DefaultValue="Soạn thảo chuẩn"/>
-        <bt:String id="LibraryAiGroup.Label" DefaultValue="Biểu mẫu &amp; AI"/>
-        <bt:String id="UtilitiesGroup.Label" DefaultValue="Tiện ích"/>
-        <bt:String id="BrandGroup.Label" DefaultValue="TVCI Word Tools"/>
-        <bt:String id="BrandButton.Label" DefaultValue="TVCI Word Tools"/>
-        <bt:String id="ReadSelection.Label" DefaultValue="Đọc đoạn chọn"/>
-        <bt:String id="CheckDocument.Label" DefaultValue="Kiểm tra văn bản"/>
-        <bt:String id="StandardDrafting.Label" DefaultValue="Soạn thảo chuẩn"/>
-        <bt:String id="AppendixGroup.Label" DefaultValue="Phụ lục &amp; bảng"/>
-        <bt:String id="Addressee.Label" DefaultValue="Kính gửi"/>
-        <bt:String id="Recipients.Label" DefaultValue="Nơi nhận"/>
-        <bt:String id="HorizontalRule.Label" DefaultValue="Đường kẻ tiêu đề"/>
-        <bt:String id="PageNumbers.Label" DefaultValue="Số trang"/>
-        <bt:String id="TemplateLibrary.Label" DefaultValue="Kho biểu mẫu"/>
+        <bt:String id="AiGroup.Label" DefaultValue="Soạn thảo"/>
+        <bt:String id="DocumentGroup.Label" DefaultValue="Văn bản"/>
+        <bt:String id="TemplatesGroup.Label" DefaultValue="Biểu mẫu"/>
+        <bt:String id="QuickInsertGroup.Label" DefaultValue="Chèn nhanh"/>
+        <bt:String id="PageLayoutGroup.Label" DefaultValue="Bố cục"/>
+        <bt:String id="ToolsGroup.Label" DefaultValue="Công cụ"/>
+
         <bt:String id="AiWorkspace.Label" DefaultValue="AI Soạn thảo"/>
-        <bt:String id="Proofread.Label" DefaultValue="Kiểm tra lỗi"/>
-        <bt:String id="TemplateBuilder.Label" DefaultValue="Tạo biểu mẫu"/>
-        <bt:String id="Appendix.Label" DefaultValue="Thêm phụ lục"/>
-        <bt:String id="AppendixTable.Label" DefaultValue="Tạo bảng phụ lục"/>
-        <bt:String id="NumberTable.Label" DefaultValue="Đánh số bảng"/>
-        <bt:String id="TemplateFill.Label" DefaultValue="Điền biểu mẫu"/>
-        <bt:String id="Guidance.Label" DefaultValue="Hướng dẫn nhanh"/>
-      
+        <bt:String id="DocumentSettings.Label" DefaultValue="Thiết lập văn bản"/>
+        <bt:String id="CheckDocument.Label" DefaultValue="Kiểm tra văn bản"/>
         <bt:String id="QuickStandardize.Label" DefaultValue="Chuẩn hóa 1-click"/>
+        <bt:String id="SafeFix.Label" DefaultValue="Sửa an toàn"/>
         <bt:String id="Rollback.Label" DefaultValue="Hoàn tác"/>
-        <bt:String id="PageLayoutGroup.Label" DefaultValue="Bố cục trang"/>
+
+        <bt:String id="TemplateLibrary.Label" DefaultValue="Kho biểu mẫu"/>
+        <bt:String id="RecentTemplates.Label" DefaultValue="Mẫu gần đây"/>
+        <bt:String id="FavoriteTemplates.Label" DefaultValue="Yêu thích"/>
+        <bt:String id="TemplateBuilder.Label" DefaultValue="Tạo biểu mẫu"/>
+
+        <bt:String id="Addressee.Label" DefaultValue="Kính gửi"/>
+        <bt:String id="LegalBasis.Label" DefaultValue="Căn cứ"/>
+        <bt:String id="Recipients.Label" DefaultValue="Nơi nhận"/>
+        <bt:String id="Signer.Label" DefaultValue="Chữ ký"/>
+        <bt:String id="Appendix.Label" DefaultValue="Phụ lục"/>
+        <bt:String id="Outline.Label" DefaultValue="Đề mục"/>
+
         <bt:String id="StandardA4.Label" DefaultValue="Lề A4 chuẩn"/>
+        <bt:String id="ToggleOrientation.Label" DefaultValue="Trang ngang/dọc"/>
+        <bt:String id="PageNumbers.Label" DefaultValue="Số trang"/>
+        <bt:String id="FixTableOverflow.Label" DefaultValue="Sửa tràn bảng"/>
         <bt:String id="DeleteBlankPages.Label" DefaultValue="Xóa trang trắng"/>
-        <bt:String id="FixTableOverflow.Label" DefaultValue="Sửa bảng tràn"/>
-      
-        <bt:String id="LegacyToolsGroup.Label" DefaultValue="Công cụ văn bản cũ"/>
+
+        <bt:String id="CleanText.Label" DefaultValue="Làm sạch văn bản"/>
         <bt:String id="ConvertUnicode.Label" DefaultValue="Chuyển mã Unicode"/>
-        <bt:String id="FixSpacing.Label" DefaultValue="Xóa dấu cách thừa"/>
-        <bt:String id="FixLineBreaks.Label" DefaultValue="Sửa lỗi xuống dòng"/>
-        <bt:String id="PunctuationFormat.Label" DefaultValue="Chuẩn hóa dấu câu"/>
+        <bt:String id="Knowledge.Label" DefaultValue="Kho kiến thức"/>
+        <bt:String id="Settings.Label" DefaultValue="Cài đặt"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="BrandButton.Tooltip" DefaultValue="Mở TVCI Word Tools trong Task Pane."/>
-        <bt:String id="ReadSelection.Tooltip" DefaultValue="Đọc nội dung đoạn đang chọn trong Word."/>
-        <bt:String id="CheckDocument.Tooltip" DefaultValue="Mở TVCI Word Tools để kiểm tra thể thức và định dạng văn bản."/>
-        <bt:String id="StandardDrafting.Tooltip" DefaultValue="Mở các công cụ chèn bảng, danh sách, đề mục và số trang chuẩn."/>
-        <bt:String id="Appendix.Tooltip" DefaultValue="Mở khu vực để thêm phụ lục ở cuối tài liệu."/>
-        <bt:String id="AppendixTable.Tooltip" DefaultValue="Mở khu vực để tạo bảng phụ lục có cột STT."/>
-        <bt:String id="NumberTable.Tooltip" DefaultValue="Đánh lại STT cho cột đầu của bảng đang đặt con trỏ."/>
-        <bt:String id="Addressee.Tooltip" DefaultValue="Mở công cụ soạn phần Kính gửi theo profile đang chọn."/>
-        <bt:String id="Recipients.Tooltip" DefaultValue="Mở công cụ soạn phần Nơi nhận theo profile đang chọn."/>
-        <bt:String id="HorizontalRule.Tooltip" DefaultValue="Mở công cụ chèn đường kẻ biến đổi cho tiêu đề hoặc thông báo."/>
-        <bt:String id="PageNumbers.Tooltip" DefaultValue="Mở công cụ cấu hình số trang theo profile đang chọn."/>
-        <bt:String id="TemplateLibrary.Tooltip" DefaultValue="Mở kho biểu mẫu IEMM, TVCI và Văn bản Đảng / Đảng ủy Viện."/>
-        <bt:String id="AiWorkspace.Tooltip" DefaultValue="Mở AI Workspace để soạn thảo, điền biểu mẫu và kiểm tra lỗi."/>
-        <bt:String id="Proofread.Tooltip" DefaultValue="Mở AI Workspace tại khu vực kiểm tra chính tả và diễn đạt."/>
-        <bt:String id="TemplateBuilder.Tooltip" DefaultValue="Mở công cụ tạo biểu mẫu và đặt Content Control."/>
-        <bt:String id="TemplateFill.Tooltip" DefaultValue="Mở AI Workspace tại khu vực điền biểu mẫu."/>
-        <bt:String id="Guidance.Tooltip" DefaultValue="Mở hướng dẫn quy trình, quy cách và lưu ý TVCI/IEMM."/>
-      
-        <bt:String id="QuickStandardize.Tooltip" DefaultValue="Chuẩn hóa 1-click tự động"/>
-        <bt:String id="Rollback.Tooltip" DefaultValue="Hoàn tác chuẩn hóa trước đó"/>
-        <bt:String id="StandardA4.Tooltip" DefaultValue="Áp dụng lề A4 chuẩn"/>
-        <bt:String id="DeleteBlankPages.Tooltip" DefaultValue="Xóa trang trắng ở cuối"/>
-        <bt:String id="FixTableOverflow.Tooltip" DefaultValue="Tự động thu gọn bảng vừa trang"/>
-      
-        <bt:String id="ConvertUnicode.Tooltip" DefaultValue="Chuyển mã TCVN3/VNI sang Unicode"/>
-        <bt:String id="FixSpacing.Tooltip" DefaultValue="Xóa khoảng trắng thừa trong văn bản"/>
-        <bt:String id="FixLineBreaks.Tooltip" DefaultValue="Sửa lỗi dùng Shift+Enter ngắt dòng"/>
-        <bt:String id="PunctuationFormat.Tooltip" DefaultValue="Sửa lỗi khoảng trắng trước sau dấu câu"/>
+        <bt:String id="AiWorkspace.Tooltip" DefaultValue="Mở Trợ lý AI Soạn thảo văn bản thông minh."/>
+        <bt:String id="DocumentSettings.Tooltip" DefaultValue="Mở hộp thoại cấu hình thể thức, căn lề, cơ quan ban hành và người ký."/>
+        <bt:String id="CheckDocument.Tooltip" DefaultValue="Mở hộp thoại kiểm tra và đánh giá thể thức 4 trạng thái theo NĐ30."/>
+        <bt:String id="QuickStandardize.Tooltip" DefaultValue="Tự động căn lề A4 và sửa toàn bộ lỗi thể thức an toàn trong 1-click."/>
+        <bt:String id="SafeFix.Tooltip" DefaultValue="Tự động sửa các lỗi thể thức an toàn có thể khắc phục được."/>
+        <bt:String id="Rollback.Tooltip" DefaultValue="Hoàn tác lại lần chuẩn hóa trước đó."/>
+
+        <bt:String id="TemplateLibrary.Tooltip" DefaultValue="Mở kho biểu mẫu chuẩn của TVCI, Viện Cơ điện Mỏ và Đảng."/>
+        <bt:String id="RecentTemplates.Tooltip" DefaultValue="Xem danh sách các biểu mẫu đã sử dụng gần đây."/>
+        <bt:String id="FavoriteTemplates.Tooltip" DefaultValue="Xem danh sách các biểu mẫu đã đánh dấu yêu thích."/>
+        <bt:String id="TemplateBuilder.Tooltip" DefaultValue="Mở Wizard hướng dẫn 5 bước tạo biểu mẫu mới."/>
+
+        <bt:String id="Addressee.Tooltip" DefaultValue="Chèn nhanh khối Kính gửi chuẩn quy cách hành chính."/>
+        <bt:String id="LegalBasis.Tooltip" DefaultValue="Chèn căn cứ pháp lý in nghiêng có dấu chấm phẩy."/>
+        <bt:String id="Recipients.Tooltip" DefaultValue="Chèn khối Nơi nhận đúng quy chuẩn thể thức."/>
+        <bt:String id="Signer.Tooltip" DefaultValue="Chèn chức vụ và họ tên người ký văn bản."/>
+        <bt:String id="Appendix.Tooltip" DefaultValue="Chèn phụ lục và bảng danh mục đính kèm."/>
+        <bt:String id="Outline.Tooltip" DefaultValue="Chèn cấu trúc đề mục I, 1, a, - chuẩn thể thức."/>
+
+        <bt:String id="StandardA4.Tooltip" DefaultValue="Thiết lập lề trang A4 chuẩn (20-20-30-15 mm) theo NĐ30."/>
+        <bt:String id="ToggleOrientation.Tooltip" DefaultValue="Chuyển hướng trang ngang hoặc dọc cho bảng biểu."/>
+        <bt:String id="PageNumbers.Tooltip" DefaultValue="Đánh số trang góc trên giữa theo Nghị định 30."/>
+        <bt:String id="FixTableOverflow.Tooltip" DefaultValue="Tự động co giãn chiều rộng bảng vừa khít lề trang Word."/>
+        <bt:String id="DeleteBlankPages.Tooltip" DefaultValue="Xóa các trang trắng và dòng ngắt thừa ở cuối văn bản."/>
+
+        <bt:String id="CleanText.Tooltip" DefaultValue="Xóa khoảng trắng thừa, ngắt dòng mềm và chuẩn hóa dấu câu."/>
+        <bt:String id="ConvertUnicode.Tooltip" DefaultValue="Chuyển đổi mã phông chữ cũ TCVN3/VNI sang Unicode dựng sẵn."/>
+        <bt:String id="Knowledge.Tooltip" DefaultValue="Mở Kho tri thức, quy chế và kinh nghiệm soạn thảo nghiệp vụ."/>
+        <bt:String id="Settings.Tooltip" DefaultValue="Cấu hình kết nối AI (Gemini, OpenAI) và tùy chọn nâng cao."/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>
