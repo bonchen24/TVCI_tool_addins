@@ -28,9 +28,11 @@ Source: "..\release\staging\server\server.js"; DestDir: "{app}\server"; Flags: i
 Source: "..\release\staging\runtime\*"; DestDir: "{app}\runtime"; Flags: ignoreversion recursesubdirs
 Source: "..\release\staging\scripts\*"; DestDir: "{app}\scripts"; Excludes: "stop-host.ps1"; Flags: ignoreversion recursesubdirs
 Source: "..\release\staging\scripts\stop-host.ps1"; Flags: dontcopy
+Source: "..\release\staging\repair.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{userprograms}\{#MyAppName}\Repair"; Filename: "{app}\repair-installer.exe"
+Name: "{userprograms}\{#MyAppName}\Sửa lỗi & Kích hoạt WebView2"; Filename: "{app}\repair.cmd"
 Name: "{userprograms}\{#MyAppName}\Check Status"; Filename: "powershell.exe"; Parameters: "-NoProfile -NoExit -ExecutionPolicy Bypass -File ""{app}\scripts\verify.ps1"""
 Name: "{userprograms}\{#MyAppName}\Open Logs"; Filename: "explorer.exe"; Parameters: """{app}\logs"""
 Name: "{userprograms}\{#MyAppName}\Uninstall"; Filename: "{uninstallexe}"

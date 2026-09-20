@@ -70,7 +70,8 @@ run(process.execPath, [npmCli, 'run', 'validate-manifest']);
 copyTree(path.join(PROJECT_ROOT, 'dist'), path.join(staging, 'app'));
 copy(path.join(PROJECT_ROOT, 'manifest', 'manifest.xml'), path.join(staging, 'manifest', 'manifest.xml'));
 copy(path.join(PROJECT_ROOT, 'installer', 'server.js'), path.join(staging, 'server', 'server.js'));
-for (const name of ['common.ps1', 'setup.ps1', 'verify.ps1', 'uninstall.ps1', 'stop-host.ps1', 'launcher.vbs']) {
+copy(path.join(PROJECT_ROOT, 'installer', 'repair.cmd'), path.join(staging, 'repair.cmd'));
+for (const name of ['common.ps1', 'setup.ps1', 'verify.ps1', 'uninstall.ps1', 'stop-host.ps1', 'launcher.vbs', 'repair.ps1']) {
   copy(path.join(PROJECT_ROOT, 'installer', name), path.join(staging, 'scripts', name));
 }
 copy(process.execPath, path.join(staging, 'runtime', 'node.exe'));

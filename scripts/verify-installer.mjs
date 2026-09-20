@@ -15,7 +15,8 @@ const required = [
   'app/templates/tvci-sample.docx', 'manifest/manifest.xml', 'server/server.js',
   'runtime/node.exe', 'runtime/MicrosoftEdgeWebview2Setup.exe',
   'scripts/setup.ps1', 'scripts/verify.ps1', 'scripts/uninstall.ps1',
-  'scripts/common.ps1', 'scripts/stop-host.ps1', 'scripts/launcher.vbs'
+  'scripts/common.ps1', 'scripts/stop-host.ps1', 'scripts/launcher.vbs',
+  'scripts/repair.ps1', 'repair.cmd'
 ];
 for (const name of required) assert.ok(fs.existsSync(path.join(stage, name)), `Missing ${name}`);
 const files = [];

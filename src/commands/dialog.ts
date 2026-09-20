@@ -3,7 +3,7 @@ import { getTemplateFormSchema } from "../templates/form-schema";
 import { applyTemplateFormToWord } from "../word/form-content-control.service";
 import { setMultipleContentControlTexts } from "../word/content-control.service";
 
-export type DialogView = "settings" | "inspect" | "template" | "template-form" | "knowledge" | "settings_modal" | "smart_draft";
+export type DialogView = "settings" | "inspect" | "template" | "template-form" | "knowledge" | "settings_modal" | "smart_draft" | "learn_experience";
 
 let activeDialog: Office.Dialog | null = null;
 
@@ -61,6 +61,9 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
     } else if (view === "smart_draft") {
       width = 52;
       height = 62;
+    } else if (view === "learn_experience") {
+      width = 52;
+      height = 64;
     }
 
     const baseOrigin =

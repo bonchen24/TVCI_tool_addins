@@ -98,13 +98,14 @@ Triết lý thiết kế tuân thủ nghiêm ngặt **Phân tách trách nhiệm
 | **3. Chèn nhanh** | **Chèn nhanh** (`QuickInsertMenu`) | Menu Dropdown | Chèn các khối thể thức: Kính gửi, Căn cứ pháp lý, Nơi nhận, Chữ ký, Phụ lục, Đề mục chuẩn. |
 | **4. Bố cục** | **Trang** (`PageLayoutMenu`) | Menu Dropdown | Căn lề A4 chuẩn, Xoay trang dọc/ngang, Đánh số trang NĐ30, Tự động co bảng vừa lề, Xóa trang trắng. |
 | **5. Tài nguyên** | **Kho biểu mẫu** (`TemplateLibraryButton`) | `ExecuteFunction` (`openTemplateLibraryDialog`) | Mở Modal tra cứu và sử dụng toàn bộ biểu mẫu Viện & Trung tâm. |
+| | **Nhận kinh nghiệm** (`LearnExperienceButton`) | `ExecuteFunction` (`openLearnExperienceDialog`) | Mở Modal đúc kết tri thức & kinh nghiệm từ văn kiện Word hoàn thiện vào Kho tri thức (có chống trùng lặp). |
 | | **Cài đặt** (`SettingsButton`) | `ExecuteFunction` (`openSettingsDialog`) | Cấu hình API Key AI (Gemini, OpenAI, Claude, Local LLM). |
 
 ---
 
 ### 3.2. Tầng 2: Hệ Thống Modal Dialogs Trung Tâm
 
-Các modal nổi giải quyết các tác vụ chuyên sâu, kích thước nhỏ gọn (~52% chiều rộng, ~62% chiều cao màn hình), không che nền tài liệu Word:
+Các modal nổi giải quyết các tác vụ chuyên sâu, kích thước nhỏ gọn (~52% chiều rộng, ~62-64% chiều cao màn hình), không che nền tài liệu Word:
 
 #### A. Modal "Soạn thảo AI" (`SmartDraftingModal.tsx`)
 Quy trình khép kín 5 bước:
@@ -117,9 +118,7 @@ Quy trình khép kín 5 bước:
    - Khung văn bản AI đã chuẩn hóa hiển thị song song, cho phép chỉnh sửa trực tiếp.
 3. **Bước 3: Tự động phân mảnh trường dữ liệu**:
    - AI nhận diện và bóc tách các trường: Tiêu đề, Số hiệu, Trích yếu, Kính gửi, Căn cứ, Nội dung, Chức vụ người ký, Họ tên, Nơi nhận.
-4. **Bước 4: Xem lại & Hiệu chỉnh**:
-   - Bảng trường nhập liệu trực quan.
-   - Hỗ trợ **Drop-lists chọn nhanh** trực tiếp trên từng trường:
+   - Bảng trường nhập liệu trực quan với **Drop-lists chọn nhanh**:
      - `DIA_DANH`: Hà Nội, Quảng Ninh, Cẩm Phả, Uông Bí, Hạ Long...
      - `CHUC_VU_NGUOI_KY`: GIÁM ĐỐC, PHÓ GIÁM ĐỐC, VIỆN TRƯỞNG, TRƯỞNG PHÒNG...
      - `NOI_NHAN`: Các khối cơ quan chủ quản, Đảng ủy, các phòng ban chuyên môn.
@@ -144,6 +143,12 @@ Quy trình khép kín 5 bước:
 - Phân loại biểu mẫu theo tổ chức: TVCI, IEMM, Đảng.
 - Lọc theo phòng ban nghiệp vụ (Điện - điện tử, Hiệu suất năng lượng, Thử nghiệm vật liệu, Quan trắc môi trường, Giám định thiết bị mỏ).
 - Hỗ trợ lưu mẫu yêu thích (Favorites) và lịch sử sử dụng gần đây (Recent).
+
+#### E. Modal "Nhận kinh nghiệm & Đúc kết tri thức" (`LearnExperienceModal.tsx`)
+- Tự động quét và đọc văn kiện hoàn thiện (hoặc đoạn bôi đen đang chọn).
+- AI & Heuristics tự động phân tích: Đặt tên gợi nhớ, phân loại (Kinh nghiệm, Mẫu câu, Hướng dẫn, Quy tắc bắt buộc), đơn vị (TVCI, IEMM, Đảng, Chung), mô tả súc tích (2-4 câu), đoạn trích minh họa và từ khóa.
+- **Cơ chế chống trùng lặp thông minh (Anti-Duplication Guard)**: Tự động so sánh với kho tri thức hiện hữu qua thuật toán `calculateSimilarity`, cảnh báo khi độ tương đồng >= 65% và cho phép tùy chọn *Cập nhật tri thức đã có* hoặc *Lưu bản ghi mới*.
+- Lưu vĩnh viễn vào `IndexedDB` & `localStorage` để tra cứu và làm ngữ cảnh cho AI.
 
 ---
 

@@ -299,6 +299,10 @@ g.openSettingsDialog = (event: CommandEvent) => runCommand(event, async () => {
   await openOfficeDialog("settings_modal");
 }, "Không thể mở Cài đặt");
 
+g.openLearnExperienceDialog = (event: CommandEvent) => runCommand(event, async () => {
+  await openOfficeDialog("learn_experience");
+}, "Không thể mở Nhận kinh nghiệm");
+
 g.createCongVan = (event: CommandEvent) => runCommand(event, async () => {
   const context = await resolveCommandContext();
   const settings = context.settings || PRESET_PRESETS.TVCI;
@@ -494,6 +498,7 @@ const functionMap: Record<string, (event: CommandEvent) => Promise<void> | void>
   openTemplateLibraryDialog: g.openTemplateLibraryDialog,
   openKnowledgeDialog: g.openKnowledgeDialog,
   openSettingsDialog: g.openSettingsDialog,
+  openLearnExperienceDialog: g.openLearnExperienceDialog,
   run1ClickStandardize: g.run1ClickStandardize,
   runSafeFix: g.runSafeFix,
   runRollbackLastAction: g.runRollbackLastAction,

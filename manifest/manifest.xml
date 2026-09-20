@@ -373,6 +373,16 @@
                   </Icon>
                   <Action xsi:type="ExecuteFunction"><FunctionName>openTemplateLibraryDialog</FunctionName></Action>
                 </Control>
+                <Control xsi:type="Button" id="LearnExperienceButton">
+                  <Label resid="LearnExperience.Label"/>
+                  <Supertip><Title resid="LearnExperience.Label"/><Description resid="LearnExperience.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Guidance.16"/>
+                    <bt:Image size="32" resid="Icon.Guidance.32"/>
+                    <bt:Image size="80" resid="Icon.Guidance.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>openLearnExperienceDialog</FunctionName></Action>
+                </Control>
                 <Control xsi:type="Button" id="SettingsButton">
                   <Label resid="Settings.Label"/>
                   <Supertip><Title resid="Settings.Label"/><Description resid="Settings.Tooltip"/></Supertip>
@@ -534,6 +544,7 @@
         <bt:String id="SmartDrafting.Label" DefaultValue="Soạn thảo AI"/>
         <bt:String id="AiWorkspace.Label" DefaultValue="Trường dữ liệu"/>
         <bt:String id="TemplateLibrary.Label" DefaultValue="Kho biểu mẫu"/>
+        <bt:String id="LearnExperience.Label" DefaultValue="Nhận kinh nghiệm"/>
         <bt:String id="Knowledge.Label" DefaultValue="Kho kiến thức"/>
         <bt:String id="Settings.Label" DefaultValue="Cài đặt"/>
       </bt:ShortStrings>
@@ -582,6 +593,7 @@
         <bt:String id="SmartDrafting.Tooltip" DefaultValue="Trợ lý AI soạn thảo văn bản 5 bước chuẩn thể thức hành chính."/>
         <bt:String id="AiWorkspace.Tooltip" DefaultValue="Mở bảng quản lý trường dữ liệu và AI sửa văn bản."/>
         <bt:String id="TemplateLibrary.Tooltip" DefaultValue="Mở kho biểu mẫu chuẩn của Trung tâm và Viện."/>
+        <bt:String id="LearnExperience.Tooltip" DefaultValue="Đúc kết kinh nghiệm, mẫu câu và bài học từ văn kiện Word hoàn thiện vào Kho tri thức."/>
         <bt:String id="Knowledge.Tooltip" DefaultValue="Mở Kho tri thức, quy chế và kinh nghiệm nghiệp vụ."/>
         <bt:String id="Settings.Tooltip" DefaultValue="Cấu hình kết nối AI và các tùy chọn nâng cao."/>
       </bt:LongStrings>

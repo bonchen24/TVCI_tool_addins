@@ -69,6 +69,7 @@ import { TemplateLibraryModal } from "./components/TemplateLibraryModal";
 import { KnowledgeModal } from "./components/KnowledgeModal";
 import { TemplateFormModal } from "./components/TemplateFormModal";
 import { SmartDraftingModal } from "./components/SmartDraftingModal";
+import { LearnExperienceModal } from "./components/LearnExperienceModal";
 import { openOfficeDialog } from "../commands/dialog";
 import { applyA4Margins } from "../word/page-toolkit.service";
 import {
@@ -81,7 +82,7 @@ import {
 import { consumeFallbackView, closeDialogContainer } from "../commands/dialog";
 import { inspectCurrentDocument } from "../rules/document-inspection";
 
-type ActiveModalType = "none" | "document_settings" | "inspect" | "template_library" | "template_wizard" | "knowledge" | "ai_settings" | "smart_draft";
+type ActiveModalType = "none" | "document_settings" | "inspect" | "template_library" | "template_wizard" | "knowledge" | "ai_settings" | "smart_draft" | "learn_experience";
 
 const TEMPLATE_ORGANIZATIONS: Array<{ value: TemplateOrganization; label: string }> = [
   { value: "TVCI", label: "Trung tâm Thử nghiệm - Kiểm định Công nghiệp" },
@@ -139,12 +140,14 @@ function getInitialDialogModal(): ActiveModalType {
   if (v === "builder") return "template_wizard";
   if (v === "knowledge") return "knowledge";
   if (v === "settings_modal") return "ai_settings";
+  if (v === "learn_experience" || v === "learn" || v === "experience") return "learn_experience";
   const fallback = consumeFallbackView();
   if (fallback === "smart_draft") return "smart_draft";
   if (fallback === "settings" || fallback === "settings_modal") return "document_settings";
   if (fallback === "inspect") return "inspect";
   if (fallback === "template" || fallback === "template-form") return "template_library";
   if (fallback === "knowledge") return "knowledge";
+  if (fallback === "learn_experience") return "learn_experience";
   return "none";
 }
 
@@ -1615,6 +1618,16 @@ export default function App() {
             }
           }}
         />
+
+        {/* MODAL 9: Đúc Kết Tri Thức & Nhận Kinh Nghiệm */}
+        <LearnExperienceModal
+          isOpen={activeModal === "learn_experience"}
+          onClose={closeActiveModal}
+          existingRecords={knowledgeRecords}
+          onSaveRecord={handleSaveKnowledgeRecord}
+          onNotify={setStatus}
+          aiSettings={{ provider: aiProvider, model: aiModel, apiKey: aiApiKey }}
+        />
       </div>
     );
   }
@@ -1768,6 +1781,15 @@ export default function App() {
         onAcceptAi={handleAcceptTemplateFormAi}
         onReviewAi={handleReviewTemplateFormAi}
         onAiValueChange={handleTemplateFormAiValueChange}
+      />
+
+      <LearnExperienceModal
+        isOpen={activeModal === "learn_experience"}
+        onClose={closeActiveModal}
+        existingRecords={knowledgeRecords}
+        onSaveRecord={handleSaveKnowledgeRecord}
+        onNotify={setStatus}
+        aiSettings={{ provider: aiProvider, model: aiModel, apiKey: aiApiKey }}
       />
     </main>
   );

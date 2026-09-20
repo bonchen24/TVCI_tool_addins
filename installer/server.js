@@ -58,6 +58,35 @@ try {
       return;
     }
 
+    if (url.pathname === '/api/repair') {
+      const restartWord = url.searchParams.get('restart') === '1';
+      log(`Repair requested (restartWord=${restartWord})`);
+      const { spawn } = require('node:child_process');
+      const candidates = [
+        path.join(root, 'scripts', 'repair.ps1'),
+        path.join(root, 'installer', 'repair.ps1'),
+        path.join(root, 'repair.ps1'),
+        path.join(__dirname, 'repair.ps1')
+      ];
+      const script = candidates.find(c => fs.existsSync(c));
+      if (!script) {
+        log('repair.ps1 not found in candidates');
+        response.writeHead(500, { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ ok: false, error: 'repair.ps1 not found' }));
+        return;
+      }
+
+      const args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script];
+      if (restartWord) args.push('-RestartWord');
+
+      const child = spawn('powershell.exe', args, { windowsHide: true, detached: true });
+      child.unref();
+
+      response.writeHead(200, { 'Content-Type': 'application/json' });
+      response.end(JSON.stringify({ ok: true, message: 'Đang cấu hình WebView2 và làm sạch cache.' }));
+      return;
+    }
+
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       response.writeHead(405); response.end(); return;
     }

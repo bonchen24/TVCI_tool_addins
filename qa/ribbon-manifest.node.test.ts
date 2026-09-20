@@ -8,7 +8,7 @@ const brandingSource = fs.readFileSync("src/branding.ts", "utf8");
 
 test("Ribbon exposes grouped quick-access controls for the main areas", () => {
   const controlCount = (manifest.match(/<Control xsi:type="(?:Button|Menu)"/g) ?? []).length;
-  assert.equal(controlCount, 9);
+  assert.equal(controlCount, 10);
 
   for (const label of [
     "Soạn thảo AI",
@@ -16,6 +16,7 @@ test("Ribbon exposes grouped quick-access controls for the main areas", () => {
     "Kiểm tra",
     "Chuẩn hóa",
     "Kho biểu mẫu",
+    "Nhận kinh nghiệm",
     "Tạo văn bản",
     "Chèn nhanh",
     "Trang",
@@ -32,6 +33,7 @@ test("Ribbon controls have valid ExecuteFunction actions", () => {
     "CheckDocumentButton",
     "QuickStandardizeButton",
     "TemplateLibraryButton",
+    "LearnExperienceButton",
     "SettingsButton",
   ]) {
     assert.match(manifest, new RegExp(`id="${id}"[\\s\\S]*?<Action xsi:type="ExecuteFunction">`));

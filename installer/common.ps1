@@ -65,6 +65,16 @@ function Test-WebView2 {
         $version = (Get-ItemProperty -LiteralPath $key -Name pv -ErrorAction SilentlyContinue).pv
         if ($version -and $version -ne '0.0.0.0') { return $version }
     }
+    foreach ($path in @(
+        "${env:ProgramFiles(x86)}\Microsoft\EdgeWebView\Application",
+        "$env:ProgramFiles\Microsoft\EdgeWebView\Application",
+        "$env:LOCALAPPDATA\Microsoft\EdgeWebView\Application"
+    )) {
+        if ($path -and (Test-Path -LiteralPath $path)) {
+            $dirs = Get-ChildItem -LiteralPath $path -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^\d+\.\d+' }
+            if ($dirs) { return $dirs[0].Name }
+        }
+    }
     return $null
 }
 

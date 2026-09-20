@@ -51,6 +51,15 @@ try {
 
     & CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy" 2>$null | Out-Null
 
+    foreach ($ver in @('16.0', '15.0')) {
+        foreach ($root in @("HKCU:\Software\Microsoft\Office\$ver\WEF", "HKCU:\Software\Microsoft\Office\$ver\WEF\Developer", "HKCU:\Software\Microsoft\Office\Common\WEF")) {
+            try {
+                if (-not (Test-Path $root)) { New-Item -Path $root -Force -ErrorAction SilentlyContinue | Out-Null }
+                New-ItemProperty -Path $root -Name 'Win32WebView2' -Value 1 -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
+            } catch {}
+        }
+    }
+
     $manifest = Join-Path $InstallDir 'manifest\manifest.xml'
     New-Item -Path $WefKey -Force | Out-Null
     New-ItemProperty -Path $WefKey -Name $AppId -Value $manifest -PropertyType String -Force | Out-Null
