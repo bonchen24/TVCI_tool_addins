@@ -11,13 +11,13 @@ test("OpenAI direct client uses Responses API and bearer auth", async () => {
   const fakeFetch: typeof fetch = async (input, init) => {
     capturedUrl = String(input);
     capturedInit = init;
-    return new Response(JSON.stringify({ output_text: "Nội dung đã sửa" }), { status: 200, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ choices: [{ message: { content: "Nội dung đã sửa" } }] }), { status: 200, headers: { "Content-Type": "application/json" } });
   };
-  const output = await requestAiDirect({ provider: "openai", model: "gpt-5.6-luna", apiKey: "sk-test" }, request, fakeFetch);
+  const output = await requestAiDirect({ provider: "openai", model: "gpt-4o-mini", apiKey: "sk-test" }, request, fakeFetch);
   assert.equal(output, "Nội dung đã sửa");
-  assert.equal(capturedUrl, "https://api.openai.com/v1/responses");
+  assert.equal(capturedUrl, "https://api.openai.com/v1/chat/completions");
   assert.equal((capturedInit?.headers as Record<string,string>).Authorization, "Bearer sk-test");
-  assert.match(String(capturedInit?.body), /gpt-5\.6-luna/);
+  assert.match(String(capturedInit?.body), /gpt-4o-mini/);
 });
 
 test("Gemini direct client uses x-goog-api-key and generateContent", async () => {
@@ -55,7 +55,7 @@ test("AI settings round-trip in local storage compatible storage", () => {
   };
   saveAiSettings({ provider: "gemini", model: "gemini-3.5-flash", apiKey: "secret" }, storage);
   assert.deepEqual(loadAiSettings(storage), { provider: "gemini", model: "gemini-3.5-flash", apiKey: "secret" });
-  assert.equal(defaultModelFor("openai"), "gpt-5.6-luna");
+  assert.equal(defaultModelFor("openai"), "gpt-4o-mini");
 });
 
 import { requestAiPromptDirect } from "../src/ai/direct-client.ts";

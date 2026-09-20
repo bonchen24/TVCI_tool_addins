@@ -17,6 +17,8 @@ OutputBaseFilename=TVCI-Word-Tools-Setup-{#MyAppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64
 UninstallDisplayIcon={app}\app\assets\logo-tvci.png
 
 [Files]
@@ -55,7 +57,7 @@ begin
   Result := '';
   ExtractTemporaryFile('stop-host.ps1');
   Script := ExpandConstant('{tmp}\stop-host.ps1');
-  if (not Exec(ExpandConstant('{sysnative}\WindowsPowerShell\v1.0\powershell.exe'), '-NoProfile -ExecutionPolicy Bypass -File "' + Script + '" -InstallDir "' + ExpandConstant('{app}') + '"', '', SW_HIDE, ewWaitUntilTerminated, Code)) or (Code <> 0) then
+  if (not Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), '-NoProfile -ExecutionPolicy Bypass -File "' + Script + '" -InstallDir "' + ExpandConstant('{app}') + '"', '', SW_HIDE, ewWaitUntilTerminated, Code)) or (Code <> 0) then
     Result := 'Cannot stop the existing TVCI host before upgrading. Close the host and try again.';
 end;
 
@@ -77,17 +79,21 @@ begin
     if not CacheOk then
       CacheOk := CopyFile(SourceExe, RepairExe, False);
     Script := ExpandConstant('{app}\scripts\setup.ps1');
-    if (not Exec(ExpandConstant('{sysnative}\WindowsPowerShell\v1.0\powershell.exe'), '-NoProfile -ExecutionPolicy Bypass -File "' + Script + '"', '', SW_HIDE, ewWaitUntilTerminated, Code)) or (Code <> 0) then
+    Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), '-NoProfile -ExecutionPolicy Bypass -File "' + Script + '"', '', SW_HIDE, ewWaitUntilTerminated, Code);
+    if not WizardSilent then
     begin
-      Failure := 'Setup process exited with code ' + IntToStr(Code);
-      if LoadStringFromFile(ExpandConstant('{app}\logs\setup-failure.txt'), FailureAnsi) then
-        Failure := Trim(String(FailureAnsi));
-      MsgBox('TVCI Word Tools chua READY: ' + Failure + #13#10 +
-        'Log: ' + ExpandConstant('{app}\logs\setup.log'), mbCriticalError, MB_OK);
-    end
-    else if not CacheOk then
-      MsgBox('TVCI da cai nhung khong luu duoc bo cai cho Repair. Hay giu file Setup EXE de cai lai khi can.', mbCriticalError, MB_OK)
-    else
-      MsgBox('TVCI Word Tools READY. Hay dong va mo lai Word neu Word dang mo.', mbInformation, MB_OK);
+      if (Code <> 0) then
+      begin
+        Failure := 'Setup process exited with code ' + IntToStr(Code);
+        if LoadStringFromFile(ExpandConstant('{app}\logs\setup-failure.txt'), FailureAnsi) then
+          Failure := Trim(String(FailureAnsi));
+        MsgBox('TVCI Word Tools chua READY: ' + Failure + #13#10 +
+          'Log: ' + ExpandConstant('{app}\logs\setup.log'), mbCriticalError, MB_OK);
+      end
+      else if not CacheOk then
+        MsgBox('TVCI da cai nhung khong luu duoc bo cai cho Repair. Hay giu file Setup EXE de cai lai khi can.', mbCriticalError, MB_OK)
+      else
+        MsgBox('TVCI Word Tools READY. Hay dong va mo lai Word neu Word dang mo.', mbInformation, MB_OK);
+    end;
   end;
 end;

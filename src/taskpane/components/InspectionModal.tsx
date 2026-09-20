@@ -10,12 +10,12 @@ export interface InspectionModalProps {
   onLocateIssue: (issue: ValidationIssue) => void;
   onFixIssue: (issue: ValidationIssue) => void;
   onFixAllSafe: () => void;
-  on1ClickStandardize: () => void;
-  onRollback: () => void;
+  on1ClickStandardize?: () => void;
+  onRollback?: () => void;
   busy: boolean;
 }
 
-type FilterStatus = "all" | "fail" | "missing" | "pass" | "na";
+type FilterStatus = "all" | "fail" | "missing";
 
 export function InspectionModal({
   isOpen,
@@ -26,219 +26,219 @@ export function InspectionModal({
   onLocateIssue,
   onFixIssue,
   onFixAllSafe,
-  on1ClickStandardize,
-  onRollback,
   busy,
 }: InspectionModalProps): React.ReactElement | null {
   const [filter, setFilter] = useState<FilterStatus>("all");
+
+  const isDialog = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dialog") === "1";
 
   if (!isOpen) return null;
 
   const isBlank = summary?.isBlankDocument === true;
   const safeIssuesCount = issues.filter((i) => i.autoFixable).length;
 
-  const filteredRules = summary?.results.filter((r) => {
-    if (filter === "all") return true;
+  const failCount = summary?.failedRules ?? 0;
+  const missingCount = summary?.missingRules ?? 0;
+  const passCount = summary?.passedRules ?? 0;
+  const totalCount = summary?.applicableRules ?? 0;
+
+  const filteredResults = (summary?.results || []).filter((r) => {
     if (filter === "fail") return r.status === "FAIL";
     if (filter === "missing") return r.status === "MISSING";
-    if (filter === "pass") return r.status === "PASS";
-    if (filter === "na") return r.status === "NOT_APPLICABLE";
     return true;
-  }) || [];
+  });
 
-  return (
-    <div className="modalBackdrop" onClick={onClose}>
-      <div className="modalDialog inspectionModalDialog" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
-        <div className="modalHeader">
-          <div className="modalTitle">
-            <span>🛡️</span> Kiểm tra Thể thức Văn bản
+  const modalContent = (
+    <div
+      className={`inspectionModalDialog ${isDialog ? "dialogRootWindow" : "modalDialog"}`}
+      style={isDialog ? { width: "100%", height: "100vh", display: "flex", flexDirection: "column", background: "#f8fafc" } : { maxWidth: 680, width: "95%", height: "80vh", display: "flex", flexDirection: "column" }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Header */}
+      <div className="modalHeader" style={{ padding: "10px 16px", borderBottom: "1px solid #e2e8f0", background: "#ffffff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 13.5, color: "#0f3f67" }}>KIỂM TRA THỂ THỨC VĂN BẢN</div>
+          <div style={{ fontSize: 10.5, color: "#64748b" }}>
+            Đánh giá quy cách thể thức theo Nghị định 30/2020/NĐ-CP
           </div>
-          <button type="button" className="modalCloseBtn" onClick={onClose} title="Đóng">
-            ✕
-          </button>
         </div>
+        <button type="button" className="modalCloseBtn" onClick={onClose} title="Đóng">
+          ✕
+        </button>
+      </div>
 
-        {/* Body */}
-        <div className="modalBody" style={{ maxHeight: "75vh", overflowY: "auto" }}>
-          {/* Status Summary Banner */}
-          {isBlank ? (
-            <div className="inspectionBlankBanner">
-              <div style={{ fontSize: 24, marginBottom: 4 }}>⚠️</div>
-              <div style={{ fontWeight: 700, fontSize: 13, color: "#92400e" }}>
-                Tài liệu chưa có nội dung để kiểm tra
-              </div>
-              <div style={{ fontSize: 11.5, color: "#78350f", marginTop: 2 }}>
-                Hãy nhập văn bản hoặc chọn biểu mẫu từ Kho biểu mẫu để bắt đầu.
-              </div>
-            </div>
-          ) : summary ? (
-            <div className="inspectionScoreCard">
-              <div className="inspectionScoreHeader">
-                <div className="inspectionScoreNumber">
-                  {summary.passedRules} / {summary.applicableRules}
-                </div>
+      {/* Body: Clean Checklist */}
+      <div className="modalBody" style={{ flex: 1, overflowY: "auto", padding: "12px 16px", background: "#ffffff" }}>
+        {isBlank ? (
+          <div style={{ padding: "24px", textAlign: "center", color: "#b45309", background: "#fffbeb", borderRadius: 6, border: "1px solid #fde68a" }}>
+            <div style={{ fontWeight: 700, fontSize: 13 }}>Tài liệu chưa có nội dung</div>
+            <div style={{ fontSize: 11, marginTop: 4 }}>Hãy tạo văn bản hoặc chọn mẫu trên Ribbon trước khi kiểm tra.</div>
+          </div>
+        ) : summary ? (
+          <>
+            {/* Top Stats Summary + Filter Chips */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 6, padding: "8px 12px", marginBottom: 12 }}>
+              <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 13 }}>Tiêu chuẩn thể thức đã đạt</div>
-                  <div style={{ fontSize: 11, color: "#64748b" }}>
-                    Điểm tuân thủ: {summary.healthScore}% · Nghị định 30/2020/NĐ-CP
-                  </div>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: "#0d4f8b" }}>{passCount} / {totalCount}</span>
+                  <span style={{ fontSize: 11, color: "#64748b", marginLeft: 4 }}>đạt</span>
                 </div>
-              </div>
-
-              {/* Progress bar */}
-              <div className="inspectionProgressBarTrack">
-                <div
-                  className="inspectionProgressBarFill"
-                  style={{
-                    width: `${summary.healthScore}%`,
-                    background:
-                      summary.healthScore >= 90
-                        ? "#16a34a"
-                        : summary.healthScore >= 60
-                        ? "#ca8a04"
-                        : "#dc2626",
-                  }}
-                />
-              </div>
-
-              {/* Stats badges */}
-              <div className="inspectionStatsRow">
-                <span className="statBadge pass">✓ {summary.passedRules} Đạt</span>
-                <span className="statBadge fail">✗ {summary.failedRules} Vi phạm</span>
-                <span className="statBadge missing">! {summary.missingRules} Còn thiếu</span>
-                <span className="statBadge na">- {summary.notApplicableRules} N/A</span>
-              </div>
-            </div>
-          ) : (
-            <div style={{ textAlign: "center", padding: "16px 0", color: "#64748b" }}>
-              Đang tải kết quả kiểm tra...
-            </div>
-          )}
-
-          {/* Filter tabs */}
-          {summary && !isBlank && (
-            <div className="inspectionFilterBar">
-              <button
-                type="button"
-                className={`inspectionFilterBtn ${filter === "all" ? "active" : ""}`}
-                onClick={() => setFilter("all")}
-              >
-                Tất cả ({summary.results.length})
-              </button>
-              <button
-                type="button"
-                className={`inspectionFilterBtn ${filter === "fail" ? "active" : ""}`}
-                onClick={() => setFilter("fail")}
-              >
-                Lỗi vi phạm ({summary.failedRules})
-              </button>
-              <button
-                type="button"
-                className={`inspectionFilterBtn ${filter === "missing" ? "active" : ""}`}
-                onClick={() => setFilter("missing")}
-              >
-                Còn thiếu ({summary.missingRules})
-              </button>
-              <button
-                type="button"
-                className={`inspectionFilterBtn ${filter === "pass" ? "active" : ""}`}
-                onClick={() => setFilter("pass")}
-              >
-                Đã đạt ({summary.passedRules})
-              </button>
-            </div>
-          )}
-
-          {/* Rules & Issues List */}
-          <div className="inspectionRulesList">
-            {filteredRules.map((rule) => {
-              const ruleIssue = issues.find((i) => i.ruleId === rule.ruleId);
-              return (
-                <div key={rule.ruleId} className={`inspectionRuleItem ${rule.status.toLowerCase()}`}>
-                  <div className="inspectionRuleHeader">
-                    <span className={`inspectionRuleStatusTag ${rule.status.toLowerCase()}`}>
-                      {rule.status === "PASS" && "✓ ĐẠT"}
-                      {rule.status === "FAIL" && "✗ VI PHẠM"}
-                      {rule.status === "MISSING" && "! THIẾU"}
-                      {rule.status === "NOT_APPLICABLE" && "N/A"}
-                    </span>
-                    <span className="inspectionRuleTitle">{rule.title}</span>
+                {failCount > 0 && (
+                  <div style={{ color: "#dc2626", fontWeight: 700, fontSize: 12 }}>
+                    {failCount} lỗi cần sửa
                   </div>
+                )}
+                {missingCount > 0 && (
+                  <div style={{ color: "#d97706", fontWeight: 600, fontSize: 12 }}>
+                    {missingCount} thiếu
+                  </div>
+                )}
+              </div>
 
-                  <div className="inspectionRuleMsg">{rule.message}</div>
+              {/* Filter Chips */}
+              <div style={{ display: "flex", gap: 4 }}>
+                <button
+                  type="button"
+                  className={`btn ${filter === "all" ? "btn-primary" : "btn-outline"}`}
+                  style={{ height: 26, fontSize: 11, padding: "0 10px" }}
+                  onClick={() => setFilter("all")}
+                >
+                  Tất cả ({summary.results.length})
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${filter === "fail" ? "btn-primary" : "btn-outline"}`}
+                  style={{ height: 26, fontSize: 11, padding: "0 10px" }}
+                  onClick={() => setFilter("fail")}
+                >
+                  Cần sửa ({failCount})
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${filter === "missing" ? "btn-primary" : "btn-outline"}`}
+                  style={{ height: 26, fontSize: 11, padding: "0 10px" }}
+                  onClick={() => setFilter("missing")}
+                >
+                  Thiếu ({missingCount})
+                </button>
+              </div>
+            </div>
 
-                  {/* Actions for FAIL or MISSING */}
-                  {rule.status === "FAIL" && ruleIssue && (
-                    <div className="inspectionRuleActions">
-                      <button
-                        type="button"
-                        className="ruleActionBtn secondary"
-                        onClick={() => onLocateIssue(ruleIssue)}
-                      >
-                        🎯 Đi tới lỗi
-                      </button>
-                      {ruleIssue.autoFixable && (
+            {/* Checklist items */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {filteredResults.map((r) => {
+                const issue = issues.find((i) => i.ruleId === r.ruleId);
+                const isPass = r.status === "PASS";
+                const isFail = r.status === "FAIL";
+                const isMissing = r.status === "MISSING";
+
+                return (
+                  <div
+                    key={r.ruleId}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "8px 12px",
+                      borderRadius: 4,
+                      border: "1px solid",
+                      borderColor: isFail ? "#fca5a5" : isMissing ? "#fde68a" : "#e2e8f0",
+                      background: isFail ? "#fff5f5" : isMissing ? "#fffbeb" : "#ffffff",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+                      <span style={{ fontWeight: 700, fontSize: 14, color: isPass ? "#16a34a" : isFail ? "#dc2626" : "#d97706" }}>
+                        {isPass ? "✓" : isFail ? "✕" : "!"}
+                      </span>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: 11.5, color: "#1e293b" }}>{r.title}</div>
+                        {r.message && !isPass && (
+                          <div style={{ fontSize: 10.5, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {r.message}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Inline Actions */}
+                    {isFail && issue && (
+                      <div style={{ display: "flex", gap: 4, marginLeft: 8, flexShrink: 0 }}>
                         <button
                           type="button"
-                          className="ruleActionBtn primary"
-                          onClick={() => onFixIssue(ruleIssue)}
-                          disabled={busy}
+                          className="btn btn-outline"
+                          style={{ height: 24, fontSize: 10.5, padding: "0 8px" }}
+                          onClick={() => onLocateIssue(issue)}
                         >
-                          ⚡ Sửa lỗi này
+                          Đi tới
                         </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                        {issue.autoFixable && (
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            style={{ height: 24, fontSize: 10.5, padding: "0 8px", background: "#0d4f8b" }}
+                            onClick={() => onFixIssue(issue)}
+                          >
+                            Sửa
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <div style={{ padding: "30px", textAlign: "center", color: "#64748b", fontSize: 12 }}>
+            Đang tải kết quả rà soát thể thức...
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* Footer */}
-        <div className="modalFooter" style={{ justifyContent: "space-between" }}>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={() => void onCheck()}
-              disabled={busy}
-            >
-              🔄 Quét lại
-            </button>
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={onRollback}
-              disabled={busy}
-            >
-              ↩️ Hoàn tác
-            </button>
-          </div>
+      {/* Footer */}
+      <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 16px", borderTop: "1px solid #e2e8f0", background: "#f8fafc" }}>
+        <button
+          type="button"
+          className="btn btn-outline"
+          style={{ height: 32, fontSize: 11.5, padding: "0 14px" }}
+          onClick={() => void onCheck()}
+          disabled={busy}
+        >
+          {busy ? "Đang quét..." : "🔄 Quét lại"}
+        </button>
 
-          <div style={{ display: "flex", gap: 8 }}>
-            {safeIssuesCount > 0 && (
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={onFixAllSafe}
-                disabled={busy}
-              >
-                ⚡ Sửa {safeIssuesCount} lỗi an toàn
-              </button>
-            )}
+        <div style={{ display: "flex", gap: 8 }}>
+          {safeIssuesCount > 0 && (
             <button
               type="button"
               className="btn btn-primary"
-              onClick={on1ClickStandardize}
+              style={{ height: 32, fontSize: 11.5, padding: "0 16px", background: "#0d4f8b" }}
+              onClick={onFixAllSafe}
               disabled={busy}
             >
-              ✨ Chuẩn hóa 1-click
+              ⚡ Sửa tất cả {safeIssuesCount} lỗi an toàn
             </button>
-          </div>
+          )}
+          <button
+            type="button"
+            className="btn btn-outline"
+            style={{ height: 32, fontSize: 11.5, padding: "0 14px" }}
+            onClick={onClose}
+          >
+            Đóng
+          </button>
         </div>
       </div>
+    </div>
+  );
+
+  if (isDialog) {
+    return modalContent;
+  }
+
+  return (
+    <div className="modalBackdrop" onClick={onClose}>
+      {modalContent}
     </div>
   );
 }

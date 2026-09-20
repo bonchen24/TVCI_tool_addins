@@ -5,7 +5,7 @@ import ErrorBoundary from "./ErrorBoundary";
 
 let isMounted = false;
 
-const mountApp = (source = "normal") => {
+const mountApp = (info?: unknown) => {
   if (isMounted) return;
   isMounted = true;
 
@@ -24,7 +24,7 @@ const mountApp = (source = "normal") => {
       <div style="padding: 24px; font-family: sans-serif; color: #a80000; background: #fdf3f4; border: 1px solid #f1aeb5; border-radius: 6px; margin: 16px;">
         <h3 style="margin-top: 0;">Lỗi hiển thị TVCI Word Tools</h3>
         <p style="font-size: 13px;">${String(err)}</p>
-        <p style="font-size: 11px; color: #666;">Source: ${source}</p>
+        <p style="font-size: 11px; color: #666;">Source: ${String(info ?? "normal")}</p>
       </div>
     `;
   }
@@ -33,9 +33,7 @@ const mountApp = (source = "normal") => {
 if (typeof Office === "undefined") {
   mountApp("browser");
 } else {
-  Office.onReady(() => {
-    mountApp("office-onready");
-  }).catch((err) => {
+  Office.onReady(mountApp).catch((err) => {
     console.warn("Office.onReady failed:", err);
     mountApp("office-error");
   });

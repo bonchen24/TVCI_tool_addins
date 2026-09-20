@@ -20,8 +20,9 @@ test("rejects unsafe tags and empty source text", () => {
 });
 
 import { readFile } from "node:fs/promises";
-test("Template Builder exposes AI analysis and apply controls", async () => {
-  const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  assert.match(source, /AI phân tích văn bản cũ/);
-  assert.match(source, /Tạo Content Control/);
+test("Template Wizard exposes AI field analysis and Content Control mapping", async () => {
+  const source = await readFile(new URL("../src/taskpane/components/TemplateWizardModal.tsx", import.meta.url), "utf8");
+  assert.match(source, /buildTemplateFieldPrompt/);
+  assert.match(source, /parseTemplateFieldSuggestions/);
+  assert.match(source, /content-control/);
 });

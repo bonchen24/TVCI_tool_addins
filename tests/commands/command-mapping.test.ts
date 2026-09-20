@@ -13,7 +13,7 @@ function manifestFunctionNames(): string[] {
 
 function commandForControl(controlId: string): string | undefined {
   const control = manifest.match(
-    new RegExp(`<Control[^>]+id="${controlId}"[\\s\\S]*?<\\/Control>`, "m"),
+    new RegExp(`<(?:Control|Item)[^>]+id="${controlId}"[\\s\\S]*?<\\/(?:Control|Item)>`, "m"),
   )?.[0];
   return control?.match(/<FunctionName>([^<]+)<\/FunctionName>/)?.[1];
 }
@@ -31,21 +31,29 @@ describe("Ribbon command registration and routing", () => {
 
   it.each([
     ["QuickStandardizeButton", "run1ClickStandardize"],
-    ["SafeFixButton", "runSafeFix"],
-    ["RollbackButton", "runRollbackLastAction"],
-    ["AddresseeButton", "insertAddresseeCmd"],
-    ["LegalBasisButton", "insertLegalBasisCmd"],
-    ["RecipientsButton", "insertRecipientsCmd"],
-    ["SignerButton", "insertSignerCmd"],
-    ["AppendixButton", "insertAppendixCmd"],
-    ["OutlineButton", "insertOutlineCmd"],
-    ["StandardA4Button", "applyA4Margins"],
-    ["ToggleOrientationButton", "toggleOrientationCmd"],
-    ["PageNumbersButton", "togglePageNumbers"],
-    ["FixTableOverflowButton", "autoFitTableToWindow"],
-    ["DeleteBlankPagesButton", "cleanBlankPagesSafe"],
-    ["CleanTextButton", "cleanExtraSpacesCmd"],
-    ["ConvertUnicodeButton", "convertSelectionToUnicode"],
+    ["ItemStandardA4", "applyA4Margins"],
+    ["ItemToggleOrientation", "toggleOrientationCmd"],
+    ["ItemAddressee", "insertAddresseeCmd"],
+    ["ItemLegalBasis", "insertLegalBasisCmd"],
+    ["ItemRecipients", "insertRecipientsCmd"],
+    ["ItemSigner", "insertSignerCmd"],
+    ["ItemAppendix", "insertAppendixCmd"],
+    ["ItemOutline", "insertOutlineCmd"],
+    ["ItemPageNumbers", "togglePageNumbers"],
+    ["ItemFixTable", "autoFitTableToWindow"],
+    ["ItemDeleteBlankPages", "cleanBlankPagesSafe"],
+    ["ItemCreateCongVan", "createCongVan"],
+    ["ItemCreateQuyetDinh", "createQuyetDinh"],
+    ["ItemCreateThongBao", "createThongBao"],
+    ["ItemCreateBaoCao", "createBaoCao"],
+    ["ItemCreateToTrinh", "createToTrinh"],
+    ["ItemCreateBienBan", "createBienBan"],
+    ["ItemCreateKeHoach", "createKeHoach"],
+    ["ItemCreateGiayMoi", "createGiayMoi"],
+    ["ItemCreatePhieu", "createPhieu"],
+    ["ItemAllTemplates", "openTemplateLibraryDialog"],
+    ["TemplateLibraryButton", "openTemplateLibraryDialog"],
+    ["SettingsButton", "openSettingsDialog"],
   ])("maps %s to %s", (controlId, functionName) => {
     expect(commandForControl(controlId)).toBe(functionName);
   });

@@ -64,7 +64,7 @@ describe("Document Settings Model & Presets", () => {
     it("returns TVCI preset with proper organization naming", () => {
       const s = getDefaultSettings("TVCI");
       expect(s.presetId).toBe("TVCI");
-      expect(s.agency.issuingAgency).toContain("TRUNG TÂM PHÁT TRIỂN CÔNG NGHỆ");
+      expect(s.agency.issuingAgency).toContain("TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP");
       expect(s.agency.agencyAbbr).toBe("TVCI");
       expect(s.symbol.prefix).toBe("TVCI");
     });

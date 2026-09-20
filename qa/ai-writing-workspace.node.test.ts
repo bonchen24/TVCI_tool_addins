@@ -109,14 +109,14 @@ test("template fill preview keeps only unique fields that exist in Word", () => 
   assert.deepEqual(fields.map((field) => field.value), ["Công ty ABC"]);
 });
 
-test("taskpane exposes a large AI workspace, spellcheck, template fill and proofreading controls", () => {
+test("taskpane exposes a dedicated AI workspace and proofreading controls", () => {
   const source = fs.readFileSync(path.join(process.cwd(), "src/taskpane/App.tsx"), "utf8");
-  assert.match(source, /view === "ai"/);
-  assert.match(source, /setAiWorkspaceOpen\(true\)/);
-  assert.match(source, /AI Workspace/);
-  assert.match(source, /proofread/);
-  assert.match(source, /Điền vào biểu mẫu/);
-  assert.match(source, /Kiểm tra chính tả/);
+  const aiView = fs.readFileSync(path.join(process.cwd(), "src/taskpane/components/AiTaskpaneView.tsx"), "utf8");
+  assert.match(source, /AiTaskpaneView/);
+  assert.match(source, /handleSendChat/);
+  assert.match(aiView, /QUICK_PROMPTS/);
+  assert.match(aiView, /proofread/);
+  assert.match(aiView, /Soát lỗi chính tả/);
 });
 
 test("FINAL prompt keeps every message in the current chat and spells out organizations", () => {

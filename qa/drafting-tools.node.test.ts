@@ -81,21 +81,22 @@ test('header/footer text is optional and tagged as add-in managed content', () =
   assert.match(ooxml, /Viện Cơ khí Năng lượng và Mỏ - VINACOMIN/);
 });
 
-test('task pane exposes standard drafting controls', () => {
-  const source = fs.readFileSync('src/taskpane/App.tsx', 'utf8');
-  for (const label of ['Soạn thảo chuẩn', 'Tạo bảng', 'Gạch đầu dòng', 'Đánh số', 'Cấp danh sách', 'Chương', 'Điều', 'Khoản', 'Điểm', 'Kính gửi', 'Nơi nhận', 'Đường kẻ tiêu đề', 'Đánh số trang', 'Header', 'Footer']) {
-    assert.match(source, new RegExp(label));
-  }
-  for (const removed of ['Đường kẻ Tiêu ngữ', 'Đường kẻ cơ quan', 'Đường kẻ toàn chiều ngang', 'Đường kẻ bản sao']) {
-    assert.doesNotMatch(source, new RegExp(removed));
-  }
+test('drafting service exposes standard drafting operations', () => {
+  const draftingService = fs.readFileSync('src/word/drafting.service.ts', 'utf8');
+  const commands = fs.readFileSync('src/commands/commands.ts', 'utf8');
+  assert.match(draftingService, /export async function insertAddressee/);
+  assert.match(draftingService, /export async function insertRecipients/);
+  assert.match(draftingService, /export async function insertOutline/);
+  assert.match(draftingService, /export async function configurePageNumbers/);
+  assert.match(draftingService, /export async function insertStandardTable/);
+  assert.match(commands, /insertAddressee/);
+  assert.match(commands, /insertRecipients/);
+  assert.match(commands, /insertOutline/);
 });
 
-test('table builder lets the user choose whether the first row is a header', () => {
-  const source = fs.readFileSync('src/taskpane/App.tsx', 'utf8');
-  assert.match(source, /tableHeaderRow/);
-  assert.match(source, /checked=\{tableHeaderRow\}/);
-  assert.match(source, /insertStandardTable\(ruleProfileId, tableRows, tableColumns, tableHeaderRow\)/);
+test('table builder supports configurable table rows, columns, and header row', () => {
+  const draftingService = fs.readFileSync('src/word/drafting.service.ts', 'utf8');
+  assert.match(draftingService, /export async function insertStandardTable\(profileId:\s*RuleProfileId,\s*rows:\s*number,\s*columns:\s*number,\s*headerRow\s*=\s*true\)/);
 });
 
 test('quick guidance includes source-backed page numbering and hierarchy notes', async () => {
@@ -106,10 +107,9 @@ test('quick guidance includes source-backed page numbering and hierarchy notes',
   assert.equal(ids.has('header-footer-caution'), true);
 });
 
-test('header and footer can be independently enabled or disabled', () => {
-  const source = fs.readFileSync('src/taskpane/App.tsx', 'utf8');
-  assert.match(source, /Dùng Header/);
-  assert.match(source, /Dùng Footer/);
+test('header and footer can be independently enabled or disabled in drafting service', () => {
+  const draftingService = fs.readFileSync('src/word/drafting.service.ts', 'utf8');
+  assert.match(draftingService, /export async function configureHeaderFooter\(headerText:\s*string,\s*footerText:\s*string\)/);
 });
 
 test('page-number support is checked before managed controls are removed', () => {
@@ -152,13 +152,11 @@ test('Word drafting exposes safe appendix and selected-table numbering operation
   assert.match(source, /Hãy đặt con trỏ trong bảng cần đánh số/);
 });
 
-test('task pane exposes appendix and selected-table controls', () => {
-  const source = fs.readFileSync('src/taskpane/App.tsx', 'utf8');
-  assert.match(source, /Phụ lục &(?:amp;)? bảng/);
-  for (const label of ['Thêm phụ lục', 'Tạo bảng phụ lục', 'Đánh số bảng']) assert.match(source, new RegExp(label));
-  assert.match(source, /appendix-tools/);
-  assert.match(source, /insertAppendix\(ruleProfileId/);
-  assert.match(source, /insertAppendixTable\(ruleProfileId/);
-  assert.match(source, /numberSelectedTable\(\)/);
-  assert.match(source, /appendix:\s*['"]appendix-tools['"]/);
+test('appendix and selected-table controls are exposed via commands and drafting service', () => {
+  const commands = fs.readFileSync('src/commands/commands.ts', 'utf8');
+  const draftingService = fs.readFileSync('src/word/drafting.service.ts', 'utf8');
+  assert.match(commands, /insertAppendix/);
+  assert.match(draftingService, /export async function insertAppendix/);
+  assert.match(draftingService, /export async function insertAppendixTable/);
+  assert.match(draftingService, /export async function numberSelectedTable/);
 });

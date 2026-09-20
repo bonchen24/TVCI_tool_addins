@@ -15,7 +15,7 @@ export interface DocumentSettingsModalProps {
   onSaveAndApply: (settings: DocumentSettings) => Promise<void>;
 }
 
-type SettingsTab = "general" | "agency" | "symbol" | "margins" | "typography" | "signer" | "presets";
+type SettingsSection = "info" | "page_format" | "signer_recipients" | "defaults";
 
 export function DocumentSettingsModal({
   isOpen,
@@ -24,10 +24,12 @@ export function DocumentSettingsModal({
   onSaveDefault,
   onSaveAndApply,
 }: DocumentSettingsModalProps): React.ReactElement | null {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("general");
+  const [activeTab, setActiveTab] = useState<SettingsSection>("info");
   const [settings, setSettings] = useState<DocumentSettings>(() => loadSavedSettings());
   const [statusMsg, setStatusMsg] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const isDialog = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dialog") === "1";
 
   useEffect(() => {
     if (isOpen) {
@@ -63,14 +65,10 @@ export function DocumentSettingsModal({
     }
   };
 
-  const handleSaveDefaultOnly = () => {
-    const val = validateDocumentSettings(settings);
-    if (!val.isValid) {
-      setStatusMsg({ type: "error", text: val.errors.join("; ") });
-      return;
-    }
-    onSaveDefault(settings);
-    setStatusMsg({ type: "success", text: "Đã lưu làm thiết lập mặc định cho các tài liệu mới!" });
+  const handleResetToDefault = () => {
+    const s = getDefaultSettings("TVCI");
+    setSettings(s);
+    setStatusMsg({ type: "info", text: "Đã khôi phục thiết lập chuẩn TVCI ban đầu." });
   };
 
   const handleSaveAndApplyAll = async () => {
@@ -83,7 +81,7 @@ export function DocumentSettingsModal({
     setStatusMsg(null);
     try {
       await onSaveAndApply(settings);
-      setStatusMsg({ type: "success", text: "Đã lưu mặc định và áp dụng vào văn bản thành công!" });
+      setStatusMsg({ type: "success", text: "Đã lưu mặc định và áp dụng thành công!" });
       setTimeout(() => onClose(), 800);
     } catch (err) {
       setStatusMsg({ type: "error", text: err instanceof Error ? err.message : String(err) });
@@ -92,746 +90,388 @@ export function DocumentSettingsModal({
     }
   };
 
-  return (
-    <div className="docSettingsModalBackdrop" onClick={onClose}>
-      <div className="docSettingsModalDialog" onClick={(e) => e.stopPropagation()}>
-        {/* Modal Header */}
-        <div className="docSettingsModalHeader">
-          <div className="docSettingsModalTitle">
-            <span className="docSettingsIcon">📄</span>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>THIẾT LẬP VĂN BẢN CHUẨN HÀNH CHÍNH</div>
-              <div style={{ fontSize: 11, color: "#64748b", fontWeight: 400 }}>
-                Quy cách thể thức Nghị định 30/2020/NĐ-CP & Thể thức TKV / Viện / Đảng
-              </div>
-            </div>
+  const modalContent = (
+    <div
+      className={`docSettingsModalDialog ${isDialog ? "dialogRootWindow" : ""}`}
+      style={isDialog ? { width: "100%", height: "100vh", display: "flex", flexDirection: "column", background: "#f8fafc" } : { maxWidth: 720, width: "95%", height: "80vh", display: "flex", flexDirection: "column" }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Header */}
+      <div className="docSettingsModalHeader" style={{ padding: "10px 16px", borderBottom: "1px solid #e2e8f0", background: "#ffffff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 13.5, color: "#0f3f67" }}>THIẾT LẬP VĂN BẢN</div>
+          <div style={{ fontSize: 10.5, color: "#64748b" }}>
+            Trung tâm Thử nghiệm - Kiểm định Công nghiệp (Thuộc Viện Cơ khí Năng lượng và Mỏ - Vinacomin)
           </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <label style={{ fontSize: 11, color: "#475569", display: "flex", alignItems: "center", gap: 4 }}>
+            Quy chuẩn:
+            <select
+              value={settings.presetId || "TVCI"}
+              onChange={(e) => handleSelectPreset(e.target.value as DocumentSettingsPresetId)}
+              className="docSettingsSelect"
+              style={{ height: 26, fontSize: 11, padding: "0 6px" }}
+            >
+              <option value="TVCI">Trung tâm TVCI</option>
+              <option value="IEMM">Viện IEMM</option>
+              <option value="ND30">Nghị định 30 chuẩn</option>
+              <option value="PARTY">Văn bản Đảng</option>
+            </select>
+          </label>
           <button type="button" className="modalCloseBtn" onClick={onClose} title="Đóng">
             ✕
           </button>
         </div>
+      </div>
 
-        {/* Modal Body: Left Sidebar + Center Config + Right Preview */}
-        <div className="docSettingsModalBody">
-          {/* Vertical Menu Sidebar */}
-          <div className="docSettingsSidebar">
-            <button
-              type="button"
-              className={`docSettingsTabBtn ${activeTab === "general" ? "active" : ""}`}
-              onClick={() => setActiveTab("general")}
-            >
-              <span>📋</span> Thông tin chung
-            </button>
-            <button
-              type="button"
-              className={`docSettingsTabBtn ${activeTab === "agency" ? "active" : ""}`}
-              onClick={() => setActiveTab("agency")}
-            >
-              <span>🏛️</span> Cơ quan ban hành
-            </button>
-            <button
-              type="button"
-              className={`docSettingsTabBtn ${activeTab === "symbol" ? "active" : ""}`}
-              onClick={() => setActiveTab("symbol")}
-            >
-              <span>🔢</span> Số/Ký hiệu & Địa danh
-            </button>
-            <button
-              type="button"
-              className={`docSettingsTabBtn ${activeTab === "margins" ? "active" : ""}`}
-              onClick={() => setActiveTab("margins")}
-            >
-              <span>📐</span> Căn lề & Đoạn văn
-            </button>
-            <button
-              type="button"
-              className={`docSettingsTabBtn ${activeTab === "typography" ? "active" : ""}`}
-              onClick={() => setActiveTab("typography")}
-            >
-              <span>🔤</span> Cỡ chữ & Thể thức
-            </button>
-            <button
-              type="button"
-              className={`docSettingsTabBtn ${activeTab === "signer" ? "active" : ""}`}
-              onClick={() => setActiveTab("signer")}
-            >
-              <span>✒️</span> Người ký & Nơi nhận
-            </button>
-            <button
-              type="button"
-              className={`docSettingsTabBtn ${activeTab === "presets" ? "active" : ""}`}
-              onClick={() => setActiveTab("presets")}
-            >
-              <span>⭐</span> Mẫu thiết lập (Presets)
-            </button>
-          </div>
-
-          {/* Center Configuration Area */}
-          <div className="docSettingsContent">
-            {statusMsg && (
-              <div className={`docSettingsStatusBanner ${statusMsg.type}`}>
-                {statusMsg.text}
-              </div>
-            )}
-
-            {/* TAB: GENERAL */}
-            {activeTab === "general" && (
-              <div className="docSettingsSection">
-                <h4 className="docSettingsSectionTitle">Thông tin chung về văn bản</h4>
-                <div className="docSettingsFieldGroup">
-                  <label className="docSettingsLabel">Loại văn bản hành chính:</label>
-                  <select
-                    className="docSettingsSelect"
-                    value={settings.docType}
-                    onChange={(e) => setSettings({ ...settings, docType: e.target.value })}
-                  >
-                    <option value="CÔNG VĂN">Công văn</option>
-                    <option value="QUYẾT ĐỊNH">Quyết định (Cá biệt / Quy định)</option>
-                    <option value="TỜ TRÌNH">Tờ trình</option>
-                    <option value="BÁO CÁO">Báo cáo</option>
-                    <option value="THÔNG BÁO">Thông báo</option>
-                    <option value="GIẤY MỜI">Giấy mời</option>
-                    <option value="KẾ HOẠCH">Kế hoạch</option>
-                    <option value="NGHỊ QUYẾT">Nghị quyết (Đảng / HĐTV)</option>
-                    <option value="QUY ĐỊNH">Quy định</option>
-                    <option value="BIÊN BẢN">Biên bản</option>
-                  </select>
-                </div>
-
-                <div className="docSettingsFieldGroup">
-                  <label className="docSettingsLabel">Trích yếu nội dung (Tiêu đề văn bản):</label>
-                  <textarea
-                    className="docSettingsTextarea"
-                    rows={3}
-                    value={settings.docTitle}
-                    placeholder="V/v triển khai công tác..."
-                    onChange={(e) => setSettings({ ...settings, docTitle: e.target.value })}
-                  />
-                  <span className="docSettingsHint">Trích yếu cần ngắn gọn, rõ ràng, bắt đầu bằng "V/v ..." đối với công văn.</span>
-                </div>
-
-                <div className="docSettingsFieldGroup">
-                  <label className="docSettingsLabel">Chọn nhanh cấu hình mẫu (Preset):</label>
-                  <div className="docSettingsPresetChips">
-                    {(["TVCI", "IEMM", "TKV", "ND30", "PARTY"] as DocumentSettingsPresetId[]).map((pid) => (
-                      <button
-                        key={pid}
-                        type="button"
-                        className={`docSettingsPresetChip ${settings.presetId === pid ? "active" : ""}`}
-                        onClick={() => handleSelectPreset(pid)}
-                      >
-                        {pid === "TVCI" && "Trung tâm Thử nghiệm - Kiểm định Công nghiệp"}
-                        {pid === "IEMM" && "Viện Cơ khí Năng lượng và Mỏ - Vinacomin"}
-                        {pid === "TKV" && "Tập đoàn TKV"}
-                        {pid === "ND30" && "Nghị định 30 Chuẩn"}
-                        {pid === "PARTY" && "Đảng Cộng sản"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="docSettingsFieldGroup">
-                  <label className="docSettingsLabel">Dữ liệu chèn nhanh (mỗi dòng một mục):</label>
-                  <textarea
-                    className="docSettingsTextarea"
-                    rows={3}
-                    value={(settings.quickInsert?.addressee ?? []).join("\n")}
-                    placeholder="Kính gửi: nhập nội dung đã được phê duyệt"
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      quickInsert: { ...settings.quickInsert, addressee: e.target.value.split("\n").filter((line) => line.trim()) },
-                    })}
-                  />
-                  <textarea
-                    className="docSettingsTextarea"
-                    rows={3}
-                    value={(settings.quickInsert?.legalBasis ?? []).join("\n")}
-                    placeholder="Căn cứ: nhập nội dung pháp lý đã được phê duyệt"
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      quickInsert: { ...settings.quickInsert, legalBasis: e.target.value.split("\n").filter((line) => line.trim()) },
-                    })}
-                  />
-                  <input
-                    type="text"
-                    className="docSettingsInput"
-                    value={settings.quickInsert?.appendixTitle ?? ""}
-                    placeholder="Tên phụ lục đã được phê duyệt (nếu có)"
-                    onChange={(e) => setSettings({
-                      ...settings,
-                      quickInsert: { ...settings.quickInsert, appendixTitle: e.target.value },
-                    })}
-                  />
-                  <span className="docSettingsHint">Ribbon chỉ chèn các nội dung bạn đã cấu hình ở đây, trong hồ sơ, hoặc đang chọn trong Word.</span>
-                </div>
-              </div>
-            )}
-
-            {/* TAB: AGENCY */}
-            {activeTab === "agency" && (
-              <div className="docSettingsSection">
-                <h4 className="docSettingsSectionTitle">Tên cơ quan, tổ chức ban hành văn bản</h4>
-                <div className="docSettingsFieldGroup">
-                  <label className="docSettingsLabel">Cơ quan chủ quản cấp trên (nếu có):</label>
-                  <input
-                    type="text"
-                    className="docSettingsInput"
-                    value={settings.agency.parentAgency}
-                    placeholder="VÍ DỤ: TẬP ĐOÀN CÔNG NGHIỆP THAN - KHOÁNG SẢN VIỆT NAM"
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        agency: { ...settings.agency, parentAgency: e.target.value.toUpperCase() },
-                      })
-                    }
-                  />
-                  <span className="docSettingsHint">Trình bày chữ in hoa, đứng, cỡ 12-13pt.</span>
-                </div>
-
-                <div className="docSettingsFieldGroup">
-                  <label className="docSettingsLabel">Tên cơ quan, đơn vị ban hành trực tiếp:</label>
-                  <input
-                    type="text"
-                    className="docSettingsInput"
-                    value={settings.agency.issuingAgency}
-                    placeholder="VÍ DỤ: VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN"
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        agency: { ...settings.agency, issuingAgency: e.target.value.toUpperCase() },
-                      })
-                    }
-                  />
-                  <span className="docSettingsHint">Trình bày chữ in hoa, đậm, cỡ 12-13pt.</span>
-                </div>
-
-                <div className="docSettingsFieldGroup">
-                  <label className="docSettingsLabel">Tên viết tắt đơn vị:</label>
-                  <input
-                    type="text"
-                    className="docSettingsInput"
-                    style={{ maxWidth: 160 }}
-                    value={settings.agency.agencyAbbr}
-                    placeholder="TVCI / CĐM / TKV"
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        agency: { ...settings.agency, agencyAbbr: e.target.value.toUpperCase() },
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* TAB: SYMBOL */}
-            {activeTab === "symbol" && (
-              <div className="docSettingsSection">
-                <h4 className="docSettingsSectionTitle">Số, ký hiệu và địa danh ban hành</h4>
-                <div style={{ display: "flex", gap: 12 }}>
-                  <div className="docSettingsFieldGroup" style={{ flex: 1 }}>
-                    <label className="docSettingsLabel">Số văn bản:</label>
-                    <input
-                      type="text"
-                      className="docSettingsInput"
-                      value={settings.symbol.number}
-                      placeholder="01"
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          symbol: { ...settings.symbol, number: e.target.value },
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="docSettingsFieldGroup" style={{ flex: 2 }}>
-                    <label className="docSettingsLabel">Ký hiệu (Prefix / Loại văn bản):</label>
-                    <input
-                      type="text"
-                      className="docSettingsInput"
-                      value={settings.symbol.prefix}
-                      placeholder="TVCI-VP hoặc CĐM-KHCN"
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          symbol: { ...settings.symbol, prefix: e.target.value },
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: 12 }}>
-                  <div className="docSettingsFieldGroup" style={{ flex: 1 }}>
-                    <label className="docSettingsLabel">Địa danh ban hành:</label>
-                    <input
-                      type="text"
-                      className="docSettingsInput"
-                      value={settings.symbol.location}
-                      placeholder="Hà Nội / Cẩm Phả / Hạ Long"
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          symbol: { ...settings.symbol, location: e.target.value },
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="docSettingsFieldGroup" style={{ flex: 1 }}>
-                    <label className="docSettingsLabel">Ngày tháng năm (tùy chọn):</label>
-                    <input
-                      type="text"
-                      className="docSettingsInput"
-                      value={settings.symbol.date}
-                      placeholder="ngày ... tháng ... năm 2026"
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          symbol: { ...settings.symbol, date: e.target.value },
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB: MARGINS */}
-            {activeTab === "margins" && (
-              <div className="docSettingsSection">
-                <h4 className="docSettingsSectionTitle">Căn lề trang A4 và quy cách đoạn văn</h4>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div className="docSettingsFieldGroup">
-                    <label className="docSettingsLabel">Lề trên (Top) - mm:</label>
-                    <input
-                      type="number"
-                      className="docSettingsInput"
-                      min={10}
-                      max={50}
-                      value={settings.margins.top}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          margins: { ...settings.margins, top: Number(e.target.value) },
-                        })
-                      }
-                    />
-                    <span className="docSettingsHint">Chuẩn NĐ30: 20 - 25 mm</span>
-                  </div>
-
-                  <div className="docSettingsFieldGroup">
-                    <label className="docSettingsLabel">Lề dưới (Bottom) - mm:</label>
-                    <input
-                      type="number"
-                      className="docSettingsInput"
-                      min={10}
-                      max={50}
-                      value={settings.margins.bottom}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          margins: { ...settings.margins, bottom: Number(e.target.value) },
-                        })
-                      }
-                    />
-                    <span className="docSettingsHint">Chuẩn NĐ30: 20 - 25 mm</span>
-                  </div>
-
-                  <div className="docSettingsFieldGroup">
-                    <label className="docSettingsLabel">Lề trái (Left) - mm:</label>
-                    <input
-                      type="number"
-                      className="docSettingsInput"
-                      min={15}
-                      max={60}
-                      value={settings.margins.left}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          margins: { ...settings.margins, left: Number(e.target.value) },
-                        })
-                      }
-                    />
-                    <span className="docSettingsHint">Chuẩn NĐ30: 30 - 35 mm (để đóng gáy)</span>
-                  </div>
-
-                  <div className="docSettingsFieldGroup">
-                    <label className="docSettingsLabel">Lề phải (Right) - mm:</label>
-                    <input
-                      type="number"
-                      className="docSettingsInput"
-                      min={10}
-                      max={40}
-                      value={settings.margins.right}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          margins: { ...settings.margins, right: Number(e.target.value) },
-                        })
-                      }
-                    />
-                    <span className="docSettingsHint">Chuẩn NĐ30: 15 - 20 mm</span>
-                  </div>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
-                  <div className="docSettingsFieldGroup">
-                    <label className="docSettingsLabel">Giãn dòng (Line spacing):</label>
-                    <input
-                      type="number"
-                      step={0.05}
-                      className="docSettingsInput"
-                      min={1.0}
-                      max={2.0}
-                      value={settings.paragraph.lineSpacing}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          paragraph: { ...settings.paragraph, lineSpacing: Number(e.target.value) },
-                        })
-                      }
-                    />
-                    <span className="docSettingsHint">Chuẩn NĐ30: 1.2 - 1.5 dòng</span>
-                  </div>
-
-                  <div className="docSettingsFieldGroup">
-                    <label className="docSettingsLabel">Thụt dòng đầu (First line indent) - mm:</label>
-                    <input
-                      type="number"
-                      step={0.5}
-                      className="docSettingsInput"
-                      min={0}
-                      max={25}
-                      value={settings.paragraph.firstLineIndent}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          paragraph: { ...settings.paragraph, firstLineIndent: Number(e.target.value) },
-                        })
-                      }
-                    />
-                    <span className="docSettingsHint">Chuẩn NĐ30: 10 - 12.7 mm</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB: TYPOGRAPHY */}
-            {activeTab === "typography" && (
-              <div className="docSettingsSection">
-                <h4 className="docSettingsSectionTitle">Phông chữ và cỡ chữ các thành phần thể thức</h4>
-                <div className="docSettingsFieldGroup">
-                  <label className="docSettingsLabel">Phông chữ chuẩn (Font Name):</label>
-                  <input
-                    type="text"
-                    className="docSettingsInput"
-                    value={settings.typography.fontName}
-                    disabled
-                  />
-                  <span className="docSettingsHint">Bắt buộc Times New Roman theo Nghị định 30/2020/NĐ-CP.</span>
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div className="docSettingsFieldGroup">
-                    <label className="docSettingsLabel">Cỡ chữ nội dung (Body):</label>
-                    <select
-                      className="docSettingsSelect"
-                      value={settings.typography.bodySize}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          typography: { ...settings.typography, bodySize: Number(e.target.value) },
-                        })
-                      }
-                    >
-                      <option value={13}>13 pt</option>
-                      <option value={14}>14 pt (Phổ biến)</option>
-                    </select>
-                  </div>
-
-                  <div className="docSettingsFieldGroup">
-                    <label className="docSettingsLabel">Cỡ chữ Tiêu đề / Tên loại:</label>
-                    <select
-                      className="docSettingsSelect"
-                      value={settings.typography.titleSize}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          typography: { ...settings.typography, titleSize: Number(e.target.value) },
-                        })
-                      }
-                    >
-                      <option value={13}>13 pt (Đậm)</option>
-                      <option value={14}>14 pt (Đậm)</option>
-                      <option value={15}>15 pt (Đậm)</option>
-                    </select>
-                  </div>
-
-                  <div className="docSettingsFieldGroup">
-                    <label className="docSettingsLabel">Cỡ chữ Cơ quan & Số hiệu:</label>
-                    <select
-                      className="docSettingsSelect"
-                      value={settings.typography.headerSize}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          typography: { ...settings.typography, headerSize: Number(e.target.value) },
-                        })
-                      }
-                    >
-                      <option value={12}>12 pt</option>
-                      <option value={13}>13 pt</option>
-                    </select>
-                  </div>
-
-                  <div className="docSettingsFieldGroup">
-                    <label className="docSettingsLabel">Cỡ chữ Nơi nhận:</label>
-                    <select
-                      className="docSettingsSelect"
-                      value={settings.typography.recipientSize}
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          typography: { ...settings.typography, recipientSize: Number(e.target.value) },
-                        })
-                      }
-                    >
-                      <option value={11}>11 pt (Nghiêng)</option>
-                      <option value={12}>12 pt (Nghiêng)</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB: SIGNER */}
-            {activeTab === "signer" && (
-              <div className="docSettingsSection">
-                <h4 className="docSettingsSectionTitle">Thông tin người ký và nơi nhận</h4>
-                <div style={{ display: "flex", gap: 12 }}>
-                  <div className="docSettingsFieldGroup" style={{ flex: 1 }}>
-                    <label className="docSettingsLabel">Chức vụ người ký:</label>
-                    <input
-                      type="text"
-                      className="docSettingsInput"
-                      value={settings.signer.title}
-                      placeholder="GIÁM ĐỐC / VIỆN TRƯỞNG"
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          signer: { ...settings.signer, title: e.target.value.toUpperCase() },
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="docSettingsFieldGroup" style={{ flex: 1 }}>
-                    <label className="docSettingsLabel">Họ và tên người ký:</label>
-                    <input
-                      type="text"
-                      className="docSettingsInput"
-                      value={settings.signer.fullName}
-                      placeholder="Nhập họ và tên người ký"
-                      onChange={(e) =>
-                        setSettings({
-                          ...settings,
-                          signer: { ...settings.signer, fullName: e.target.value },
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="docSettingsFieldGroup">
-                  <label className="docSettingsLabel">Danh sách Nơi nhận (mỗi dòng một nơi nhận):</label>
-                  <textarea
-                    className="docSettingsTextarea"
-                    rows={4}
-                    value={settings.recipients.join("\n")}
-                    onChange={(e) =>
-                      setSettings({
-                        ...settings,
-                        recipients: e.target.value.split("\n").filter((l) => l.trim().length > 0),
-                      })
-                    }
-                  />
-                  <span className="docSettingsHint">Ví dụ: Như Kính gửi; Các phòng ban; Lưu: VT, TVCI.</span>
-                </div>
-              </div>
-            )}
-
-            {/* TAB: PRESETS */}
-            {activeTab === "presets" && (
-              <div className="docSettingsSection">
-                <h4 className="docSettingsSectionTitle">Các mẫu cấu hình sẵn theo quy định</h4>
-                <div className="docSettingsPresetGrid">
-                  <div
-                    className={`docSettingsPresetCard ${settings.presetId === "ND30" ? "active" : ""}`}
-                    onClick={() => handleSelectPreset("ND30")}
-                  >
-                    <div className="docSettingsPresetCardTitle">📜 Nghị định 30/2020/NĐ-CP</div>
-                    <div className="docSettingsPresetCardDesc">
-                      Chuẩn thể thức hành chính Nhà nước tổng quát, phông Times New Roman 13-14pt.
-                    </div>
-                  </div>
-
-                  <div
-                    className={`docSettingsPresetCard ${settings.presetId === "TKV" ? "active" : ""}`}
-                    onClick={() => handleSelectPreset("TKV")}
-                  >
-                    <div className="docSettingsPresetCardTitle">⛏️ Tập đoàn TKV</div>
-                    <div className="docSettingsPresetCardDesc">
-                      Cấp trên: Ủy ban Quản lý vốn. Đơn vị: TKV. Ký hiệu: TKV-VP.
-                    </div>
-                  </div>
-
-                  <div
-                    className={`docSettingsPresetCard ${settings.presetId === "IEMM" ? "active" : ""}`}
-                    onClick={() => handleSelectPreset("IEMM")}
-                  >
-                    <div className="docSettingsPresetCardTitle">🏛️ Viện Cơ khí Năng lượng và Mỏ - Vinacomin</div>
-                    <div className="docSettingsPresetCardDesc">
-                      Cơ quan cấp trên: TKV. Đơn vị: Viện Cơ khí Năng lượng và Mỏ - Vinacomin. Ký hiệu: CĐM. Cỡ chữ 14pt.
-                    </div>
-                  </div>
-
-                  <div
-                    className={`docSettingsPresetCard ${settings.presetId === "TVCI" ? "active" : ""}`}
-                    onClick={() => handleSelectPreset("TVCI")}
-                  >
-                    <div className="docSettingsPresetCardTitle">🏢 Trung tâm Thử nghiệm - Kiểm định Công nghiệp</div>
-                    <div className="docSettingsPresetCardDesc">
-                      Cơ quan: Trung tâm Thử nghiệm - Kiểm định Công nghiệp. Ký hiệu: TVCI. Cỡ chữ 14pt, lề A4 chuẩn 20-20-30-15 mm.
-                    </div>
-                  </div>
-
-                  <div
-                    className={`docSettingsPresetCard ${settings.presetId === "PARTY" ? "active" : ""}`}
-                    onClick={() => handleSelectPreset("PARTY")}
-                  >
-                    <div className="docSettingsPresetCardTitle">🚩 Đảng Cộng sản Việt Nam</div>
-                    <div className="docSettingsPresetCardDesc">
-                      Theo Hướng dẫn 36-HD/VPTW. Cơ quan: ĐẢNG CỘNG SẢN VIỆT NAM. Không có tiêu ngữ.
-                    </div>
-                  </div>
-
-                  <div
-                    className={`docSettingsPresetCard ${settings.presetId === "PERSONAL" ? "active" : ""}`}
-                    onClick={() => handleSelectPreset("PERSONAL")}
-                  >
-                    <div className="docSettingsPresetCardTitle">👤 Tùy chỉnh cá nhân</div>
-                    <div className="docSettingsPresetCardDesc">
-                      Thiết lập linh hoạt cho các loại văn bản cá nhân hoặc đơn vị đặc thù khác.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right Area: Live A4 Visual Preview */}
-          <div className="docSettingsPreviewArea">
-            <div className="docSettingsPreviewLabel">Xem trước trực quan A4:</div>
-            <div className="a4LiveSheet">
-              {/* Header block: 2 columns */}
-              <div className="a4HeaderGrid">
-                <div className="a4HeaderLeft">
-                  <div className="a4TextSmall">{settings.agency.parentAgency || "TÊN CƠ QUAN CẤP TRÊN"}</div>
-                  <div className="a4TextBold">{settings.agency.issuingAgency || "TÊN CƠ QUAN BAN HÀNH"}</div>
-                  <div className="a4RuleShort"></div>
-                  <div className="a4TextSmall" style={{ marginTop: 2 }}>
-                    Số: {settings.symbol.number || "..."}/{settings.symbol.prefix || "..."}
-                  </div>
-                </div>
-                <div className="a4HeaderRight">
-                  {settings.presetId === "PARTY" ? (
-                    <div className="a4TextBold">ĐẢNG CỘNG SẢN VIỆT NAM</div>
-                  ) : (
-                    <>
-                      <div className="a4TextBold">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-                      <div className="a4TextMotto">Độc lập - Tự do - Hạnh phúc</div>
-                      <div className="a4RuleMedium"></div>
-                    </>
-                  )}
-                  <div className="a4TextItalic" style={{ marginTop: 2 }}>
-                    {settings.symbol.location || "Địa danh"}, {settings.symbol.date || "ngày ... tháng ... năm ..."}
-                  </div>
-                </div>
-              </div>
-
-              {/* Document Subject / Title */}
-              <div className="a4TitleBlock">
-                <div className="a4DocType">{settings.docType}</div>
-                <div className="a4DocSubject">{settings.docTitle || "Trích yếu nội dung văn bản..."}</div>
-              </div>
-
-              {/* Simulated Body Text */}
-              <div className="a4BodyLines">
-                <div className="a4Line" style={{ width: "90%", marginLeft: `${Math.min(12, settings.paragraph.firstLineIndent)}px` }}></div>
-                <div className="a4Line" style={{ width: "98%" }}></div>
-                <div className="a4Line" style={{ width: "95%" }}></div>
-                <div className="a4Line" style={{ width: "70%" }}></div>
-                <div className="a4Line" style={{ width: "92%", marginLeft: `${Math.min(12, settings.paragraph.firstLineIndent)}px`, marginTop: 6 }}></div>
-                <div className="a4Line" style={{ width: "96%" }}></div>
-                <div className="a4Line" style={{ width: "60%" }}></div>
-              </div>
-
-              {/* Footer block: Recipients on left, Signer on right */}
-              <div className="a4FooterGrid">
-                <div className="a4RecipientsBox">
-                  <div className="a4TextBold" style={{ fontSize: 7 }}>Nơi nhận:</div>
-                  {settings.recipients.slice(0, 3).map((r, idx) => (
-                    <div key={idx} className="a4TextMicro">- {r}</div>
-                  ))}
-                  {settings.recipients.length > 3 && <div className="a4TextMicro">...</div>}
-                </div>
-                <div className="a4SignerBox">
-                  <div className="a4TextBold">{settings.signer.title || ""}</div>
-                  <div className="a4SignatureSpace">&nbsp;</div>
-                  <div className="a4TextBold">{settings.signer.fullName || ""}</div>
-                </div>
-              </div>
-
-              {/* Margin indicators */}
-              <div className="a4MarginInfo">
-                Lề: T{settings.margins.top} · D{settings.margins.bottom} · T{settings.margins.left} · P{settings.margins.right} (mm)
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Modal Sticky Footer with 3 distinct actions */}
-        <div className="docSettingsModalFooter">
+      {/* Body: 4-Section Property Sheet */}
+      <div className="docSettingsModalBody" style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+        {/* Sidebar Navigation: 4 Clean Tabs */}
+        <div className="docSettingsSidebar" style={{ width: 140, borderRight: "1px solid #e2e8f0", background: "#f8fafc", padding: "8px 4px", display: "flex", flexDirection: "column", gap: 4 }}>
           <button
             type="button"
-            className="docSettingsBtnSecondary"
-            onClick={handleSaveDefaultOnly}
-            disabled={busy}
-            title="Lưu các thông số này để áp dụng cho các tài liệu mới về sau"
+            className={`docSettingsTabBtn ${activeTab === "info" ? "active" : ""}`}
+            onClick={() => setActiveTab("info")}
           >
-            💾 Lưu mặc định
+            📄 Thông tin
           </button>
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              className="docSettingsBtnOutline"
-              onClick={handleApplyOnly}
-              disabled={busy}
-              title="Áp dụng căn lề và định dạng cho tài liệu Word đang mở"
-            >
-              📄 Áp dụng cho văn bản này
-            </button>
-            <button
-              type="button"
-              className="docSettingsBtnPrimary"
-              onClick={handleSaveAndApplyAll}
-              disabled={busy}
-              title="Vừa lưu làm mặc định, vừa áp dụng ngay vào tài liệu này"
-            >
-              ✨ Lưu & Áp dụng
-            </button>
-          </div>
+          <button
+            type="button"
+            className={`docSettingsTabBtn ${activeTab === "page_format" ? "active" : ""}`}
+            onClick={() => setActiveTab("page_format")}
+          >
+            📐 Trang &amp; định dạng
+          </button>
+          <button
+            type="button"
+            className={`docSettingsTabBtn ${activeTab === "signer_recipients" ? "active" : ""}`}
+            onClick={() => setActiveTab("signer_recipients")}
+          >
+            ✍️ Người ký &amp; nơi nhận
+          </button>
+          <button
+            type="button"
+            className={`docSettingsTabBtn ${activeTab === "defaults" ? "active" : ""}`}
+            onClick={() => setActiveTab("defaults")}
+          >
+            ⚙️ Mặc định
+          </button>
+        </div>
+
+        {/* Configuration Area */}
+        <div className="docSettingsContent" style={{ flex: 1, padding: "16px 20px", overflowY: "auto", background: "#ffffff" }}>
+          {statusMsg && (
+            <div className={`docSettingsStatusBanner ${statusMsg.type}`} style={{ marginBottom: 12, padding: "8px 12px", borderRadius: 4, fontSize: 11.5 }}>
+              {statusMsg.text}
+            </div>
+          )}
+
+          {/* SECTION 1: THÔNG TIN */}
+          {activeTab === "info" && (
+            <div className="docSettingsSection">
+              <h4 className="docSettingsSectionTitle" style={{ fontSize: 12.5, fontWeight: 700, color: "#0f3f67", margin: "0 0 12px 0", paddingBottom: 6, borderBottom: "1px solid #e2e8f0" }}>
+                Thông tin văn bản &amp; Ký hiệu
+              </h4>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Loại văn bản</label>
+                  <select
+                    className="docSettingsSelect"
+                    value={settings.docType || "Công văn"}
+                    onChange={(e) => setSettings({ ...settings, docType: e.target.value })}
+                  >
+                    <option value="Công văn">Công văn</option>
+                    <option value="Quyết định">Quyết định</option>
+                    <option value="Thông báo">Thông báo</option>
+                    <option value="Tờ trình">Tờ trình</option>
+                    <option value="Báo cáo">Báo cáo</option>
+                    <option value="Kế hoạch">Kế hoạch</option>
+                    <option value="Biên bản">Biên bản</option>
+                    <option value="Giấy mời">Giấy mời</option>
+                    <option value="Phiếu">Phiếu yêu cầu / thử nghiệm</option>
+                  </select>
+                </div>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Số hiệu văn bản</label>
+                  <input
+                    type="text"
+                    className="docSettingsInput"
+                    placeholder="VD: 125"
+                    value={settings.symbol?.number || ""}
+                    onChange={(e) => setSettings({ ...settings, symbol: { ...settings.symbol, number: e.target.value } })}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Ký hiệu viết tắt</label>
+                  <select
+                    className="docSettingsSelect"
+                    value={settings.symbol?.prefix || "TVCI"}
+                    onChange={(e) => setSettings({ ...settings, symbol: { ...settings.symbol, prefix: e.target.value } })}
+                  >
+                    <option value="TVCI">TVCI (Trung tâm)</option>
+                    <option value="IEMM">IEMM (Viện)</option>
+                    <option value="CV-TVCI">CV-TVCI</option>
+                    <option value="QĐ-TVCI">QĐ-TVCI</option>
+                    <option value="TB-TVCI">TB-TVCI</option>
+                    <option value="TTr-TVCI">TTr-TVCI</option>
+                  </select>
+                </div>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Địa danh ban hành</label>
+                  <select
+                    className="docSettingsSelect"
+                    value={settings.symbol?.location || "Hà Nội"}
+                    onChange={(e) => setSettings({ ...settings, symbol: { ...settings.symbol, location: e.target.value } })}
+                  >
+                    <option value="Hà Nội">Hà Nội</option>
+                    <option value="Quảng Ninh">Quảng Ninh</option>
+                    <option value="Cẩm Phả">Cẩm Phả</option>
+                    <option value="Hạ Long">Hạ Long</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="docSettingsField" style={{ marginBottom: 12 }}>
+                <label className="docSettingsLabel">Trích yếu nội dung (Tiêu đề tóm tắt)</label>
+                <textarea
+                  className="docSettingsInput"
+                  rows={2}
+                  placeholder="Về việc thực hiện kế hoạch kiểm định và thử nghiệm..."
+                  value={settings.docTitle || ""}
+                  onChange={(e) => setSettings({ ...settings, docTitle: e.target.value })}
+                />
+              </div>
+
+              <div style={{ background: "#f8fafc", padding: "10px 12px", borderRadius: 4, border: "1px solid #e2e8f0", fontSize: 11, color: "#475569" }}>
+                <strong>Cơ quan ban hành:</strong> TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP<br />
+                <strong>Cơ quan cấp trên:</strong> VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 2: TRANG & ĐỊNH DẠNG */}
+          {activeTab === "page_format" && (
+            <div className="docSettingsSection">
+              <h4 className="docSettingsSectionTitle" style={{ fontSize: 12.5, fontWeight: 700, color: "#0f3f67", margin: "0 0 12px 0", paddingBottom: 6, borderBottom: "1px solid #e2e8f0" }}>
+                Khổ giấy, Căn lề &amp; Phông chữ
+              </h4>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Khổ giấy</label>
+                  <select className="docSettingsSelect" value="A4" disabled>
+                    <option value="A4">A4 (210 x 297 mm) - Chuẩn Nghị định 30</option>
+                  </select>
+                </div>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Phông chữ chính</label>
+                  <select className="docSettingsSelect" value={settings.typography?.fontName || "Times New Roman"} disabled>
+                    <option value="Times New Roman">Times New Roman (Chuẩn bắt buộc)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Lề trên</label>
+                  <select
+                    className="docSettingsSelect"
+                    value={settings.margins?.top || 20}
+                    onChange={(e) => setSettings({ ...settings, margins: { ...settings.margins, top: Number(e.target.value) } })}
+                  >
+                    <option value={20}>20 mm (Chuẩn NĐ30)</option>
+                    <option value={25}>25 mm</option>
+                  </select>
+                </div>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Lề dưới</label>
+                  <select
+                    className="docSettingsSelect"
+                    value={settings.margins?.bottom || 20}
+                    onChange={(e) => setSettings({ ...settings, margins: { ...settings.margins, bottom: Number(e.target.value) } })}
+                  >
+                    <option value={20}>20 mm (Chuẩn NĐ30)</option>
+                    <option value={25}>25 mm</option>
+                  </select>
+                </div>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Lề trái</label>
+                  <select
+                    className="docSettingsSelect"
+                    value={settings.margins?.left || 30}
+                    onChange={(e) => setSettings({ ...settings, margins: { ...settings.margins, left: Number(e.target.value) } })}
+                  >
+                    <option value={30}>30 mm (Chuẩn NĐ30)</option>
+                    <option value={35}>35 mm</option>
+                  </select>
+                </div>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Lề phải</label>
+                  <select
+                    className="docSettingsSelect"
+                    value={settings.margins?.right || 15}
+                    onChange={(e) => setSettings({ ...settings, margins: { ...settings.margins, right: Number(e.target.value) } })}
+                  >
+                    <option value={15}>15 mm (Chuẩn NĐ30)</option>
+                    <option value={20}>20 mm</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Cỡ chữ nội dung</label>
+                  <select
+                    className="docSettingsSelect"
+                    value={settings.typography?.bodySize || 13}
+                    onChange={(e) => setSettings({ ...settings, typography: { ...settings.typography, bodySize: Number(e.target.value) } })}
+                  >
+                    <option value={13}>13 pt (Khuyên dùng văn bản dài)</option>
+                    <option value={14}>14 pt (Chuẩn trang trọng)</option>
+                  </select>
+                </div>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Giãn dòng (Line spacing)</label>
+                  <select
+                    className="docSettingsSelect"
+                    value={settings.paragraph?.lineSpacing || 1.2}
+                    onChange={(e) => setSettings({ ...settings, paragraph: { ...settings.paragraph, lineSpacing: Number(e.target.value) } })}
+                  >
+                    <option value={1.15}>1.15 dòng</option>
+                    <option value={1.2}>1.2 dòng (Chuẩn NĐ30)</option>
+                    <option value={1.3}>1.3 dòng</option>
+                    <option value={1.5}>1.5 dòng</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 3: NGƯỜI KÝ & NƠI NHẬN */}
+          {activeTab === "signer_recipients" && (
+            <div className="docSettingsSection">
+              <h4 className="docSettingsSectionTitle" style={{ fontSize: 12.5, fontWeight: 700, color: "#0f3f67", margin: "0 0 12px 0", paddingBottom: 6, borderBottom: "1px solid #e2e8f0" }}>
+                Người ký văn bản &amp; Nơi nhận
+              </h4>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Chức vụ người ký</label>
+                  <select
+                    className="docSettingsSelect"
+                    value={settings.signer?.title || "GIÁM ĐỐC"}
+                    onChange={(e) => setSettings({ ...settings, signer: { ...settings.signer, title: e.target.value } })}
+                  >
+                    <option value="GIÁM ĐỐC">GIÁM ĐỐC</option>
+                    <option value="PHÓ GIÁM ĐỐC">PHÓ GIÁM ĐỐC</option>
+                    <option value="KT. GIÁM ĐỐC / PHÓ GIÁM ĐỐC">KT. GIÁM ĐỐC / PHÓ GIÁM ĐỐC</option>
+                    <option value="VIỆN TRƯỞNG">VIỆN TRƯỞNG</option>
+                    <option value="PHÓ VIỆN TRƯỞNG">PHÓ VIỆN TRƯỞNG</option>
+                  </select>
+                </div>
+                <div className="docSettingsField">
+                  <label className="docSettingsLabel">Họ và tên người ký</label>
+                  <input
+                    type="text"
+                    className="docSettingsInput"
+                    placeholder="Họ và tên..."
+                    value={settings.signer?.fullName || ""}
+                    onChange={(e) => setSettings({ ...settings, signer: { ...settings.signer, fullName: e.target.value } })}
+                  />
+                </div>
+              </div>
+
+              <div className="docSettingsField">
+                <label className="docSettingsLabel">Danh sách nơi nhận (mỗi dòng một nơi nhận)</label>
+                <textarea
+                  className="docSettingsInput"
+                  rows={4}
+                  placeholder="Như Điều 3;&#10;Ban Giám đốc (để b/c);&#10;Lưu: VT, TVCI."
+                  value={Array.isArray(settings.recipients) ? settings.recipients.join("\n") : ""}
+                  onChange={(e) => setSettings({ ...settings, recipients: e.target.value.split("\n") })}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 4: MẶC ĐỊNH & QUY CHUẨN */}
+          {activeTab === "defaults" && (
+            <div className="docSettingsSection">
+              <h4 className="docSettingsSectionTitle" style={{ fontSize: 12.5, fontWeight: 700, color: "#0f3f67", margin: "0 0 12px 0", paddingBottom: 6, borderBottom: "1px solid #e2e8f0" }}>
+                Mặc định hệ thống &amp; Khôi phục
+              </h4>
+              <p style={{ fontSize: 11.5, color: "#475569", lineHeight: 1.5, marginBottom: 14 }}>
+                Lưu cấu hình hiện tại làm mẫu mặc định cho tất cả các văn bản mới được tạo từ Ribbon, hoặc khôi phục lại các thông số chuẩn ban đầu theo Nghị định 30/2020/NĐ-CP.
+              </p>
+
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  style={{ fontSize: 11.5, padding: "8px 14px" }}
+                  onClick={handleResetToDefault}
+                >
+                  ↺ Khôi phục chuẩn TVCI ban đầu
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ fontSize: 11.5, padding: "8px 14px" }}
+                  onClick={() => {
+                    onSaveDefault(settings);
+                    setStatusMsg({ type: "success", text: "Đã lưu thiết lập hiện tại làm mặc định!" });
+                  }}
+                >
+                  💾 Lưu làm mặc định
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Footer Buttons */}
+      <div style={{ padding: "10px 16px", borderTop: "1px solid #e2e8f0", background: "#ffffff", display: "flex", justifyContent: "flex-end", gap: 8 }}>
+        <button
+          type="button"
+          className="btn btn-outline"
+          style={{ height: 32, fontSize: 11.5, padding: "0 14px" }}
+          onClick={onClose}
+          disabled={busy}
+        >
+          Hủy
+        </button>
+        <button
+          type="button"
+          className="btn btn-outline"
+          style={{ height: 32, fontSize: 11.5, padding: "0 14px", borderColor: "#0d4f8b", color: "#0d4f8b" }}
+          onClick={() => void handleApplyOnly()}
+          disabled={busy}
+        >
+          {busy ? "Đang xử lý..." : "Áp dụng cho văn bản này"}
+        </button>
+        <button
+          type="button"
+          className="btn btn-primary"
+          style={{ height: 32, fontSize: 11.5, padding: "0 16px", background: "#0d4f8b" }}
+          onClick={() => void handleSaveAndApplyAll()}
+          disabled={busy}
+        >
+          {busy ? "Đang lưu..." : "Lưu & Áp dụng"}
+        </button>
+      </div>
+    </div>
+  );
+
+  if (isDialog) {
+    return modalContent;
+  }
+
+  return (
+    <div className="docSettingsModalBackdrop" onClick={onClose}>
+      {modalContent}
     </div>
   );
 }

@@ -56,7 +56,7 @@ test("recognizes major Party document components", () => {
 
 test("component rules expose exact/range typography instead of one body rule", () => {
   const national = getComponentRule("NĐ30_TVCI", "NATIONAL_EMBLEM");
-  assert.deepEqual(national.fontSize, { min: 12, max: 13, target: 13 });
+  assert.deepEqual(national.fontSize, { min: 12, max: 13, target: 12 });
   assert.equal(national.bold, true);
   assert.equal(national.alignment, "Centered");
 
@@ -107,28 +107,25 @@ import { readFile } from "node:fs/promises";
 
 test("Word integration scans full document and UI exposes recognized components", async () => {
   const formatting = await readFile(new URL("../src/word/formatting.service.ts", import.meta.url), "utf8");
-  const app = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
+  const inspection = await readFile(new URL("../src/rules/document-inspection.ts", import.meta.url), "utf8");
   assert.match(formatting, /inspectDocumentParagraphs/);
   assert.match(formatting, /document\.body\.paragraphs/);
   assert.match(formatting, /export async function inspectDocumentParagraphs[\s\S]*?tableNestingLevel === 0/);
-  assert.match(app, /Thành phần nhận diện/);
-  assert.match(app, /classifyDocumentComponents/);
-  assert.match(app, /validateRecipientsBlock/);
-  assert.match(app, /getRecipientsItemRule/);
-  assert.match(app, /recipientsIssues/);
+  assert.match(inspection, /classifyDocumentComponents/);
+  assert.match(inspection, /evaluateDocumentRules/);
 });
 
 test("standardize UI exposes an active selection/document scope", async () => {
   const app = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
   assert.match(app, /validationScope/);
-  assert.match(app, /Đoạn đang chọn/);
-  assert.match(app, /Toàn bộ văn bản/);
+  assert.match(app, /inspectCurrentDocument/);
 });
 
 test("validation scope applies to component and page checks too", async () => {
-  const app = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  assert.match(app, /const documentSnapshots = validationScope === "selection" \? snapshots : await inspectDocumentParagraphs\(\)/);
-  assert.match(app, /const pageSnapshot = validationScope === "document" && profile\.page/);
+  const inspection = await readFile(new URL("../src/rules/document-inspection.ts", import.meta.url), "utf8");
+  const evaluator = await readFile(new URL("../src/rules/document-evaluator.ts", import.meta.url), "utf8");
+  assert.match(inspection, /inspectCurrentDocument/);
+  assert.match(evaluator, /validationScope/);
 });
 
 test("text issue fixer supports both document and selection targets", async () => {

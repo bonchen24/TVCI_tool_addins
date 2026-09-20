@@ -89,7 +89,7 @@ test("chat history UI exposes rename and delete actions for individual conversat
   const appSource = fs.readFileSync("src/taskpane/App.tsx", "utf8");
   assert.match(appSource, /handleRenameConversation/);
   assert.match(appSource, /handleDeleteConversation/);
-  assert.match(appSource, /Đổi tên/);
+  assert.match(appSource, /đổi tên/i);
   assert.match(appSource, /Xóa/);
 });
 

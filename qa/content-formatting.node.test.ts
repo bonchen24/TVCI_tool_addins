@@ -28,7 +28,7 @@ test("active IEMM, TVCI and Party profiles use the custom content baseline", () 
     assert.equal(profile.body.lineSpacingMultiple, 1.2);
   }
   assert.deepEqual(iemm.page, { paperSize: "A4", orientation: "Portrait", topMm: 20, bottomMm: 20, leftMm: 30, rightMm: 15 });
-  assert.equal(resolveRuleProfileForOrganization("TVCI").id, "IEMM");
+  assert.equal(resolveRuleProfileForOrganization("TVCI").id, "NĐ30_TVCI");
 });
 
 test("generated content tables use Before 2pt, After 2pt and Multiple 1.2", () => {
@@ -77,7 +77,7 @@ test("recipient presets and OOXML normalize full names and punctuation", () => {
   const ooxml = buildRecipientsOoxml("IEMM", ["Như trên", "Trung tâm Thử nghiệm - Kiểm định Công nghiệp"]);
   assert.match(ooxml, /- Như trên;/);
   assert.match(ooxml, /- Trung tâm Thử nghiệm - Kiểm định Công nghiệp;/);
-  assert.match(ooxml, /Lưu: VT, Văn phòng, 01 bản\./);
+  assert.match(ooxml, /Lưu: VT, Văn phòng\./);
   assert.match(ooxml, /w:sz w:val="24"/);
   assert.match(ooxml, /w:sz w:val="22"/);
 });

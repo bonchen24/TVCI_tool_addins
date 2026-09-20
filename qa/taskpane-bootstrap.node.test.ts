@@ -8,7 +8,7 @@ test("task pane mounts safely when Office.js is not available yet", () => {
   assert.match(source, /Office\.onReady\(mountApp\)/);
   assert.match(source, /function mountApp|const mountApp/);
   assert.match(source, /ErrorBoundary/);
-  assert.match(source, /<ErrorBoundary><App \/><\/ErrorBoundary>/);
+  assert.match(source, /<ErrorBoundary>[\s\S]*?<App\s*\/>[\s\S]*?<\/ErrorBoundary>/);
 });
 
 test("task pane declares the packaged favicon asset", () => {

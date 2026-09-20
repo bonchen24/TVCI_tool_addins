@@ -2,63 +2,27 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-test("template library exposes management controls", async () => {
-  const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  for (const label of ["Mặc định", "Ẩn", "Hiện", "Sửa", "↑", "↓", "Hiện mẫu đã ẩn"]) {
+test("template library modal exposes organization tabs and search", async () => {
+  const source = await readFile(new URL("../src/taskpane/components/TemplateLibraryModal.tsx", import.meta.url), "utf8");
+  for (const label of ["Tất cả", "Gần đây", "Yêu thích", "Trung tâm Thử nghiệm - Kiểm định Công nghiệp", "Viện Cơ khí Năng lượng và Mỏ - Vinacomin", "Đảng"]) {
     assert.match(source, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
+  assert.match(source, /placeholder="🔍 Tìm kiếm mẫu văn bản/);
 });
 
-test("template cards surface source-backed symbol and usage guidance", async () => {
-  const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  assert.match(source, /symbolHint/);
-  assert.match(source, /usageNotes/);
-  assert.match(source, /Ký hiệu:/);
-  assert.match(source, /Lưu ý:/);
+test("template library modal exposes quick insert and form opening actions", async () => {
+  const source = await readFile(new URL("../src/taskpane/components/TemplateLibraryModal.tsx", import.meta.url), "utf8");
+  assert.match(source, /Chèn nhanh/);
+  assert.match(source, /Điền & Chèn/);
+  assert.match(source, /onDirectInsert/);
+  assert.match(source, /onOpenForm/);
 });
 
-test("taskpane exposes source-backed quick guidance", async () => {
+test("taskpane renders dedicated AI view and clean status banner", async () => {
   const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  assert.match(source, /Hướng dẫn nhanh từ tài liệu nguồn/);
-  assert.match(source, /searchQuickGuidance/);
-  assert.match(source, /referenceQuery/);
-});
-
-test("empty TVCI department tabs explain how to add an approved DOCX", async () => {
-  const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  assert.match(source, /templateEmptyMessage/);
-  assert.match(source, /Chưa có biểu mẫu hệ thống cho/);
-  assert.match(source, /Import DOCX/);
-});
-
-test("taskpane keeps secondary workflows in compact collapsible sections", async () => {
-  const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  assert.match(source, /collapsibleCard/);
-  for (const label of ["Soạn thảo chuẩn", "Kho biểu mẫu", "Hướng dẫn nhanh từ tài liệu nguồn", "Tạo biểu mẫu"]) {
-    assert.match(source, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  }
-  assert.match(source, /id="drafting-tools"/);
-  assert.match(source, /id="template-library"/);
-  assert.match(source, /id="reference-guidance"/);
-  assert.match(source, /id="template-builder"/);
-  assert.doesNotMatch(source, /quickActionBar/);
-  assert.doesNotMatch(source, /aiLaunchButton/);
-});
-
-test("taskpane keeps the primary command strip without a duplicate TVCI branding header", async () => {
-  const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  const styles = await readFile(new URL("../src/taskpane/styles.css", import.meta.url), "utf8");
-
-  assert.doesNotMatch(source, /className="toolHeader"/);
-  assert.doesNotMatch(source, /className="toolBadge"/);
-  assert.match(source, /Thông tin TVCI Tools/);
-  assert.match(source, /className="primaryTools"/);
-  assert.match(source, /aria-label="Thao tác chính"/);
-  assert.match(source, /className="aboutTools"/);
-  assert.doesNotMatch(styles, /\.toolHeader\s*\{/);
-  assert.doesNotMatch(styles, /\.toolBadge\s*\{/);
-  assert.match(styles, /\.primaryTools\s*\{[\s\S]*grid-template-columns:\s*repeat\(3/);
-  assert.match(styles, /\.aboutTools\s+summary/);
+  assert.match(source, /<AiTaskpaneView/);
+  assert.match(source, /className="appStatusBanner"/);
+  assert.match(source, /aria-live="polite"/);
 });
 
 test("template cards keep descriptions readable on a narrow task pane", async () => {
@@ -101,28 +65,22 @@ test("task pane cards use a denser compact rhythm", async () => {
   assert.match(summary, /padding:\s*8px/);
 });
 
-test("template cards keep secondary guidance behind a compact details toggle", async () => {
-  const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  const styles = await readFile(new URL("../src/taskpane/styles.css", import.meta.url), "utf8");
-  assert.match(source, /templateDetails/);
-  assert.match(source, /Chi tiết mẫu/);
-  assert.match(styles, /\.templateDetails\s+summary/);
+test("template cards display title, description and actions cleanly", async () => {
+  const source = await readFile(new URL("../src/taskpane/components/TemplateLibraryModal.tsx", import.meta.url), "utf8");
+  assert.match(source, /templateCardTitle/);
+  assert.match(source, /templateCardDesc/);
+  assert.match(source, /templateCardActions/);
 });
 
 test("taskpane can open the area requested by a Ribbon route", async () => {
   const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
   assert.match(source, /const params = new URLSearchParams\(window\.location\.search\)/);
-  assert.match(source, /setAiWorkspaceOpen\(true\)/);
-  assert.match(source, /params\.get\("tab"\)/);
-  assert.match(source, /tab === "template" \? "template" : "chat"/);
-  assert.match(source, /guidance:\s*"reference-guidance"/);
-  assert.match(source, /scrollToSection\(sectionId\)/);
+  assert.match(source, /params\.get\("view"\)/);
+  assert.match(source, /consumeFallbackView/);
 });
 
 test("taskpane keeps the AI back action compact and keyboard focus visible", async () => {
-  const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
   const styles = await readFile(new URL("../src/taskpane/styles.css", import.meta.url), "utf8");
-  assert.match(source, /className="aiWorkspaceTopbar"/);
   assert.match(styles, /\.aiWorkspaceTopbar\s*>\s*button\s*\{[\s\S]*justify-self:\s*start/);
   assert.match(styles, /button:focus-visible/);
 });
@@ -130,8 +88,6 @@ test("taskpane keeps the AI back action compact and keyboard focus visible", asy
 test("taskpane labels icon actions and announces operation status", async () => {
   const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
   assert.match(source, /aria-live="polite"/);
-  assert.match(source, /aria-label="Đưa biểu mẫu lên"/);
-  assert.match(source, /aria-label="Đưa biểu mẫu xuống"/);
 });
 
 test("template insertion appends to the document body and reveals the inserted range", async () => {
@@ -154,11 +110,10 @@ test("taskpane handles clipboard failures without an unhandled promise", async (
   assert.doesNotMatch(source, /navigator\.clipboard\.writeText\(/);
 });
 
-test("template preference actions use the taskpane error runner", async () => {
-  const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  assert.match(source, /const handleToggleHidden = \(template: TemplateRecord\) => run\(async/);
-  assert.match(source, /const handleSetDefault = \(template: TemplateRecord\) => run\(async/);
-  assert.match(source, /const handleMoveTemplate = \(template: TemplateRecord, direction: "up" \| "down"\) => run\(async/);
+test("template library modal supports favorite toggle", async () => {
+  const source = await readFile(new URL("../src/taskpane/components/TemplateLibraryModal.tsx", import.meta.url), "utf8");
+  assert.match(source, /toggleFavoriteTemplate/);
+  assert.match(source, /getFavoriteTemplateIds/);
 });
 
 test("chat history actions use the taskpane error runner", async () => {

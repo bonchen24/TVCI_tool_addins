@@ -15,7 +15,7 @@ test('exposes four rule profiles including current Party guidance', () => {
 });
 
 test('maps template organizations to rule profiles', () => {
-  assert.equal(resolveRuleProfileForOrganization('TVCI').id, 'IEMM');
+  assert.equal(resolveRuleProfileForOrganization('TVCI').id, 'NĐ30_TVCI');
   assert.equal(resolveRuleProfileForOrganization('TKV').id, 'TKV');
   assert.equal(resolveRuleProfileForOrganization('IEMM').id, 'IEMM');
   assert.equal(resolveRuleProfileForOrganization('DANG').id, 'DANG_05_HD_VPTW_2026');

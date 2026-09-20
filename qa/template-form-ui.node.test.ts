@@ -2,37 +2,36 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-test("template form UI is extracted and exposes the three separate card actions", async () => {
+test("template form UI is extracted into FormDraftingView with actions", async () => {
   const app = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  const panel = await readFile(new URL("../src/taskpane/TemplateFormPanel.tsx", import.meta.url), "utf8");
-  assert.match(app, /TemplateFormPanel/);
-  assert.doesNotMatch(app, /<form className="templateForm/);
-  for (const label of ["Mở form", "Chèn mẫu trống", "Chèn và điền"]) assert.match(app + panel, new RegExp(label));
-  assert.match(panel, /Áp dụng vào Word/);
-  assert.match(panel, /source/);
-  assert.match(panel, /confidence/);
+  const modal = await readFile(new URL("../src/taskpane/components/TemplateFormModal.tsx", import.meta.url), "utf8");
+  const formView = await readFile(new URL("../src/taskpane/components/FormDraftingView.tsx", import.meta.url), "utf8");
+  assert.match(app, /<TemplateFormModal/);
+  assert.match(modal, /role="dialog" aria-modal="true"/);
+  assert.match(formView, /onInsertBlank/);
+  assert.match(formView, /onInsertAndFill/);
+  assert.match(formView, /onApplyToWord/);
 });
 
 test("template form UI keeps AI suggestions out of Word until acceptance", async () => {
-  const source = await readFile(new URL("../src/taskpane/TemplateFormPanel.tsx", import.meta.url), "utf8");
-  assert.match(source, /Chấp nhận đề xuất/);
+  const source = await readFile(new URL("../src/taskpane/components/FormDraftingView.tsx", import.meta.url), "utf8");
   assert.match(source, /onAcceptAi/);
   assert.match(source, /onApplyToWord/);
+  assert.match(source, /onSuggestAi/);
 });
 
-test("template form surface excludes TKV and standalone NĐ30 organizations", async () => {
-  const app = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  const manifest = await readFile(new URL("../manifest/manifest.xml", import.meta.url), "utf8");
-  assert.doesNotMatch(app, /label:\s*["']TKV["']/);
-  assert.doesNotMatch(app, /NĐ30/);
-  assert.doesNotMatch(manifest, /biểu mẫu TKV/i);
+test("template form surface organizes approved organizations", async () => {
+  const catalog = await readFile(new URL("../src/templates/catalog.ts", import.meta.url), "utf8");
+  assert.match(catalog, /TVCI/);
+  assert.match(catalog, /IEMM/);
+  assert.match(catalog, /DANG/);
 });
 
-test("FINAL catalog opens in a settings library modal while the form remains the main surface", async () => {
+test("template library modal allows filtering and opening form modal", async () => {
   const app = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  assert.match(app, /templateLibraryOpen/);
-  assert.match(app, /role="dialog" aria-label="Kho biểu mẫu"/);
-  assert.match(app, /className="templateList"/);
-  assert.match(app, /TemplateFormPanel/);
+  const libModal = await readFile(new URL("../src/taskpane/components/TemplateLibraryModal.tsx", import.meta.url), "utf8");
+  assert.match(app, /<TemplateLibraryModal/);
+  assert.match(libModal, /onOpenForm/);
+  assert.match(libModal, /onDirectInsert/);
 });
 

@@ -39,7 +39,6 @@ export interface DocumentSymbolInfo {
 
 export interface DocumentSignerInfo {
   title: string; // Chức vụ (ví dụ: GIÁM ĐỐC, VIỆN TRƯỞNG)
-  department?: string; // Đơn vị phòng ban (nếu có)
   fullName: string; // Họ và tên
 }
 
@@ -209,10 +208,10 @@ export const PRESET_PRESETS: Record<DocumentSettingsPresetId, DocumentSettings> 
   TVCI: {
     presetId: "TVCI",
     docType: "CÔNG VĂN",
-    docTitle: "V/v triển khai thử nghiệm giải pháp tự động hóa và cơ điện mỏ",
+    docTitle: "V/v triển khai công tác thử nghiệm và kiểm định công nghiệp",
     agency: {
       parentAgency: "VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN",
-      issuingAgency: "TRUNG TÂM PHÁT TRIỂN CÔNG NGHỆ VÀ THIẾT BỊ CƠ ĐIỆN",
+      issuingAgency: "TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP",
       agencyAbbr: "TVCI",
     },
     symbol: {

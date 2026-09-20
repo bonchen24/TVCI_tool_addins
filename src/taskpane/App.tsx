@@ -68,6 +68,7 @@ import { InspectionModal } from "./components/InspectionModal";
 import { TemplateLibraryModal } from "./components/TemplateLibraryModal";
 import { KnowledgeModal } from "./components/KnowledgeModal";
 import { TemplateFormModal } from "./components/TemplateFormModal";
+import { openOfficeDialog } from "../commands/dialog";
 import { applyA4Margins } from "../word/page-toolkit.service";
 import {
   loadSavedSettings,
@@ -126,8 +127,26 @@ function proofreadingCategoryLabel(category: string): string {
   return labels[category] ?? category;
 }
 
+function getInitialDialogModal(): ActiveModalType {
+  if (typeof window === "undefined") return "none";
+  const params = new URLSearchParams(window.location.search);
+  const v = params.get("view");
+  if (v === "settings" || v === "doc_settings") return "document_settings";
+  if (v === "standardize" || v === "inspect") return "inspect";
+  if (v === "template" || v === "template-form" || v === "library") return "template_library";
+  if (v === "builder") return "template_wizard";
+  if (v === "knowledge") return "knowledge";
+  if (v === "settings_modal") return "ai_settings";
+  const fallback = consumeFallbackView();
+  if (fallback === "settings" || fallback === "settings_modal") return "document_settings";
+  if (fallback === "inspect") return "inspect";
+  if (fallback === "template" || fallback === "template-form") return "template_library";
+  if (fallback === "knowledge") return "knowledge";
+  return "none";
+}
+
 export default function App() {
-  const isDialog = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dialog") === "1";
+  const isDialog = typeof window !== "undefined" && (new URLSearchParams(window.location.search).get("dialog") === "1" || window.location.pathname.endsWith("dialog.html"));
   const closeActiveModal = () => {
     if (isDialog) closeDialogContainer();
     else setActiveModal("none");
@@ -151,7 +170,9 @@ export default function App() {
     });
   };
 
-  const [activeModal, setActiveModal] = useState<ActiveModalType>("none");
+  const [activeModal, setActiveModal] = useState<ActiveModalType>(() => {
+    return isDialog ? getInitialDialogModal() : "none";
+  });
   const [documentSettings, setDocumentSettings] = useState<DocumentSettings>(() => loadSavedSettings());
   const [templateLibraryFilter, setTemplateLibraryFilter] = useState<"all" | "recent" | "favorite">("all");
   const [status, setStatus] = useState("Sẵn sàng");
@@ -343,57 +364,41 @@ export default function App() {
     void updateDocumentStatus();
   }, []);
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fallbackView = consumeFallbackView();
-    const view = params.get("view") || fallbackView;
-    const filter = params.get("filter") as "recent" | "favorite" | null;
+    if (!isDialog) {
+      // In Task Pane mode: strictly keep activeModal as "none".
+      // Dialogs are opened exclusively via openOfficeDialog floating window!
+      return;
+    }
 
-    if (view === "settings" || view === "doc_settings") {
-      setActiveModal("document_settings");
-      return;
-    }
-    if (view === "standardize" || view === "inspect") {
-      setActiveModal("inspect");
-      setValidationScope("document");
-      void handleCheck("document");
-      return;
-    }
-    if (view === "template-form" || view === "template") {
-      const templateId = params.get("templateId");
-      if (templateId) {
-        const found = TEMPLATE_CATALOG.find((t) => t.id === templateId);
-        if (found) {
-          void handleOpenTemplateForm(found);
-          return;
+    const handleViewParam = (v: string | null, filterParam?: string | null) => {
+      if (!v) return;
+      if (v === "settings" || v === "doc_settings") {
+        setActiveModal("document_settings");
+      } else if (v === "standardize" || v === "inspect") {
+        setActiveModal("inspect");
+        setValidationScope("document");
+        void handleCheck("document");
+      } else if (v === "template-form" || v === "template") {
+        setActiveModal("template_library");
+      } else if (v === "library") {
+        setActiveModal("template_library");
+        if (filterParam === "recent" || filterParam === "favorite") {
+          setTemplateLibraryFilter(filterParam);
         }
+      } else if (v === "builder") {
+        setActiveModal("template_wizard");
+      } else if (v === "knowledge") {
+        setActiveModal("knowledge");
+      } else if (v === "settings_modal") {
+        setActiveModal("ai_settings");
       }
-      setActiveModal("template_library");
-      return;
-    }
-    if (view === "library") {
-      setActiveModal("template_library");
-      if (filter === "recent" || filter === "favorite") {
-        setTemplateLibraryFilter(filter);
-      }
-      return;
-    }
-    if (view === "builder") {
-      setActiveModal("template_wizard");
-      return;
-    }
-    if (view === "knowledge") {
-      setActiveModal("knowledge");
-      return;
-    }
-    if (view === "settings_modal") {
-      setActiveModal("ai_settings");
-      return;
-    }
-    if (view === "ai" || view === "proofread" || view === "drafting") {
-      setActiveModal("none");
-      return;
-    }
-  }, []);
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const initialView = params.get("view");
+    const filter = params.get("filter") as "recent" | "favorite" | null;
+    handleViewParam(initialView, filter);
+  }, [isDialog]);
 
   const autoFixCount = useMemo(() => issues.filter((i) => i.autoFixable).length, [issues]);
   const templateFillReadyCount = useMemo(() => templateFillFields.filter((field) => Boolean(field.value?.trim())
@@ -706,6 +711,14 @@ export default function App() {
   const handleInsertTemplateBlank = (template: TemplateRecord) => run(async () => {
     sendDebug(`handleInsertTemplateBlank: ${template.id} (${template.name})`);
     setStatus(`Đang chèn mẫu "${template.name}" vào Word...`);
+    if (isDialog) {
+      try {
+        Office.context.ui.messageParent(JSON.stringify({ type: "insert_template", template }));
+        return;
+      } catch (e) {
+        sendDebug(`messageParent failed, fallback to local insert: ${String(e)}`);
+      }
+    }
     await runTemplateInsertion(() => insertTemplate(template));
     setActiveTemplateName(template.name);
     setStatus(`Đã chèn mẫu "${template.name}" vào văn bản soạn thảo thành công!`);
@@ -723,6 +736,18 @@ export default function App() {
     setActiveFormTemplate(template);
     setTemplateFormValues(values);
     saveTemplateFormDraft(template.id, template.organization, template.documentType, values);
+    if (isDialog) {
+      try {
+        Office.context.ui.messageParent(JSON.stringify({
+          type: "insert_template_fill",
+          template,
+          values: normalized,
+        }));
+        return;
+      } catch (e) {
+        sendDebug(`messageParent fill failed: ${String(e)}`);
+      }
+    }
     await runTemplateInsertion(() => insertTemplate(template));
     const sync = await applyTemplateFormToWord(schema, normalized);
     setActiveTemplateName(template.name);
@@ -801,6 +826,18 @@ export default function App() {
       for (const tag of TEMPLATE_FORM_SESSION_TAGS) if (normalized[tag] !== undefined) next[tag] = normalized[tag];
       return next;
     });
+    if (isDialog) {
+      try {
+        Office.context.ui.messageParent(JSON.stringify({
+          type: "apply_template_form",
+          template: activeFormTemplate,
+          values: normalized,
+        }));
+        return;
+      } catch (e) {
+        sendDebug(`messageParent apply failed: ${String(e)}`);
+      }
+    }
     const result = await applyTemplateFormToWord(activeFormSchema, normalized);
     const message = describeTemplateFormSync(result);
     setTemplateFormSyncMessage(message);
@@ -1145,6 +1182,40 @@ export default function App() {
     }, 100);
   });
 
+  const handleRefineMessage = async (msgIndex: number, instructionPrompt: string, currentText: string): Promise<string> => {
+    if (!aiApiKey || !aiApiKey.trim()) {
+      setAiSettingsModalOpen(true);
+      throw new Error(`Chưa có khóa API Key cho ${aiProvider === "gemini" ? "Google Gemini" : "OpenAI"}. Đã mở hộp thoại Cài đặt, vui lòng cấu hình API Key.`);
+    }
+    setStatus("Đang tinh chỉnh nội dung theo yêu cầu...");
+    const refineSystemInstruction = "Bạn là trợ lý AI chuyên gia soạn thảo văn bản hành chính theo Nghị định 30/2020/NĐ-CP và chuẩn quy định của Trung tâm Thử nghiệm - Kiểm định Công nghiệp (TVCI).\nNhiệm vụ của bạn là tinh chỉnh lại nội dung được cung cấp theo đúng yêu cầu, giữ nguyên các số liệu kỹ thuật/pháp lý nếu có, trả về nội dung hoàn chỉnh, không kèm lời chào hỏi hay giải thích rườm rà.";
+    const refineUserPrompt = `${instructionPrompt}\n\nNội dung cần tinh chỉnh:\n"${currentText}"`;
+    const prompt = buildWritingPrompt({
+      input: refineUserPrompt,
+      style: writingStyle,
+      history: [],
+      instruction: refineSystemInstruction,
+    });
+    const output = await requestAiPromptDirect(
+      { provider: aiProvider, model: aiModel, apiKey: aiApiKey },
+      prompt,
+      fetch,
+      []
+    );
+    // Update active assistant message in chatHistory as well so persistence reflects the active content
+    setChatHistory((prev) => {
+      const copy = [...prev];
+      if (copy[msgIndex]) {
+        copy[msgIndex] = { ...copy[msgIndex], content: output };
+        persistConversation(copy);
+      }
+      return copy;
+    });
+    setAiPreview(output);
+    setStatus("✓ Đã tinh chỉnh phiên bản mới thành công!");
+    return output;
+  };
+
   const handleRedraft = () => {
     const promptToUse = lastDraftInput.trim() || chatInput.trim();
     if (!promptToUse && chatAttachments.length === 0) {
@@ -1371,96 +1442,260 @@ export default function App() {
     setStatus("Đã điền nội dung AI vào Word bên dưới đoạn đang chọn.");
   });
 
+  if (isDialog) {
+    return (
+      <div className="dialogRootWindow">
+        {/* MODAL 1: Thiết lập Văn bản */}
+        <DocumentSettingsModal
+          isOpen={activeModal === "document_settings"}
+          onClose={closeActiveModal}
+          onApply={async (s) => {
+            await applySettingsToWord(s);
+            setDocumentSettings(s);
+            closeDialogContainer();
+          }}
+          onSaveDefault={(s) => {
+            saveDefaultSettings(s);
+            setDocumentSettings(s);
+            closeDialogContainer();
+          }}
+          onSaveAndApply={async (s) => {
+            await saveAndApplySettings(s);
+            setDocumentSettings(s);
+            closeDialogContainer();
+          }}
+        />
+
+        {/* MODAL 2: Kiểm tra Thể thức Văn bản */}
+        <InspectionModal
+          isOpen={activeModal === "inspect"}
+          onClose={closeActiveModal}
+          onCheck={handleCheck}
+          summary={evaluationSummary}
+          issues={issues}
+          onLocateIssue={handleLocateIssue}
+          onFixIssue={handleFix}
+          onFixAllSafe={handleFixAllSafeIssues}
+          on1ClickStandardize={handle1ClickStandardize}
+          onRollback={handleRollbackLastAction}
+          busy={busy}
+        />
+
+        {/* MODAL 3: Kho Biểu Mẫu */}
+        <TemplateLibraryModal
+          isOpen={activeModal === "template_library"}
+          onClose={closeActiveModal}
+          templates={allTemplates}
+          initialFilter={templateLibraryFilter}
+          onOpenForm={(tmpl) => {
+            setActiveModal("none");
+            void handleOpenTemplateForm(tmpl);
+          }}
+          onDirectInsert={(tmpl) => {
+            void handleInsertTemplateBlank(tmpl);
+          }}
+          onOpenWizard={() => setActiveModal("template_wizard")}
+        />
+
+        {/* MODAL 4: Tạo Biểu Mẫu (Wizard) */}
+        <TemplateWizardModal
+          isOpen={activeModal === "template_wizard" || wizardOpen}
+          onClose={() => {
+            closeActiveModal();
+            setWizardOpen(false);
+          }}
+          onSaved={(newTemplate) => {
+            void refreshUserTemplates();
+            setWizardOpen(false);
+            void handleOpenTemplateForm(newTemplate);
+          }}
+          onError={(msg) => console.error(msg)}
+        />
+
+        {/* MODAL 5: Kho Kiến Thức */}
+        <KnowledgeModal
+          isOpen={activeModal === "knowledge"}
+          onClose={closeActiveModal}
+          records={knowledgeRecords}
+          onSaveRecord={handleSaveKnowledgeRecord}
+          onDeleteRecord={handleDeleteKnowledgeRecord}
+          onNotify={setStatus}
+        />
+
+        {/* MODAL 6: Cài Đặt AI */}
+        <AiSettingsModal
+          isOpen={activeModal === "ai_settings" || aiSettingsModalOpen}
+          onClose={() => {
+            closeActiveModal();
+            setAiSettingsModalOpen(false);
+          }}
+          aiProvider={aiProvider}
+          onProviderChange={handleProviderChange}
+          aiModel={aiModel}
+          onModelChange={setAiModel}
+          aiApiKey={aiApiKey}
+          onApiKeyChange={setAiApiKey}
+          availableModels={availableModels}
+          onDiscoverModels={handleDiscoverModels}
+          onSaveAiSettings={handleSaveAiSettings}
+          onClearAiSettings={handleClearAiSettings}
+          busy={busy}
+        />
+
+        {/* MODAL 7: Điền Biểu Mẫu */}
+        {Boolean(activeFormTemplate && activeFormSchema) && (
+          <TemplateFormModal
+            isOpen={true}
+            template={activeFormTemplate!}
+            schema={activeFormSchema!}
+            values={templateFormValues}
+            sourceText={templateFormSource}
+            suggestions={templateFormSuggestions}
+            busy={busy}
+            syncMessage={templateFormSyncMessage}
+            relatedKnowledgeCount={relatedKnowledgeCount}
+            onOpenRelatedKnowledge={() => setActiveModal("knowledge")}
+            onChange={handleTemplateFormChange}
+            onClose={handleCloseTemplateForm}
+            onInsertBlank={() => handleInsertTemplateBlank(activeFormTemplate!)}
+            onInsertAndFill={() => handleInsertTemplateAndFill(activeFormTemplate!)}
+            onApplyToWord={handleApplyTemplateForm}
+            onSaveDraft={handleSaveDraftExplicit}
+            onChangeTemplate={handleCloseTemplateForm}
+            onSourceTextChange={setTemplateFormSource}
+            onSuggestAi={handleSuggestTemplateForm}
+            onAcceptAi={handleAcceptTemplateFormAi}
+            onReviewAi={handleReviewTemplateFormAi}
+            onAiValueChange={handleTemplateFormAiValueChange}
+          />
+        )}
+      </div>
+    );
+  }
+
   return (
-    <main className="app" style={{ height: "100vh", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+    <main className="aiTaskpaneContainer" role="main" aria-label="TVCI AI Chatbot">
       {status && (
         <div
           className="appStatusBanner"
           aria-live="polite"
           style={{
+            padding: "3px 6px",
             background: "#eff6ff",
-            color: "#1e40af",
-            padding: "6px 12px",
-            fontSize: "12px",
             borderBottom: "1px solid #bfdbfe",
+            color: "#1e40af",
+            fontSize: "9px",
             display: "flex",
-            alignItems: "center",
             justifyContent: "space-between",
-            flexShrink: 0,
-            zIndex: 10,
+            alignItems: "center",
           }}
         >
           <span>{status}</span>
           <button
             type="button"
             onClick={() => setStatus("")}
-            style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: "14px", lineHeight: 1 }}
+            style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: "12px", lineHeight: 1 }}
             aria-label="Đóng thông báo"
           >
             ✕
           </button>
         </div>
       )}
-      {/* The primary task pane remains AI even when any secondary workflow is open. */}
       <AiTaskpaneView
-          documentSettings={documentSettings}
-          onOpenDocumentSettings={() => setActiveModal("document_settings")}
-          onOpenAiSettings={() => setAiSettingsModalOpen(true)}
-          messages={chatHistory}
-          busy={busy}
-          onSendMessage={async (text, style, att) => {
-            if (att) setChatAttachments([att]);
-            setWritingStyle(style);
-            await handleSendChat(text);
-          }}
-          onNewConversation={handleNewChat}
-          onApplyText={async (text) => {
-            await run(async () => {
-              await applyActivePageRules();
-              if (selection.trim()) {
-                await replaceSelection(text);
-              } else {
-                await insertBelowSelection(text);
-              }
-              setStatus("Đã áp dụng nội dung AI vào văn bản.");
-            });
-          }}
-          onReplaceSelection={async (text) => {
-            await run(async () => {
-              await applyActivePageRules();
+        documentSettings={documentSettings}
+        activeTemplate={activeFormTemplate}
+        onOpenAiSettings={() => {
+          void openOfficeDialog("settings_modal");
+        }}
+        onOpenTemplateLibrary={() => {
+          void openOfficeDialog("template");
+        }}
+        onStandardizeQuick={handle1ClickStandardize}
+        onApplyA4Quick={async () => {
+          await run(async () => {
+            await applyA4Margins();
+            setStatus("Đã áp dụng căn lề A4 chuẩn.");
+          });
+        }}
+        onCheckQuick={async () => {
+          await handleCheck("document");
+        }}
+        messages={chatHistory}
+        busy={busy}
+        onSendMessage={async (text, style, att) => {
+          if (att) setChatAttachments([att]);
+          setWritingStyle(style);
+          await handleSendChat(text);
+        }}
+        onRefineMessage={handleRefineMessage}
+        onVersionChange={(text) => setAiPreview(text)}
+        onNewConversation={handleNewChat}
+        conversations={chatConversations}
+        activeConversationId={activeConversationId}
+        onSelectConversation={(id) => {
+          setActiveConversationId(id);
+          const found = chatConversations.find((c) => c.id === id);
+          if (found) setChatHistory(found.messages);
+        }}
+        onApplyText={async (text) => {
+          await run(async () => {
+            await applyActivePageRules();
+            if (selection.trim()) {
               await replaceSelection(text);
-              setStatus("Đã thay thế đoạn đang chọn bằng văn bản AI.");
-            });
-          }}
-          onInsertBelow={async (text) => {
-            await run(async () => {
-              await applyActivePageRules();
+            } else {
               await insertBelowSelection(text);
-              setStatus("Đã chèn nội dung AI bên dưới vùng chọn.");
-            });
-          }}
-          onCopyText={copyText}
-          onSaveToKnowledge={async (text) => {
-            try {
-              const rec: KnowledgeRecord = {
-                id: `k-custom-${Date.now()}`,
-                category: "experience",
-                scope: (documentSettings.agency.agencyAbbr as any) || "TVCI",
-                title: `Kinh nghiệm AI: ${text.slice(0, 40)}...`,
-                content: text,
-                tags: ["ai", "kinh-nghiem"],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              };
-              await handleSaveKnowledgeRecord(rec);
-              setStatus("Đã lưu nội dung vào Kho Kiến thức nghiệp vụ.");
-            } catch (err) {
-              setStatus(`Lỗi lưu kiến thức: ${err instanceof Error ? err.message : String(err)}`);
             }
-          }}
-          onRollback={handleRollbackLastAction}
-          hasSelection={Boolean(selection.trim())}
-          selectionWordCount={selection.trim() ? selection.trim().split(/\s+/).length : 0}
+            setStatus("Đã áp dụng nội dung AI vào văn bản.");
+          });
+        }}
+        onReplaceSelection={async (text) => {
+          await run(async () => {
+            await applyActivePageRules();
+            await replaceSelection(text);
+            setStatus("Đã thay thế đoạn đang chọn bằng văn bản AI.");
+          });
+        }}
+        onInsertBelow={async (text) => {
+          await run(async () => {
+            await applyActivePageRules();
+            await insertBelowSelection(text);
+            setStatus("Đã chèn nội dung AI bên dưới vùng chọn.");
+          });
+        }}
+        onCopyText={copyText}
+        onSaveToKnowledge={async (text) => {
+          try {
+            const rec: KnowledgeRecord = {
+              id: `k-custom-${Date.now()}`,
+              category: "experience",
+              scope: (documentSettings.agency.agencyAbbr as any) || "TVCI",
+              title: `Kinh nghiệm AI: ${text.slice(0, 40)}...`,
+              content: text,
+              tags: ["ai", "kinh-nghiem"],
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            await handleSaveKnowledgeRecord(rec);
+            setStatus("Đã lưu nội dung vào Kho Kiến thức nghiệp vụ.");
+          } catch (err) {
+            setStatus(`Lỗi lưu kiến thức: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        }}
+        onRollback={handleRollbackLastAction}
+        onApplyFieldsToForm={async (fields) => {
+          await run(async () => {
+            if (activeFormSchema) {
+              await applyTemplateFormToWord(activeFormSchema, fields);
+              setTemplateFormValues((prev) => ({ ...prev, ...fields }));
+              setStatus(`Đã điền ${Object.keys(fields).length} trường thông tin vào biểu mẫu Word thành công!`);
+              const items = Object.entries(fields).map(([tag, value]) => ({ tag, value }));
+              await setMultipleContentControlTexts(items);
+              setStatus(`Đã điền ${items.length} trường thông tin vào văn bản Word.`);
+            }
+          });
+        }}
+        hasSelection={Boolean(selection.trim())}
+        selectionWordCount={selection.trim() ? selection.trim().split(/\s+/).length : 0}
       />
 
       <TemplateFormModal
@@ -1473,7 +1708,9 @@ export default function App() {
         busy={busy}
         syncMessage={templateFormSyncMessage}
         relatedKnowledgeCount={relatedKnowledgeCount}
-        onOpenRelatedKnowledge={() => setActiveModal("knowledge")}
+        onOpenRelatedKnowledge={() => {
+          void openOfficeDialog("knowledge");
+        }}
         onChange={handleTemplateFormChange}
         onClose={handleCloseTemplateForm}
         onInsertBlank={() => handleInsertTemplateBlank(activeFormTemplate!)}
@@ -1486,105 +1723,6 @@ export default function App() {
         onAcceptAi={handleAcceptTemplateFormAi}
         onReviewAi={handleReviewTemplateFormAi}
         onAiValueChange={handleTemplateFormAiValueChange}
-      />
-
-      {/* MODAL 1: Thiết lập Văn bản */}
-      <DocumentSettingsModal
-        isOpen={activeModal === "document_settings"}
-        onClose={closeActiveModal}
-        onApply={async (s) => {
-          await applySettingsToWord(s);
-          setDocumentSettings(s);
-          setStatus("Đã áp dụng định dạng cho tài liệu hiện tại.");
-        }}
-        onSaveDefault={(s) => {
-          saveDefaultSettings(s);
-          setDocumentSettings(s);
-          setStatus("Đã lưu thiết lập mặc định.");
-        }}
-        onSaveAndApply={async (s) => {
-          await saveAndApplySettings(s);
-          setDocumentSettings(s);
-          setStatus("Đã lưu mặc định và áp dụng thành công.");
-        }}
-      />
-
-      {/* MODAL 2: Kiểm tra Thể thức Văn bản */}
-      <InspectionModal
-        isOpen={activeModal === "inspect"}
-        onClose={closeActiveModal}
-        onCheck={handleCheck}
-        summary={evaluationSummary}
-        issues={issues}
-        onLocateIssue={handleLocateIssue}
-        onFixIssue={handleFix}
-        onFixAllSafe={handleFixAllSafeIssues}
-        on1ClickStandardize={handle1ClickStandardize}
-        onRollback={handleRollbackLastAction}
-        busy={busy}
-      />
-
-      {/* MODAL 3: Kho Biểu Mẫu */}
-      <TemplateLibraryModal
-        isOpen={activeModal === "template_library"}
-        onClose={() => setActiveModal("none")}
-        templates={allTemplates}
-        initialFilter={templateLibraryFilter}
-        onOpenForm={(tmpl) => {
-          setActiveModal("none");
-          void handleOpenTemplateForm(tmpl);
-        }}
-        onDirectInsert={(tmpl) => {
-          void handleInsertTemplateBlank(tmpl);
-        }}
-        onOpenWizard={() => setActiveModal("template_wizard")}
-      />
-
-      {/* MODAL 4: Tạo Biểu Mẫu (Wizard) */}
-      <TemplateWizardModal
-        isOpen={activeModal === "template_wizard" || wizardOpen}
-        onClose={() => {
-          setActiveModal("none");
-          setWizardOpen(false);
-        }}
-        onSaved={(newTemplate) => {
-          void refreshUserTemplates();
-          setActiveModal("none");
-          setWizardOpen(false);
-          void handleOpenTemplateForm(newTemplate);
-          setStatus(`Đã lưu và mở biểu mẫu mới "${newTemplate.name}" thành công!`);
-        }}
-        onError={(msg) => setStatus(`Lỗi tạo mẫu: ${msg}`)}
-      />
-
-      {/* MODAL 5: Kho Kiến Thức */}
-      <KnowledgeModal
-        isOpen={activeModal === "knowledge"}
-        onClose={() => setActiveModal("none")}
-        records={knowledgeRecords}
-        onSaveRecord={handleSaveKnowledgeRecord}
-        onDeleteRecord={handleDeleteKnowledgeRecord}
-        onNotify={setStatus}
-      />
-
-      {/* MODAL 6: Cài Đặt AI */}
-      <AiSettingsModal
-        isOpen={activeModal === "ai_settings" || aiSettingsModalOpen}
-        onClose={() => {
-          setActiveModal("none");
-          setAiSettingsModalOpen(false);
-        }}
-        aiProvider={aiProvider}
-        onProviderChange={handleProviderChange}
-        aiModel={aiModel}
-        onModelChange={setAiModel}
-        aiApiKey={aiApiKey}
-        onApiKeyChange={setAiApiKey}
-        availableModels={availableModels}
-        onDiscoverModels={handleDiscoverModels}
-        onSaveAiSettings={handleSaveAiSettings}
-        onClearAiSettings={handleClearAiSettings}
-        busy={busy}
       />
     </main>
   );

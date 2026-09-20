@@ -16,6 +16,8 @@ import { cleanExtraSpaces, normalizePunctuation, fixManualLineBreaks } from "../
 import { detectEncoding, convertTCVN3ToUnicode, convertVNIToUnicode } from "../word/unicode-converter.service";
 import { resolveCommandContext, type CommandContext } from "./command-context";
 import { openOfficeDialog } from "./dialog";
+import { createDocumentSkeleton, type SkeletonDocumentType } from "../word/document-skeleton.service";
+import { PRESET_PRESETS } from "../models/document-settings";
 
 function getGlobal(): Record<string, any> {
   if (typeof self !== "undefined") return self as unknown as Record<string, any>;
@@ -75,8 +77,8 @@ async function tryReadSelection(): Promise<string> {
   }
 }
 
-function requestConfiguration(): void {
-  openOfficeDialog("settings");
+async function requestConfiguration(): Promise<void> {
+  await openOfficeDialog("settings");
 }
 
 function addresseeLines(context: CommandContext): string[] {
@@ -112,11 +114,11 @@ g.cleanBlankPagesSafe = (event: CommandEvent) => runCommand(event, async () => {
 }, "Không thể dọn trang trắng");
 
 g.openDocumentSettingsDialog = (event: CommandEvent) => runCommand(event, async () => {
-  requestConfiguration();
+  await requestConfiguration();
 }, "Không thể mở thiết lập văn bản");
 
 g.openInspectorDialog = (event: CommandEvent) => runCommand(event, async () => {
-  openOfficeDialog("inspect");
+  await openOfficeDialog("inspect");
 }, "Không thể mở Inspector");
 
 g.togglePageNumbers = (event: CommandEvent) => runCommand(event, async () => {
@@ -179,7 +181,7 @@ g.insertAddresseeCmd = (event: CommandEvent) => runCommand(event, async () => {
   const context = await resolveCommandContext();
   const lines = addresseeLines(context);
   if (lines.length === 0) {
-    requestConfiguration();
+    await requestConfiguration();
     return;
   }
   await insertAddressee(context.inspection.profileId, lines);
@@ -193,7 +195,7 @@ g.insertLegalBasisCmd = (event: CommandEvent) => runCommand(event, async () => {
     if (selected) lines = [selected];
   }
   if (lines.length === 0) {
-    requestConfiguration();
+    await requestConfiguration();
     return;
   }
   await quickInsertLegalBasis(context.inspection.profileId, lines.join("\n"));
@@ -203,7 +205,7 @@ g.insertRecipientsCmd = (event: CommandEvent) => runCommand(event, async () => {
   const context = await resolveCommandContext();
   const lines = recipientLines(context);
   if (lines.length === 0) {
-    requestConfiguration();
+    await requestConfiguration();
     return;
   }
   await insertRecipients(context.inspection.profileId, lines);
@@ -213,7 +215,7 @@ g.insertSignerCmd = (event: CommandEvent) => runCommand(event, async () => {
   const context = await resolveCommandContext();
   const signer = signerData(context);
   if (!signer) {
-    requestConfiguration();
+    await requestConfiguration();
     return;
   }
   await quickInsertSigner(context.inspection.profileId, signer.title, signer.name);
@@ -224,7 +226,7 @@ g.insertAppendixCmd = (event: CommandEvent) => runCommand(event, async () => {
   let title = context.settings?.quickInsert?.appendixTitle?.trim() || "";
   if (!title) title = await tryReadSelection();
   if (!title) {
-    requestConfiguration();
+    await requestConfiguration();
     return;
   }
   await insertAppendix(context.inspection.profileId, title);
@@ -265,8 +267,277 @@ g.cleanExtraSpacesCmd = (event: CommandEvent) => runCommand(event, async () => {
   });
 }, "Không thể làm sạch văn bản");
 
+export interface ActiveDocumentContextData {
+  docType: string;
+  templateId?: string;
+  templateName?: string;
+  department: string;
+  organization: string;
+  timestamp: number;
+}
+
+export function setSharedActiveContext(ctx: Omit<ActiveDocumentContextData, "timestamp">): void {
+  try {
+    const data: ActiveDocumentContextData = { ...ctx, timestamp: Date.now() };
+    localStorage.setItem("tvci_active_document_context", JSON.stringify(data));
+  } catch {}
+}
+
+g.openTemplateLibraryDialog = (event: CommandEvent) => runCommand(event, async () => {
+  await openOfficeDialog("template");
+}, "Không thể mở Kho biểu mẫu");
+
+g.openKnowledgeDialog = (event: CommandEvent) => runCommand(event, async () => {
+  await openOfficeDialog("knowledge");
+}, "Không thể mở Kho kiến thức");
+
+g.openSettingsDialog = (event: CommandEvent) => runCommand(event, async () => {
+  await openOfficeDialog("settings_modal");
+}, "Không thể mở Cài đặt");
+
+g.createCongVan = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("cong_van", settings);
+  setSharedActiveContext({
+    docType: "Công văn",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể tạo khung Công văn");
+
+g.createQuyetDinh = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("quyet_dinh", settings);
+  setSharedActiveContext({
+    docType: "Quyết định",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể tạo khung Quyết định");
+
+g.createThongBao = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("thong_bao", settings);
+  setSharedActiveContext({
+    docType: "Thông báo",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể tạo khung Thông báo");
+
+g.createToTrinh = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("to_trinh", settings);
+  setSharedActiveContext({
+    docType: "Tờ trình",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể tạo khung Tờ trình");
+
+g.createBaoCao = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("bao_cao", settings);
+  setSharedActiveContext({
+    docType: "Báo cáo",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể tạo khung Báo cáo");
+
+g.createBienBan = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("bien_ban", settings);
+  setSharedActiveContext({
+    docType: "Biên bản",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể tạo khung Biên bản");
+
+g.createKeHoach = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("ke_hoach", settings);
+  setSharedActiveContext({
+    docType: "Kế hoạch",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể tạo khung Kế hoạch");
+
+g.createGiayMoi = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("giay_moi", settings);
+  setSharedActiveContext({
+    docType: "Giấy mời",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể tạo khung Giấy mời");
+
+g.createPhieu = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("phieu", {
+    ...settings,
+    docType: "Phiếu",
+    docTitle: "YÊU CẦU / ĐỀ NGHỊ THỬ NGHIỆM",
+  });
+  setSharedActiveContext({
+    docType: "Phiếu",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể tạo khung Phiếu");
+
+g.insertTemplateDienDienTu = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("cong_van", {
+    ...settings,
+    docType: "Phiếu yêu cầu thử nghiệm",
+    docTitle: "YÊU CẦU THỬ NGHIỆM THIẾT BỊ ĐIỆN - ĐIỆN TỬ",
+  });
+  setSharedActiveContext({
+    docType: "Phiếu yêu cầu thử nghiệm",
+    templateId: "tvci-sample-001",
+    templateName: "Phiếu thử nghiệm Điện - Điện tử",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể mở mẫu Điện - Điện tử");
+
+g.insertTemplateHieuSuatNangLuong = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("cong_van", {
+    ...settings,
+    docType: "Phiếu kết quả thử nghiệm",
+    docTitle: "KẾT QUẢ THỬ NGHIỆM HIỆU SUẤT NĂNG LƯỢNG",
+  });
+  setSharedActiveContext({
+    docType: "Phiếu kết quả thử nghiệm",
+    templateId: "tvci-sample-001",
+    templateName: "Phiếu thử nghiệm Hiệu suất NL",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể mở mẫu Hiệu suất năng lượng");
+
+g.insertTemplateVatLieu = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("cong_van", {
+    ...settings,
+    docType: "Phiếu kết quả thử nghiệm",
+    docTitle: "KẾT QUẢ THỬ NGHIỆM CƠ LÝ VẬT LIỆU",
+  });
+  setSharedActiveContext({
+    docType: "Phiếu kết quả thử nghiệm",
+    templateId: "tvci-sample-001",
+    templateName: "Phiếu thử nghiệm Vật liệu",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể mở mẫu Vật liệu");
+
+g.insertTemplateMoiTruong = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("bien_ban", {
+    ...settings,
+    docType: "Biên bản quan trắc",
+    docTitle: "BIÊN BẢN QUAN TRẮC VÀ LẤY MẪU MÔI TRƯỜNG",
+  });
+  setSharedActiveContext({
+    docType: "Biên bản quan trắc",
+    templateId: "tvci-sample-001",
+    templateName: "Biên bản quan trắc môi trường",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể mở mẫu Môi trường");
+
+g.insertTemplateGiamDinh = (event: CommandEvent) => runCommand(event, async () => {
+  const context = await resolveCommandContext();
+  const settings = context.settings || PRESET_PRESETS.TVCI;
+  await createDocumentSkeleton("cong_van", {
+    ...settings,
+    docType: "Chứng thư giám định",
+    docTitle: "CHỨNG THƯ GIÁM ĐỊNH CHẤT LƯỢNG SẢN PHẨM HÀNG HÓA",
+  });
+  setSharedActiveContext({
+    docType: "Chứng thư giám định",
+    templateId: "tvci-sample-001",
+    templateName: "Chứng thư giám định",
+    department: "Trung tâm TVCI",
+    organization: "TVCI",
+  });
+}, "Không thể mở mẫu Giám định");
+
+const functionMap: Record<string, (event: CommandEvent) => Promise<void> | void> = {
+  openDocumentSettingsDialog: g.openDocumentSettingsDialog,
+  openInspectorDialog: g.openInspectorDialog,
+  openTemplateLibraryDialog: g.openTemplateLibraryDialog,
+  openKnowledgeDialog: g.openKnowledgeDialog,
+  openSettingsDialog: g.openSettingsDialog,
+  run1ClickStandardize: g.run1ClickStandardize,
+  runSafeFix: g.runSafeFix,
+  runRollbackLastAction: g.runRollbackLastAction,
+  insertAddresseeCmd: g.insertAddresseeCmd,
+  insertLegalBasisCmd: g.insertLegalBasisCmd,
+  insertRecipientsCmd: g.insertRecipientsCmd,
+  insertSignerCmd: g.insertSignerCmd,
+  insertAppendixCmd: g.insertAppendixCmd,
+  insertOutlineCmd: g.insertOutlineCmd,
+  applyA4Margins: g.applyA4Margins,
+  toggleOrientationCmd: g.toggleOrientationCmd,
+  togglePageNumbers: g.togglePageNumbers,
+  autoFitTableToWindow: g.autoFitTableToWindow,
+  cleanBlankPagesSafe: g.cleanBlankPagesSafe,
+  cleanExtraSpacesCmd: g.cleanExtraSpacesCmd,
+  convertSelectionToUnicode: g.convertSelectionToUnicode,
+  createCongVan: g.createCongVan,
+  createQuyetDinh: g.createQuyetDinh,
+  createThongBao: g.createThongBao,
+  createToTrinh: g.createToTrinh,
+  createBaoCao: g.createBaoCao,
+  createBienBan: g.createBienBan,
+  createKeHoach: g.createKeHoach,
+  createGiayMoi: g.createGiayMoi,
+  createPhieu: g.createPhieu,
+  insertTemplateDienDienTu: g.insertTemplateDienDienTu,
+  insertTemplateHieuSuatNangLuong: g.insertTemplateHieuSuatNangLuong,
+  insertTemplateVatLieu: g.insertTemplateVatLieu,
+  insertTemplateMoiTruong: g.insertTemplateMoiTruong,
+  insertTemplateGiamDinh: g.insertTemplateGiamDinh,
+};
+
+function registerAllRibbonActions(): void {
+  for (const [name, handler] of Object.entries(functionMap)) {
+    g[name] = handler;
+    if (typeof Office !== "undefined" && (Office as any).actions?.associate) {
+      try {
+        (Office as any).actions.associate(name, handler);
+      } catch (err) {
+        console.warn(`Could not associate action ${name}:`, err);
+      }
+    }
+  }
+}
+
+registerAllRibbonActions();
+
 if (typeof Office !== "undefined") {
   Office.onReady(() => {
-    // Ribbon command handlers are registered on the host global above.
+    registerAllRibbonActions();
   });
 }

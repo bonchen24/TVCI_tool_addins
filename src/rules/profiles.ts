@@ -28,7 +28,14 @@ export const RULE_PROFILES: RuleProfile[] = [
     description: 'Quy cách hành chính dùng làm chuẩn mặc định cho Trung tâm Thử nghiệm - Kiểm định Công nghiệp.',
     sourceLabel: 'Nghị định 30/2020/NĐ-CP',
     body: { ...COMMON_BODY, fontSize: 13 },
-    page: { paperSize: 'A4', orientation: 'Portrait', topMm: 20, bottomMm: 20, leftMm: 30, rightMm: 15 },
+    page: {
+      paperSize: 'A4',
+      orientation: 'Portrait',
+      topMm: { min: 20, max: 25, target: 20 },
+      bottomMm: { min: 20, max: 25, target: 20 },
+      leftMm: { min: 30, max: 35, target: 30 },
+      rightMm: { min: 15, max: 20, target: 15 },
+    },
   },
   {
     id: 'TKV',

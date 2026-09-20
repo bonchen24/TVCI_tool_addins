@@ -23,7 +23,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
     if (this.state.hasError) {
       return (
         <main className="startupError" role="alert">
-          <h1>Không thể mở bộ công cụ biểu mẫu</h1>
+          <h1>Không thể mở TVCI Word Tools</h1>
           <p>Task pane gặp lỗi khi khởi tạo. Hãy tải lại rồi thử lại thao tác.</p>
           <button className="primary" type="button" onClick={this.handleReload}>Tải lại</button>
         </main>

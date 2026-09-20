@@ -49,11 +49,13 @@ try {
         try { $store.Open('ReadWrite'); $store.Add($cert) } finally { $store.Close() }
     }
 
+    & CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy" 2>$null | Out-Null
+
     $manifest = Join-Path $InstallDir 'manifest\manifest.xml'
     New-Item -Path $WefKey -Force | Out-Null
     New-ItemProperty -Path $WefKey -Name $AppId -Value $manifest -PropertyType String -Force | Out-Null
     $launcher = Join-Path $InstallDir 'scripts\launcher.vbs'
-    $command = 'wscript.exe "' + $launcher + '" "' + $HostExe + '" "' + $HostScript + '"'
+    $command = 'wscript.exe //B //Nologo "' + $launcher + '" "' + $HostExe + '" "' + $HostScript + '"'
     New-ItemProperty -Path $RunKey -Name 'TVCIWordTools' -Value $command -PropertyType String -Force | Out-Null
 
     $owner = Get-PortOwner
@@ -66,7 +68,7 @@ try {
         for ($i = 0; $i -lt 20 -and (Get-PortOwner); $i++) { Start-Sleep -Milliseconds 200 }
         if (Get-PortOwner) { throw 'Previous TVCI host did not release port 38473.' }
     }
-    Start-Process -FilePath 'wscript.exe' -ArgumentList @('"' + $launcher + '"', '"' + $HostExe + '"', '"' + $HostScript + '"') -WindowStyle Hidden | Out-Null
+    Start-Process -FilePath 'wscript.exe' -ArgumentList @('//B', '//Nologo', $launcher, $HostExe, $HostScript) -WindowStyle Hidden | Out-Null
     $healthy = $false
     for ($i = 0; $i -lt 20; $i++) { Start-Sleep -Milliseconds 500; if (Get-Health) { $healthy = $true; break } }
     $verification = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'verify.ps1') 2>&1)

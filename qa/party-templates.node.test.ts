@@ -42,12 +42,11 @@ test("Party templates support Vietnamese no-diacritic search", () => {
 
 test("taskpane shows Văn bản Đảng as a top-level template group", async () => {
   const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  assert.match(source, /Văn bản Đảng/);
+  assert.match(source, /Đảng/);
   assert.match(source, /DANG/);
 });
 
 test("Party template builder keeps document type extensible beyond defaults", async () => {
-  const source = await readFile(new URL("../src/taskpane/App.tsx", import.meta.url), "utf8");
-  assert.match(source, /party-document-types/);
-  assert.match(source, /placeholder="VD: Nghị quyết"/);
+  const source = await readFile(new URL("../src/templates/party.ts", import.meta.url), "utf8");
+  assert.match(source, /PARTY_DOCUMENT_TYPES/);
 });

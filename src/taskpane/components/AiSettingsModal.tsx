@@ -36,17 +36,22 @@ export function AiSettingsModal({
 }: AiSettingsModalProps): React.ReactElement | null {
   if (!isOpen) return null;
 
-  return (
-    <div className="modalBackdrop" onClick={onClose}>
-      <div className="modalDialog" onClick={(e) => e.stopPropagation()}>
-        <div className="modalHeader">
-          <div className="modalTitle">
-            <span>⚙️</span> Cài đặt Kết nối AI
-          </div>
-          <button type="button" className="modalCloseBtn" onClick={onClose}>
-            ✕
-          </button>
+  const isDialog = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dialog") === "1";
+
+  const content = (
+    <div
+      className={`aiSettingsModalDialog ${isDialog ? "dialogRootWindow" : "modalDialog"}`}
+      style={isDialog ? { width: "100%", height: "100vh", display: "flex", flexDirection: "column", background: "#f8fafc" } : undefined}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="modalHeader">
+        <div className="modalTitle">
+          <span>⚙️</span> Cài đặt Kết nối AI
         </div>
+        <button type="button" className="modalCloseBtn" onClick={onClose}>
+          ✕
+        </button>
+      </div>
 
         <div className="modalBody">
           <div className="warning" style={{ margin: "0 0 12px", fontSize: "11px" }}>
@@ -179,6 +184,15 @@ export function AiSettingsModal({
           </button>
         </div>
       </div>
+  );
+
+  if (isDialog) {
+    return content;
+  }
+
+  return (
+    <div className="modalBackdrop" onClick={onClose}>
+      {content}
     </div>
   );
 }

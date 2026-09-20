@@ -264,11 +264,15 @@ export function TemplateWizardModal({
     }
   };
 
-  return (
-    <div className="templateWizardOverlay" role="dialog" aria-modal="true" aria-label="Tạo biểu mẫu mới">
-      <div className="templateWizardModal">
-        {/* Header */}
-        <div className="templateWizardHeader">
+  const isDialog = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dialog") === "1";
+
+  const content = (
+    <div
+      className={`templateWizardModal ${isDialog ? "dialogRootWindow" : ""}`}
+      style={isDialog ? { width: "100%", height: "100vh", display: "flex", flexDirection: "column", background: "#f8fafc" } : undefined}
+    >
+      {/* Header */}
+      <div className="templateWizardHeader">
           <div>
             <h3>➕ Wizard Tạo Biểu Mẫu Mới</h3>
             <span className="templateWizardSub">Bước {step}/5: {
@@ -594,6 +598,15 @@ export function TemplateWizardModal({
           )}
         </div>
       </div>
+  );
+
+  if (isDialog) {
+    return content;
+  }
+
+  return (
+    <div className="templateWizardOverlay" role="dialog" aria-modal="true" aria-label="Tạo biểu mẫu mới">
+      {content}
     </div>
   );
 }

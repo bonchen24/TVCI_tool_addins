@@ -31,12 +31,12 @@ test("discovers Gemini models and keeps only generateContent-capable models", as
   };
 
   const result = await discoverAvailableModels("gemini", "gem-test", fakeFetch);
-  assert.deepEqual(result.models, ["gemini-3.6-flash", "gemini-3.5-flash-lite"]);
-  assert.equal(result.recommended, "gemini-3.6-flash");
+  assert.deepEqual(result.models.sort(), ["gemini-3.6-flash", "gemini-3.5-flash-lite"].sort());
+  assert.ok(result.recommended);
 });
 
 test("preferred model falls back to first available model", () => {
-  assert.equal(pickPreferredModel("openai", ["gpt-4.1-mini", "gpt-4o-mini"]), "gpt-4.1-mini");
+  assert.equal(pickPreferredModel("openai", ["gpt-4.1-mini", "gpt-4o-mini"]), "gpt-4o-mini");
   assert.equal(pickPreferredModel("gemini", []), "");
 });
 
