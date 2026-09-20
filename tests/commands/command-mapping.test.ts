@@ -30,6 +30,7 @@ describe("Ribbon command registration and routing", () => {
   });
 
   it.each([
+    ["SmartDraftingButton", "openSmartDraftingDialog"],
     ["QuickStandardizeButton", "run1ClickStandardize"],
     ["ItemStandardA4", "applyA4Margins"],
     ["ItemToggleOrientation", "toggleOrientationCmd"],

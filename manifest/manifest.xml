@@ -37,17 +37,15 @@
                   <bt:Image size="32" resid="Icon.Ai.32"/>
                   <bt:Image size="80" resid="Icon.Ai.80"/>
                 </Icon>
-                <Control xsi:type="Button" id="AiWorkspaceButton">
-                  <Label resid="AiWorkspace.Label"/>
-                  <Supertip><Title resid="AiWorkspace.Label"/><Description resid="AiWorkspace.Tooltip"/></Supertip>
+                <Control xsi:type="Button" id="SmartDraftingButton">
+                  <Label resid="SmartDrafting.Label"/>
+                  <Supertip><Title resid="SmartDrafting.Label"/><Description resid="SmartDrafting.Tooltip"/></Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.Ai.16"/>
                     <bt:Image size="32" resid="Icon.Ai.32"/>
                     <bt:Image size="80" resid="Icon.Ai.80"/>
                   </Icon>
-                  <Action xsi:type="ShowTaskpane">
-                    <SourceLocation resid="Taskpane.Ai.Url"/>
-                  </Action>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>openSmartDraftingDialog</FunctionName></Action>
                 </Control>
               </Group>
 
@@ -533,7 +531,8 @@
         <bt:String id="FixTableOverflow.Label" DefaultValue="Bảng vừa lề"/>
         <bt:String id="DeleteBlankPages.Label" DefaultValue="Xóa trang trắng"/>
 
-        <bt:String id="AiWorkspace.Label" DefaultValue="AI trợ lý"/>
+        <bt:String id="SmartDrafting.Label" DefaultValue="Soạn thảo AI"/>
+        <bt:String id="AiWorkspace.Label" DefaultValue="Trường dữ liệu"/>
         <bt:String id="TemplateLibrary.Label" DefaultValue="Kho biểu mẫu"/>
         <bt:String id="Knowledge.Label" DefaultValue="Kho kiến thức"/>
         <bt:String id="Settings.Label" DefaultValue="Cài đặt"/>
@@ -580,7 +579,8 @@
         <bt:String id="FixTableOverflow.Tooltip" DefaultValue="Tự động co giãn chiều rộng bảng vừa khít lề trang Word."/>
         <bt:String id="DeleteBlankPages.Tooltip" DefaultValue="Xóa các trang trắng và dòng ngắt thừa ở cuối văn bản."/>
 
-        <bt:String id="AiWorkspace.Tooltip" DefaultValue="Mở Trợ lý AI Soạn thảo văn bản thông minh TVCI AI."/>
+        <bt:String id="SmartDrafting.Tooltip" DefaultValue="Trợ lý AI soạn thảo văn bản 5 bước chuẩn thể thức hành chính."/>
+        <bt:String id="AiWorkspace.Tooltip" DefaultValue="Mở bảng quản lý trường dữ liệu và AI sửa văn bản."/>
         <bt:String id="TemplateLibrary.Tooltip" DefaultValue="Mở kho biểu mẫu chuẩn của Trung tâm và Viện."/>
         <bt:String id="Knowledge.Tooltip" DefaultValue="Mở Kho tri thức, quy chế và kinh nghiệm nghiệp vụ."/>
         <bt:String id="Settings.Tooltip" DefaultValue="Cấu hình kết nối AI và các tùy chọn nâng cao."/>

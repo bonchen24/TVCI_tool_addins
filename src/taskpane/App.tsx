@@ -68,6 +68,7 @@ import { InspectionModal } from "./components/InspectionModal";
 import { TemplateLibraryModal } from "./components/TemplateLibraryModal";
 import { KnowledgeModal } from "./components/KnowledgeModal";
 import { TemplateFormModal } from "./components/TemplateFormModal";
+import { SmartDraftingModal } from "./components/SmartDraftingModal";
 import { openOfficeDialog } from "../commands/dialog";
 import { applyA4Margins } from "../word/page-toolkit.service";
 import {
@@ -80,7 +81,7 @@ import {
 import { consumeFallbackView, closeDialogContainer } from "../commands/dialog";
 import { inspectCurrentDocument } from "../rules/document-inspection";
 
-type ActiveModalType = "none" | "document_settings" | "inspect" | "template_library" | "template_wizard" | "knowledge" | "ai_settings";
+type ActiveModalType = "none" | "document_settings" | "inspect" | "template_library" | "template_wizard" | "knowledge" | "ai_settings" | "smart_draft";
 
 const TEMPLATE_ORGANIZATIONS: Array<{ value: TemplateOrganization; label: string }> = [
   { value: "TVCI", label: "Trung tâm Thử nghiệm - Kiểm định Công nghiệp" },
@@ -131,6 +132,7 @@ function getInitialDialogModal(): ActiveModalType {
   if (typeof window === "undefined") return "none";
   const params = new URLSearchParams(window.location.search);
   const v = params.get("view");
+  if (v === "smart_draft" || v === "smart-draft" || v === "draft") return "smart_draft";
   if (v === "settings" || v === "doc_settings") return "document_settings";
   if (v === "standardize" || v === "inspect") return "inspect";
   if (v === "template" || v === "template-form" || v === "library") return "template_library";
@@ -138,6 +140,7 @@ function getInitialDialogModal(): ActiveModalType {
   if (v === "knowledge") return "knowledge";
   if (v === "settings_modal") return "ai_settings";
   const fallback = consumeFallbackView();
+  if (fallback === "smart_draft") return "smart_draft";
   if (fallback === "settings" || fallback === "settings_modal") return "document_settings";
   if (fallback === "inspect") return "inspect";
   if (fallback === "template" || fallback === "template-form") return "template_library";
@@ -1569,6 +1572,49 @@ export default function App() {
             onAiValueChange={handleTemplateFormAiValueChange}
           />
         )}
+
+        {/* MODAL 8: Soạn Thảo AI (5 bước chuẩn thể thức) */}
+        <SmartDraftingModal
+          isOpen={activeModal === "smart_draft"}
+          onClose={closeActiveModal}
+          templates={allTemplates}
+          initialTemplate={activeFormTemplate}
+          aiSettings={{ provider: aiProvider, model: aiModel, apiKey: aiApiKey }}
+          onOpenAiSettings={() => {
+            setActiveModal("ai_settings");
+          }}
+          onCompleteAndFill={async (template, values) => {
+            try {
+              Office.context.ui.messageParent(
+                JSON.stringify({
+                  type: "smart_draft_complete",
+                  template,
+                  values,
+                })
+              );
+            } catch {
+              await run(async () => {
+                const schema = getTemplateFormSchema(template);
+                setActiveFormTemplate(template);
+                setActiveTemplateName(template.name);
+                setTemplateFormValues(values);
+                saveTemplateFormDraft(template.id, template.organization, template.documentType, values);
+
+                await runTemplateInsertion(() => insertTemplate(template));
+                if (schema) {
+                  await applyTemplateFormToWord(schema, values);
+                } else {
+                  const items = Object.entries(values).map(([tag, value]) => ({
+                    tag,
+                    value: Array.isArray(value) ? value.join("\n") : String(value || ""),
+                  }));
+                  await setMultipleContentControlTexts(items);
+                }
+                closeActiveModal();
+              });
+            }
+          }}
+        />
       </div>
     );
   }
@@ -1686,12 +1732,11 @@ export default function App() {
           await run(async () => {
             if (activeFormSchema) {
               await applyTemplateFormToWord(activeFormSchema, fields);
-              setTemplateFormValues((prev) => ({ ...prev, ...fields }));
-              setStatus(`Đã điền ${Object.keys(fields).length} trường thông tin vào biểu mẫu Word thành công!`);
-              const items = Object.entries(fields).map(([tag, value]) => ({ tag, value }));
-              await setMultipleContentControlTexts(items);
-              setStatus(`Đã điền ${items.length} trường thông tin vào văn bản Word.`);
             }
+            setTemplateFormValues((prev) => ({ ...prev, ...fields }));
+            const items = Object.entries(fields).map(([tag, value]) => ({ tag, value }));
+            await setMultipleContentControlTexts(items);
+            setStatus(`Đã lưu và cập nhật ${items.length} trường thông tin vào văn bản Word.`);
           });
         }}
         hasSelection={Boolean(selection.trim())}

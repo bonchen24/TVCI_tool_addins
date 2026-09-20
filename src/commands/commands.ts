@@ -113,6 +113,10 @@ g.cleanBlankPagesSafe = (event: CommandEvent) => runCommand(event, async () => {
   await cleanBlankPagesSafe();
 }, "Không thể dọn trang trắng");
 
+g.openSmartDraftingDialog = (event: CommandEvent) => runCommand(event, async () => {
+  await openOfficeDialog("smart_draft");
+}, "Không thể mở Soạn thảo AI");
+
 g.openDocumentSettingsDialog = (event: CommandEvent) => runCommand(event, async () => {
   await requestConfiguration();
 }, "Không thể mở thiết lập văn bản");
@@ -484,6 +488,7 @@ g.insertTemplateGiamDinh = (event: CommandEvent) => runCommand(event, async () =
 }, "Không thể mở mẫu Giám định");
 
 const functionMap: Record<string, (event: CommandEvent) => Promise<void> | void> = {
+  openSmartDraftingDialog: g.openSmartDraftingDialog,
   openDocumentSettingsDialog: g.openDocumentSettingsDialog,
   openInspectorDialog: g.openInspectorDialog,
   openTemplateLibraryDialog: g.openTemplateLibraryDialog,

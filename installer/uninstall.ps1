@@ -2,6 +2,8 @@
 param([switch]$PurgeUserData)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
+$stopMarker = Join-Path $InstallDir '.tvci-stop'
+New-Item -ItemType File -Path $stopMarker -Force -ErrorAction SilentlyContinue | Out-Null
 foreach ($process in @(Get-OwnHost)) { Stop-Process -Id $process.ProcessId -ErrorAction Stop }
 $registered = (Get-ItemProperty -LiteralPath $WefKey -Name $AppId -ErrorAction SilentlyContinue).$AppId
 if ($registered -eq (Join-Path $InstallDir 'manifest\manifest.xml')) {

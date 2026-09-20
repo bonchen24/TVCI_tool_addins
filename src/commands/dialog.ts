@@ -1,8 +1,9 @@
 import { insertTemplate } from "../word/template.service";
 import { getTemplateFormSchema } from "../templates/form-schema";
 import { applyTemplateFormToWord } from "../word/form-content-control.service";
+import { setMultipleContentControlTexts } from "../word/content-control.service";
 
-export type DialogView = "settings" | "inspect" | "template" | "template-form" | "knowledge" | "settings_modal";
+export type DialogView = "settings" | "inspect" | "template" | "template-form" | "knowledge" | "settings_modal" | "smart_draft";
 
 let activeDialog: Office.Dialog | null = null;
 
@@ -43,20 +44,23 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
       return;
     }
 
-    let width = 75;
-    let height = 80;
+    let width = 65;
+    let height = 70;
     if (view === "template" || view === "template-form") {
-      width = 80;
-      height = 85;
+      width = 62;
+      height = 68;
     } else if (view === "settings" || view === "settings_modal") {
-      width = 55;
+      width = 54;
       height = 60;
     } else if (view === "inspect") {
-      width = 65;
-      height = 75;
+      width = 58;
+      height = 68;
     } else if (view === "knowledge") {
-      width = 75;
-      height = 80;
+      width = 64;
+      height = 70;
+    } else if (view === "smart_draft") {
+      width = 52;
+      height = 62;
     }
 
     const baseOrigin =
@@ -93,6 +97,27 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
             const raw = typeof arg === "object" && arg.message ? arg.message : String(arg);
             const data = JSON.parse(raw);
             if (data.type === "closed") {
+              dialog.close();
+              activeDialog = null;
+              return;
+            }
+            if (data.type === "smart_draft_complete" && data.template) {
+              await insertTemplate(data.template);
+              if (data.values) {
+                const schema = getTemplateFormSchema(data.template);
+                if (schema) {
+                  await applyTemplateFormToWord(schema, data.values);
+                } else {
+                  const items = Object.entries(data.values).map(([tag, value]) => ({
+                    tag,
+                    value: Array.isArray(value) ? value.join("\n") : String(value || ""),
+                  }));
+                  await setMultipleContentControlTexts(items);
+                }
+              }
+              try {
+                await (Office as any).addin?.showAsTaskpane();
+              } catch {}
               dialog.close();
               activeDialog = null;
               return;

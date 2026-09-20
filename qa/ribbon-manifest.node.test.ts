@@ -11,7 +11,7 @@ test("Ribbon exposes grouped quick-access controls for the main areas", () => {
   assert.equal(controlCount, 9);
 
   for (const label of [
-    "AI trợ lý",
+    "Soạn thảo AI",
     "Thiết lập",
     "Kiểm tra",
     "Chuẩn hóa",
@@ -25,16 +25,16 @@ test("Ribbon exposes grouped quick-access controls for the main areas", () => {
   }
 });
 
-test("Ribbon controls have valid actions (ShowTaskpane or ExecuteFunction)", () => {
+test("Ribbon controls have valid ExecuteFunction actions", () => {
   for (const id of [
-    "AiWorkspaceButton",
+    "SmartDraftingButton",
     "DocumentSettingsButton",
     "CheckDocumentButton",
     "QuickStandardizeButton",
     "TemplateLibraryButton",
     "SettingsButton",
   ]) {
-    assert.match(manifest, new RegExp(`id="${id}"[\\s\\S]*?<Action xsi:type="(?:ShowTaskpane|ExecuteFunction)">`));
+    assert.match(manifest, new RegExp(`id="${id}"[\\s\\S]*?<Action xsi:type="ExecuteFunction">`));
   }
 });
 
@@ -66,8 +66,8 @@ test("Ribbon menu items expose actions for templates and quick inserts", () => {
   }
 });
 
-test("Ribbon quick-access taskpane controls route users to the matching task-pane area", () => {
-  assert.match(manifest, /id="AiWorkspaceButton"[\s\S]*?<SourceLocation resid="Taskpane.Ai.Url"\/>/);
+test("Ribbon controls execute functions directly without triggering taskpane", () => {
+  assert.equal(manifest.includes('<Action xsi:type="ShowTaskpane">'), false);
 });
 
 test("TVCI Word Tools keeps the add-in identity resources", () => {

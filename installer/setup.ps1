@@ -68,6 +68,8 @@ try {
         for ($i = 0; $i -lt 20 -and (Get-PortOwner); $i++) { Start-Sleep -Milliseconds 200 }
         if (Get-PortOwner) { throw 'Previous TVCI host did not release port 38473.' }
     }
+    $stopMarker = Join-Path $InstallDir '.tvci-stop'
+    Remove-Item -LiteralPath $stopMarker -Force -ErrorAction SilentlyContinue
     Start-Process -FilePath 'wscript.exe' -ArgumentList @('//B', '//Nologo', $launcher, $HostExe, $HostScript) -WindowStyle Hidden | Out-Null
     $healthy = $false
     for ($i = 0; $i -lt 20; $i++) { Start-Sleep -Milliseconds 500; if (Get-Health) { $healthy = $true; break } }

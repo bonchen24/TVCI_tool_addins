@@ -5,9 +5,8 @@ import type { DocumentSettings } from "../../models/document-settings";
 import type { TemplateRecord } from "../../templates/library";
 import type { TemplateFormSchema } from "../../templates/form-schema";
 import { getTemplateFormSchema } from "../../templates/form-schema";
-import { decomposeDraftIntoFormFields } from "../../ai/template-matcher";
-import type { ChatConversation } from "../../ai/chat-history";
 import { readSelection } from "../../word/selection.service";
+import { readTaggedContentControls } from "../../word/content-control.service";
 
 export interface ActiveContextInfo {
   docType: string;
@@ -18,11 +17,11 @@ export interface ActiveContextInfo {
 }
 
 export const QUICK_PROMPTS = [
-  { id: "rewrite", label: "Viết lại", prompt: "Hãy viết lại đoạn văn sau trang trọng, chuẩn thể thức" },
-  { id: "proofread", label: "Soát lỗi chính tả", prompt: "Hãy soát lỗi chính tả, ngữ pháp và thể thức cho" },
-  { id: "shorten", label: "Rút gọn", prompt: "Hãy rút gọn, cô đọng nội dung sau" },
-  { id: "expand", label: "Mở rộng", prompt: "Hãy mở rộng và bổ sung chi tiết cho nội dung sau" },
-  { id: "summary", label: "Tóm tắt ý chính", prompt: "Hãy tóm tắt ngắn gọn các ý chính của" },
+  { id: "rewrite", label: "Viết lại", prompt: "Hãy viết lại đoạn văn sau trang trọng, chuẩn thể thức hành chính:" },
+  { id: "proofread", label: "Soát lỗi chính tả", prompt: "Hãy soát lỗi chính tả, ngữ pháp và thể thức cho đoạn văn sau:" },
+  { id: "shorten", label: "Rút gọn", prompt: "Hãy rút gọn, cô đọng nội dung sau nhưng giữ nguyên đầy đủ ý chính:" },
+  { id: "expand", label: "Mở rộng", prompt: "Hãy mở rộng, diễn giải chi tiết và bổ sung lập luận cho nội dung sau:" },
+  { id: "admin", label: "Chuẩn NĐ30", prompt: "Hãy chuẩn hóa theo chuẩn thể thức và thuật ngữ hành chính nhà nước (Nghị định 30):" },
 ];
 
 export const REFINE_OPTIONS = [
@@ -34,6 +33,59 @@ export const REFINE_OPTIONS = [
   { id: "preserve_meaning", label: "Giữ nguyên ý viết lại", prompt: "Hãy viết lại theo cách diễn đạt khác nhưng giữ nguyên 100% ý nghĩa và dữ liệu:" },
 ];
 
+export const PRESET_OPTIONS: Record<string, string[]> = {
+  DIA_DANH: [
+    "Hà Nội",
+    "Quảng Ninh",
+    "Cẩm Phả",
+    "Uông Bí",
+    "Hạ Long",
+    "Thái Nguyên",
+    "Lạng Sơn",
+  ],
+  CHUC_VU_NGUOI_KY: [
+    "GIÁM ĐỐC",
+    "PHÓ GIÁM ĐỐC",
+    "VIỆN TRƯỞNG",
+    "PHÓ VIỆN TRƯỞNG",
+    "TRƯỞNG PHÒNG",
+    "PHÓ TRƯỞNG PHÒNG",
+    "BÍ THƯ",
+    "PHÓ BÍ THƯ",
+  ],
+  NOI_NHAN: [
+    "- Như trên;\n- Lưu: VT, TCHC.",
+    "- Như trên;\n- Ban Giám đốc (để b/c);\n- Lưu: VT, KHTH.",
+    "- Tổng Giám đốc Tập đoàn (để b/c);\n- Ban Kỹ thuật - Công nghệ TKV;\n- Lưu: VT.",
+    "- Ban Thường vụ Đảng ủy;\n- Các chi bộ trực thuộc;\n- Lưu: VT.",
+  ],
+  CAN_CU: [
+    "Căn cứ Nghị định số 30/2020/NĐ-CP ngày 05/3/2020 của Chính phủ về công tác văn thư;",
+    "Căn cứ Quyết định số 123/QĐ-IEMM về việc ban hành Quy chế làm việc của Viện Cơ khí Năng lượng và Mỏ - Vinacomin;",
+    "Căn cứ Quy định số 05-QĐi/TW ngày 28/8/2020 của Ban Bí thư về thể thức văn bản của Đảng;",
+    "Căn cứ Hợp đồng dịch vụ thử nghiệm, kiểm định an toàn đã ký kết giữa hai bên;",
+  ],
+  KINH_GUI: [
+    "Tổng Giám đốc Tập đoàn Công nghiệp Than - Khoáng sản Việt Nam;",
+    "Ban Lãnh đạo Viện Cơ khí Năng lượng và Mỏ - Vinacomin;",
+    "Ban Giám đốc Trung tâm Thử nghiệm - Kiểm định Công nghiệp;",
+    "Các phòng, ban, phân xưởng trực thuộc;",
+  ],
+};
+
+const DEFAULT_FORM_FIELDS = [
+  { tag: "SO_KY_HIEU", label: "Số và ký hiệu", placeholder: "Ví dụ: 125/TVCI-KĐ", type: "text" },
+  { tag: "DIA_DANH", label: "Địa danh", placeholder: "Ví dụ: Quảng Ninh", type: "text" },
+  { tag: "NGAY_BAN_HANH", label: "Ngày ban hành", placeholder: "Ví dụ: 20/09/2026", type: "date" },
+  { tag: "TRICH_YEU", label: "Trích yếu nội dung", placeholder: "V/v thực hiện kiểm định an toàn thiết bị...", type: "textarea" },
+  { tag: "KINH_GUI", label: "Kính gửi", placeholder: "Kính gửi các cơ quan, đơn vị...", type: "textarea" },
+  { tag: "CAN_CU", label: "Căn cứ ban hành", placeholder: "Căn cứ các văn bản, quy định...", type: "textarea" },
+  { tag: "NOI_DUNG", label: "Nội dung văn bản", placeholder: "Nội dung chi tiết của văn bản...", type: "textarea" },
+  { tag: "CHUC_VU_NGUOI_KY", label: "Chức vụ người ký", placeholder: "GIÁM ĐỐC", type: "text" },
+  { tag: "NGUOI_KY", label: "Họ và tên người ký", placeholder: "Họ và tên", type: "text" },
+  { tag: "NOI_NHAN", label: "Nơi nhận", placeholder: "- Như trên;\n- Lưu: VT.", type: "textarea" },
+];
+
 export interface AiTaskpaneViewProps {
   documentSettings: DocumentSettings;
   activeTemplate?: TemplateRecord | null;
@@ -43,7 +95,7 @@ export interface AiTaskpaneViewProps {
   busy: boolean;
   onSendMessage: (text: string, style: WritingStyleId, attachment?: AiAttachment) => Promise<void>;
   onNewConversation: () => void;
-  conversations?: ChatConversation[];
+  conversations?: any[];
   activeConversationId?: string | null;
   onSelectConversation?: (id: string) => void;
   onApplyText: (text: string) => Promise<void>;
@@ -62,28 +114,15 @@ export interface AiTaskpaneViewProps {
   selectionWordCount: number;
 }
 
-interface MappingProposal {
-  tag: string;
-  label: string;
-  value: string;
-  selected: boolean;
-}
-
 export function AiTaskpaneView({
   documentSettings,
   activeTemplate,
   onOpenAiSettings,
   onOpenTemplateLibrary,
-  onStandardizeQuick,
-  onApplyA4Quick,
-  onCheckQuick,
   messages,
   busy,
   onSendMessage,
   onNewConversation,
-  conversations = [],
-  activeConversationId,
-  onSelectConversation,
   onApplyText,
   onReplaceSelection,
   onInsertBelow,
@@ -91,790 +130,534 @@ export function AiTaskpaneView({
   onSaveToKnowledge,
   onRollback,
   onApplyFieldsToForm,
-  onRefineMessage,
-  onVersionChange,
+  onStandardizeQuick,
+  onApplyA4Quick,
+  onCheckQuick,
   hasSelection,
   selectionWordCount,
 }: AiTaskpaneViewProps): React.ReactElement {
-  const [inputText, setInputText] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [writingStyle, setWritingStyle] = useState<WritingStyleId>("administrative");
-  const [attachment, setAttachment] = useState<AiAttachment | undefined>();
-  
-  // Popover UI states
-  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [activeRefineIndex, setActiveRefineIndex] = useState<number | null>(null);
-  const [activeMoreIndex, setActiveMoreIndex] = useState<number | null>(null);
-  const [attachMenuOpen, setAttachMenuOpen] = useState(false);
+  // Selection AI States
+  const [selectedText, setSelectedText] = useState("");
+  const [selectionPrompt, setSelectionPrompt] = useState("");
+  const [isReadingSelection, setIsReadingSelection] = useState(false);
+  const [aiRevisedText, setAiRevisedText] = useState("");
+  const [copiedStatus, setCopiedStatus] = useState(false);
 
-  // In-place refinement version tracking per assistant message index
-  const [versionsMap, setVersionsMap] = useState<Record<number, string[]>>({});
-  const [versionIdxMap, setVersionIdxMap] = useState<Record<number, number>>({});
-  const [refiningIndex, setRefiningIndex] = useState<number | null>(null);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  // Form Fields State (Parallel editing)
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
+  const [syncStatus, setSyncStatus] = useState<string>("");
 
-  // Close open popovers when pressing Escape
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setHeaderMenuOpen(false);
-        setActiveRefineIndex(null);
-        setActiveMoreIndex(null);
-        setAttachMenuOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  const [fieldReviewModal, setFieldReviewModal] = useState<{ isOpen: boolean; proposals: MappingProposal[] }>({
-    isOpen: false,
-    proposals: [],
-  });
-
-  // Read synchronized context from storage or props
-  const [syncedContext, setSyncedContext] = useState<ActiveContextInfo>(() => {
-    try {
-      const raw = localStorage.getItem("tvci_active_document_context");
-      if (raw) return JSON.parse(raw);
-    } catch {}
-    return {
-      docType: documentSettings.docType || "Công văn",
-      department: "Trung tâm TVCI",
-      organization: documentSettings.agency?.agencyAbbr || "TVCI",
-    };
-  });
-
-  useEffect(() => {
-    const handleStorage = () => {
-      try {
-        const raw = localStorage.getItem("tvci_active_document_context");
-        if (raw) setSyncedContext(JSON.parse(raw));
-      } catch {}
-    };
-    window.addEventListener("storage", handleStorage);
-    const interval = setInterval(handleStorage, 1500);
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-      clearInterval(interval);
-    };
-  }, []);
-
-  const chatBottomRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, busy]);
-
+  // Determine active schema
   const activeSchema: TemplateFormSchema | null = useMemo(() => {
     if (activeTemplate) return getTemplateFormSchema(activeTemplate);
     return null;
   }, [activeTemplate]);
 
-  const isTemplateActive = Boolean(activeTemplate || syncedContext.templateId);
-
-  const handleSend = async (overrideText?: string) => {
-    const textToSend = overrideText || inputText;
-    if (!textToSend.trim() || busy) return;
-    setInputText("");
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
+  // Fields to display
+  const displayFields = useMemo(() => {
+    if (activeSchema && activeSchema.fields.length > 0) {
+      return activeSchema.fields.map((f) => ({
+        tag: f.tag,
+        label: f.label || f.tag,
+        placeholder: f.placeholder || `Nhập ${f.label || f.tag}...`,
+        type: f.type === "textarea" || f.type === "multi-line" || f.tag === "NOI_DUNG" || f.tag === "CAN_CU" || f.tag === "NOI_NHAN" ? "textarea" : f.type || "text",
+        options: f.options,
+      }));
     }
-    const att = attachment;
-    setAttachment(undefined);
-    await onSendMessage(textToSend, writingStyle, att);
-  };
+    return DEFAULT_FORM_FIELDS;
+  }, [activeSchema]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      void handleSend();
+  // Read selection when hasSelection changes or on initial mount
+  const handleReadCurrentSelection = async () => {
+    setIsReadingSelection(true);
+    try {
+      const text = await readSelection();
+      setSelectedText(text || "");
+    } catch {
+      // Ignore if outside Word
+    } finally {
+      setIsReadingSelection(false);
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const content = event.target?.result as string;
-      setAttachment({
-        id: `att-${Date.now()}`,
-        name: file.name,
-        type: file.name.toLowerCase().endsWith(".docx") ? "word" : file.name.toLowerCase().endsWith(".pdf") ? "pdf" : "unknown",
-        mimeType: file.type || "text/plain",
-        size: file.size,
-        extractedText: content || "",
-      });
-    };
-    reader.readAsText(file);
-    e.target.value = "";
+  useEffect(() => {
+    if (hasSelection) {
+      void handleReadCurrentSelection();
+    }
+  }, [hasSelection]);
+
+  // Read content controls from Word to populate task pane fields
+  const handleRefreshFieldsFromWord = async () => {
+    try {
+      const controls = await readTaggedContentControls();
+      if (controls && Object.keys(controls).length > 0) {
+        setFieldValues((prev) => ({ ...prev, ...controls }));
+        setSyncStatus(`Đã đọc ${Object.keys(controls).length} trường từ Word.`);
+        setTimeout(() => setSyncStatus(""), 3000);
+      } else {
+        setSyncStatus("Chưa tìm thấy trường dữ liệu nào trong Word.");
+        setTimeout(() => setSyncStatus(""), 3000);
+      }
+    } catch (err) {
+      setSyncStatus("Không thể đọc trường dữ liệu từ Word.");
+    }
   };
 
-  // Safe field mapping review before applying to form template
-  const handleOpenFieldReview = (aiContent: string) => {
-    if (!activeSchema) {
-      void onApplyText(aiContent);
+  // Sync state when activeTemplate or messages change
+  useEffect(() => {
+    void handleRefreshFieldsFromWord();
+  }, [activeTemplate]);
+
+  // Handle Selection AI Action (Viết lại, Soát lỗi, Rút gọn...)
+  const handleExecuteSelectionAi = async (promptInstruction: string) => {
+    const textToProcess = selectedText.trim();
+    if (!textToProcess) {
+      await handleReadCurrentSelection();
       return;
     }
-
-    const decomposed = decomposeDraftIntoFormFields(activeSchema, aiContent, {});
-    const proposals: MappingProposal[] = [];
-
-    for (const field of activeSchema.fields) {
-      const val = decomposed[field.tag];
-      if (val !== undefined && val !== null && String(val).trim()) {
-        proposals.push({
-          tag: field.tag,
-          label: field.label || field.tag,
-          value: Array.isArray(val) ? val.join("; ") : String(val),
-          selected: true,
-        });
-      }
-    }
-
-    if (proposals.length === 0) {
-      proposals.push({
-        tag: "NOI_DUNG",
-        label: "Nội dung văn bản",
-        value: aiContent,
-        selected: true,
-      });
-    }
-
-    setFieldReviewModal({ isOpen: true, proposals });
+    const fullPrompt = `${promptInstruction}\n\n"${textToProcess}"`;
+    await onSendMessage(fullPrompt, "administrative");
   };
 
-  const handleConfirmApplyFields = async () => {
-    const fieldsToApply: Record<string, string> = {};
-    for (const p of fieldReviewModal.proposals) {
-      if (p.selected && p.value.trim()) {
-        fieldsToApply[p.tag] = p.value;
+  // Update AI revised text when new assistant message arrives
+  useEffect(() => {
+    if (messages.length > 0) {
+      const last = messages[messages.length - 1];
+      if (last && last.role === "assistant") {
+        setAiRevisedText(last.content);
       }
     }
-    setFieldReviewModal({ isOpen: false, proposals: [] });
+  }, [messages]);
+
+  // Save & Apply Fields to Word
+  const handleApplyFieldsToWord = async () => {
     if (onApplyFieldsToForm) {
-      await onApplyFieldsToForm(fieldsToApply);
+      await onApplyFieldsToForm(fieldValues);
+      setSyncStatus("✓ Đã cập nhật tất cả các trường vào Word thành công!");
+      setTimeout(() => setSyncStatus(""), 3500);
     } else {
-      await onApplyText(Object.values(fieldsToApply).join("\n\n"));
+      const combined = Object.entries(fieldValues)
+        .filter(([, v]) => v.trim())
+        .map(([k, v]) => `[${k}]: ${v}`)
+        .join("\n\n");
+      await onApplyText(combined);
     }
   };
 
-  // Refine handler: in-place versioning (‹ 1/2 ›) without polluting the chat log
-  const handleRefine = async (msgIndex: number, option: typeof REFINE_OPTIONS[number], currentText: string) => {
-    setActiveRefineIndex(null);
-    if (!onRefineMessage) {
-      const existing = versionsMap[msgIndex] || [currentText];
-      setVersionsMap((prev) => ({ ...prev, [msgIndex]: existing }));
-      void handleSend(`${option.prompt}\n"${currentText}"`);
-      return;
-    }
+  const handleFieldChange = (tag: string, val: string) => {
+    setFieldValues((prev) => ({ ...prev, [tag]: val }));
+  };
 
-    setRefiningIndex(msgIndex);
-    try {
-      const existing = versionsMap[msgIndex] || [currentText];
-      const newText = await onRefineMessage(msgIndex, option.prompt, currentText);
-      if (newText && newText.trim()) {
-        const nextVersions = [...existing, newText.trim()];
-        const nextIdx = nextVersions.length - 1;
-        setVersionsMap((prev) => ({ ...prev, [msgIndex]: nextVersions }));
-        setVersionIdxMap((prev) => ({ ...prev, [msgIndex]: nextIdx }));
-        if (onVersionChange) onVersionChange(nextVersions[nextIdx]);
+  const handleApplyPreset = (tag: string, presetVal: string) => {
+    setFieldValues((prev) => {
+      const current = prev[tag] || "";
+      if (tag === "CAN_CU" || tag === "NOI_NHAN") {
+        const next = current.trim() ? `${current.trim()}\n${presetVal}` : presetVal;
+        return { ...prev, [tag]: next };
       }
-    } catch (err) {
-      console.error("Refine error:", err);
-    } finally {
-      setRefiningIndex(null);
-    }
-  };
-
-  const handleRegenerate = async (msgIndex: number, currentText: string) => {
-    setActiveMoreIndex(null);
-    if (!onRefineMessage) {
-      void handleSend(`Hãy tạo lại một phiên bản mới, tối ưu hơn cho nội dung sau:\n"${currentText}"`);
-      return;
-    }
-
-    setRefiningIndex(msgIndex);
-    try {
-      const existing = versionsMap[msgIndex] || [currentText];
-      const newText = await onRefineMessage(
-        msgIndex,
-        "Hãy tạo lại một phiên bản mới với diễn đạt trau chuốt, gãy gọn, chuẩn xác thể thức hành chính hơn cho nội dung sau:",
-        currentText
-      );
-      if (newText && newText.trim()) {
-        const nextVersions = [...existing, newText.trim()];
-        const nextIdx = nextVersions.length - 1;
-        setVersionsMap((prev) => ({ ...prev, [msgIndex]: nextVersions }));
-        setVersionIdxMap((prev) => ({ ...prev, [msgIndex]: nextIdx }));
-        if (onVersionChange) onVersionChange(nextVersions[nextIdx]);
-      }
-    } catch (err) {
-      console.error("Regenerate error:", err);
-    } finally {
-      setRefiningIndex(null);
-    }
-  };
-
-  const handleCopy = (index: number, text: string) => {
-    setActiveMoreIndex(null);
-    void onCopyText(text);
-    setCopiedIndex(index);
-    setTimeout(() => setCopiedIndex(null), 1800);
+      return { ...prev, [tag]: presetVal };
+    });
   };
 
   return (
-    <div className="aiTaskpaneContainer" onClick={() => {
-      if (headerMenuOpen) setHeaderMenuOpen(false);
-      if (activeRefineIndex !== null) setActiveRefineIndex(null);
-      if (activeMoreIndex !== null) setActiveMoreIndex(null);
-      if (attachMenuOpen) setAttachMenuOpen(false);
-    }}>
-      {/* 1. Header with New Chat [+] and More [•••] */}
-      <div className="aiTaskpaneHeader">
-        <div className="aiBrandRow">
-          <div className="aiBrandName">TVCI AI</div>
-          <div className="aiHeaderActions">
+    <div className="aiTaskpaneContainer" style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden", background: "#f8fafc" }}>
+      {/* 1. Header & Primary Call to Action */}
+      <div className="aiTaskpaneHeader" style={{ padding: "8px 12px 6px", background: "#ffffff", borderBottom: "1px solid #e2e8f0" }}>
+        <div className="aiBrandRow" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div className="aiBrandName" style={{ fontSize: 13, fontWeight: 700, color: "#0d4f8b", display: "flex", alignItems: "center", gap: 6 }}>
+            <span>TVCI WORD</span>
+            <span style={{ fontSize: 10, fontWeight: 600, padding: "1px 5px", background: "#e0f2fe", color: "#0369a1", borderRadius: 3 }}>
+              {activeTemplate ? activeTemplate.organization : "Bảng điều khiển"}
+            </span>
+          </div>
+
+          <div className="aiHeaderActions" style={{ display: "flex", gap: 4 }}>
             <button
               type="button"
               className="aiHeaderBtn"
-              onClick={onNewConversation}
-              title="Bắt đầu phiên hỏi đáp mới"
+              onClick={onOpenAiSettings}
+              title="Cài đặt AI & API Key"
+              style={{ padding: "2px 6px", fontSize: 11, borderRadius: 4, border: "1px solid #cbd5e1", background: "#ffffff", cursor: "pointer" }}
             >
-              +
+              ⚙ Cài đặt AI
             </button>
-            <div className="aiHeaderMoreContainer" onClick={(e) => e.stopPropagation()}>
+            {onOpenTemplateLibrary && (
               <button
                 type="button"
                 className="aiHeaderBtn"
-                onClick={() => setHeaderMenuOpen(!headerMenuOpen)}
-                title="Tùy chọn khác"
+                onClick={onOpenTemplateLibrary}
+                title="Mở Kho Biểu Mẫu"
+                style={{ padding: "2px 6px", fontSize: 11, borderRadius: 4, border: "1px solid #cbd5e1", background: "#ffffff", cursor: "pointer" }}
               >
-                •••
+                📁 Kho mẫu
               </button>
-              {headerMenuOpen && (
-                <div className="aiHeaderDropdownMenu">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setHeaderMenuOpen(false);
-                      setHistoryOpen(true);
-                    }}
-                  >
-                    📜 Lịch sử hội thoại
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setHeaderMenuOpen(false);
-                      onOpenAiSettings();
-                    }}
-                  >
-                    ⚙ Cài đặt AI
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 2. Compact Context Line (Document title + Organization subtitle) */}
-        <div className="aiContextSubtitleRow">
-          <span className="aiContextDocTitle">
-            {activeTemplate ? activeTemplate.name : syncedContext.templateName || syncedContext.docType || "Công văn"}
-          </span>
-          <span className="aiContextOrgSubtitle">
-            Trung tâm Thử nghiệm - Kiểm định Công nghiệp
-          </span>
-        </div>
-      </div>
-
-      {/* History Drawer Popover */}
-      {historyOpen && (
-        <div className="aiHistoryDrawer" onClick={(e) => e.stopPropagation()}>
-          <div className="aiHistoryHeader">
-            <span>Hội thoại gần đây</span>
-            <button type="button" className="aiHistoryCloseBtn" onClick={() => setHistoryOpen(false)}>✕</button>
-          </div>
-          <div className="aiHistoryList">
-            {conversations.length === 0 ? (
-              <div style={{ padding: "12px", fontSize: "11px", color: "#64748b", textAlign: "center" }}>
-                Chưa có lịch sử hội thoại
-              </div>
-            ) : (
-              conversations.map((c) => (
-                <div
-                  key={c.id}
-                  className={`aiHistoryItem ${c.id === activeConversationId ? "active" : ""}`}
-                  onClick={() => {
-                    onSelectConversation?.(c.id);
-                    setHistoryOpen(false);
-                  }}
-                >
-                  <div className="aiHistoryItemTitle">{c.title || "Cuộc trò chuyện"}</div>
-                  <div className="aiHistoryItemDate">{new Date(c.updatedAt).toLocaleDateString("vi-VN")}</div>
-                </div>
-              ))
             )}
           </div>
         </div>
-      )}
 
-      {/* Selection Scope Indicator */}
-      <div className="aiScopeBanner">
-        <span className={`aiScopeBadge ${hasSelection ? "selection" : "document"}`}>
-          {hasSelection ? `Vùng chọn (${selectionWordCount} từ)` : "Toàn văn bản"}
-        </span>
-        {attachment && (
-          <span className="aiScopeAttachmentBadge" title={attachment.name}>
-            📎 {attachment.name}
-            <button type="button" className="aiRemoveAttachmentBtn" onClick={() => setAttachment(undefined)}>✕</button>
+        {/* Document Context Subtitle */}
+        <div className="aiContextSubtitleRow" style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#64748b" }}>
+          <span className="aiContextDocTitle" style={{ fontWeight: 600, color: "#0369a1" }}>
+            {activeTemplate ? activeTemplate.name : documentSettings.docType || "Văn bản hành chính"}
           </span>
-        )}
+          <span className="aiContextOrgSubtitle">Trung tâm TVCI</span>
+        </div>
       </div>
 
-      {/* 3. Chat Thread */}
-      <div className="aiChatThread">
-        {messages.length === 0 ? (
-          <div className="aiBotWelcomeCard">
-            <div className="aiBotWelcomeHeader">
-              <div className="aiBotAvatar">🤖</div>
-              <div className="aiBotWelcomeTitleArea">
-                <div className="aiBotWelcomeName">Trợ lý AI TVCI</div>
-                <div className="aiBotWelcomeStatus">● Sẵn sàng hỗ trợ</div>
-              </div>
+      {/* Main Scrollable Content */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "8px 10px", display: "flex", flexDirection: "column", gap: 10 }}>
+        
+        {/* SECTION 1: CONTEXTUAL SELECTION AI (XỬ LÝ ĐOẠN BÔI ĐEN) */}
+        <div
+          style={{
+            background: "#ffffff",
+            borderRadius: 6,
+            border: hasSelection ? "1px solid #93c5fd" : "1px solid #e2e8f0",
+            padding: 8,
+            boxShadow: hasSelection ? "0 0 0 1px #bfdbfe" : "none",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#0f3f67", display: "flex", alignItems: "center", gap: 4 }}>
+              <span>✍️</span>
+              <span>XỬ LÝ ĐOẠN BÔI ĐEN (AI)</span>
             </div>
-            <div className="aiBotWelcomeMsg">
-              Xin chào! Tôi là trợ lý AI soạn thảo của Trung tâm TVCI. Tôi có thể hỗ trợ bạn soạn thảo văn bản, soát lỗi chính tả &amp; văn phong, hoặc áp dụng biểu mẫu. Hãy chọn nhanh hoặc gõ yêu cầu:
-            </div>
-
-            {/* Quick Starter Prompts */}
-            <div className="aiBotInlineSection">
-              <div className="aiBotInlineCategory">GỢI Ý SOẠN THẢO</div>
-              <div className="aiBotInlineGrid">
-                <button
-                  type="button"
-                  className="aiBotInlineBtn highlight"
-                  onClick={() => {
-                    setInputText("Hãy soạn thảo một Công văn hành chính chuẩn quy định về việc: ");
-                    setTimeout(() => textareaRef.current?.focus(), 50);
-                  }}
-                >
-                  <span className="aiBtnIcon">📝</span>
-                  <span>Soạn thảo công văn...</span>
-                </button>
-                <button
-                  type="button"
-                  className="aiBotInlineBtn"
-                  onClick={() => {
-                    setInputText("Hãy soạn thảo Phiếu yêu cầu thử nghiệm / kiểm định cho thiết bị: ");
-                    setTimeout(() => textareaRef.current?.focus(), 50);
-                  }}
-                >
-                  <span className="aiBtnIcon">📋</span>
-                  <span>Soạn phiếu yêu cầu...</span>
-                </button>
-                <button
-                  type="button"
-                  className="aiBotInlineBtn"
-                  onClick={() => {
-                    setInputText("Hãy tóm tắt ngắn gọn các ý chính của văn bản sau: ");
-                    setTimeout(() => textareaRef.current?.focus(), 50);
-                  }}
-                >
-                  <span className="aiBtnIcon">📊</span>
-                  <span>Tóm tắt văn bản...</span>
-                </button>
-                <button
-                  type="button"
-                  className="aiBotInlineBtn"
-                  onClick={() => {
-                    const prefix = hasSelection
-                      ? "Hãy soát lỗi chính tả, dấu câu và thể thức văn bản cho đoạn đang chọn:"
-                      : "Hãy soát lỗi chính tả và chuẩn hóa văn phong hành chính cho nội dung sau:";
-                    setInputText(prefix);
-                    setTimeout(() => textareaRef.current?.focus(), 50);
-                  }}
-                >
-                  <span className="aiBtnIcon">🔍</span>
-                  <span>Soát lỗi chính tả &amp; văn phong...</span>
-                </button>
-              </div>
-            </div>
+            <span
+              style={{
+                fontSize: 9.5,
+                fontWeight: 600,
+                padding: "1px 5px",
+                borderRadius: 3,
+                background: hasSelection ? "#dbeafe" : "#f1f5f9",
+                color: hasSelection ? "#1d4ed8" : "#64748b",
+              }}
+            >
+              {hasSelection ? `Đang chọn: ${selectionWordCount} từ` : "Chưa chọn vùng"}
+            </span>
           </div>
-        ) : (
-          messages.map((msg, index) => {
-            const isUser = msg.role === "user";
-            const versions = versionsMap[index] || [msg.content];
-            const currentIdx = versionIdxMap[index] ?? 0;
-            const displayContent = versions[currentIdx] || msg.content;
 
-            return (
-              <div key={index} className={`aiMessageBubble ${isUser ? "user" : "assistant"}`}>
-                <div className="aiMessageSender">
-                  {isUser ? (
-                    "Bạn"
-                  ) : (
-                    <span className="aiAssistantSender">
-                      <span className="aiSenderAvatar">🤖</span> Trợ lý AI
-                    </span>
-                  )}
-                </div>
-                <div className="aiMessageText">{displayContent}</div>
-
-                {/* In-place refining indicator */}
-                {refiningIndex === index && (
-                  <div className="aiRefiningIndicator">
-                    <span className="aiRefiningSpinner">🔄</span>
-                    <span>Đang tinh chỉnh phiên bản mới...</span>
-                  </div>
-                )}
-
-                {/* Assistant Inline Actions Toolbar */}
-                {!isUser && (
-                  <div className="aiInlineActionGroup" onClick={(e) => e.stopPropagation()}>
-                    {/* 1. Primary Action */}
-                    {isTemplateActive ? (
-                      <button
-                        type="button"
-                        className="aiInlineBtn primary"
-                        disabled={busy || refiningIndex !== null}
-                        onClick={() => handleOpenFieldReview(displayContent)}
-                        title="Điền vào các trường của biểu mẫu đang dùng"
-                      >
-                        📋 Áp dụng vào biểu mẫu
-                      </button>
-                    ) : hasSelection ? (
-                      <button
-                        type="button"
-                        className="aiInlineBtn primary"
-                        disabled={busy || refiningIndex !== null}
-                        onClick={() => void onReplaceSelection(displayContent)}
-                        title="Thay thế đoạn đang chọn"
-                      >
-                        🔄 Thay đoạn chọn
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="aiInlineBtn primary"
-                        disabled={busy || refiningIndex !== null}
-                        onClick={() => void onApplyText(displayContent)}
-                        title="Chèn nội dung vào văn bản Word"
-                      >
-                        📥 Chèn vào Word
-                      </button>
-                    )}
-
-                    {/* 2. Tinh chỉnh Popover */}
-                    <div className="aiRefineContainer">
-                      <button
-                        type="button"
-                        className="aiInlineBtn refine"
-                        disabled={busy || refiningIndex !== null}
-                        onClick={() => setActiveRefineIndex(activeRefineIndex === index ? null : index)}
-                        title="Tinh chỉnh văn phong nội dung"
-                      >
-                        Tinh chỉnh ▾
-                      </button>
-                      {activeRefineIndex === index && (
-                        <div className="aiRefinePopover">
-                          {REFINE_OPTIONS.map((opt) => (
-                            <button
-                              key={opt.id}
-                              type="button"
-                              onClick={() => void handleRefine(index, opt, displayContent)}
-                            >
-                              {opt.label}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Version indicator if multiple versions exist */}
-                    {versions.length > 1 && (
-                      <div className="aiVersionNav">
-                        <button
-                          type="button"
-                          className="aiVersionBtn"
-                          disabled={currentIdx === 0 || refiningIndex !== null}
-                          onClick={() => {
-                            const nextIdx = currentIdx - 1;
-                            setVersionIdxMap({ ...versionIdxMap, [index]: nextIdx });
-                            if (onVersionChange) onVersionChange(versions[nextIdx]);
-                          }}
-                          title="Phiên bản trước"
-                        >
-                          ‹
-                        </button>
-                        <span>{currentIdx + 1}/{versions.length}</span>
-                        <button
-                          type="button"
-                          className="aiVersionBtn"
-                          disabled={currentIdx === versions.length - 1 || refiningIndex !== null}
-                          onClick={() => {
-                            const nextIdx = currentIdx + 1;
-                            setVersionIdxMap({ ...versionIdxMap, [index]: nextIdx });
-                            if (onVersionChange) onVersionChange(versions[nextIdx]);
-                          }}
-                          title="Phiên bản sau"
-                        >
-                          ›
-                        </button>
-                      </div>
-                    )}
-
-                    {copiedIndex === index && (
-                      <span className="aiCopiedFeedback">✓ Đã chép</span>
-                    )}
-
-                    {/* 3. More Popover ••• */}
-                    <div className="aiHeaderMoreContainer">
-                      <button
-                        type="button"
-                        className="aiInlineBtn more"
-                        disabled={busy || refiningIndex !== null}
-                        onClick={() => setActiveMoreIndex(activeMoreIndex === index ? null : index)}
-                        title="Tùy chọn khác"
-                      >
-                        •••
-                      </button>
-                      {activeMoreIndex === index && (
-                        <div className="aiHeaderDropdownMenu">
-                          <button
-                            type="button"
-                            onClick={() => void handleRegenerate(index, displayContent)}
-                          >
-                            ↺ Tạo lại
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveMoreIndex(null);
-                              void onInsertBelow(displayContent);
-                            }}
-                          >
-                            📥 Chèn dưới con trỏ
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(index, displayContent)}
-                          >
-                            📋 Sao chép
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveMoreIndex(null);
-                              onSaveToKnowledge(displayContent);
-                            }}
-                          >
-                            💾 Lưu Knowledge
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
-
-        {busy && (
-          <div className="aiMessageBubble assistant typing">
-            <div className="aiTypingIndicator">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-            <div className="aiTypingText">Trợ lý TVCI đang soạn thảo...</div>
+          {/* Quick Prompts Pills */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 6 }}>
+            {QUICK_PROMPTS.map((qp) => (
+              <button
+                key={qp.id}
+                type="button"
+                disabled={busy}
+                onClick={() => void handleExecuteSelectionAi(qp.prompt)}
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: 12,
+                  padding: "2px 7px",
+                  fontSize: 10,
+                  color: "#334155",
+                  cursor: "pointer",
+                }}
+              >
+                {qp.label}
+              </button>
+            ))}
           </div>
-        )}
-        <div ref={chatBottomRef} />
-      </div>
 
-      {/* 4. Sticky Bottom Composer */}
-      <div className="aiInputFooter">
-        <input
-          type="file"
-          ref={fileInputRef}
-          style={{ display: "none" }}
-          accept=".txt,.docx,.md,.json"
-          onChange={handleFileUpload}
-        />
-
-        <div className="aiComposerBar">
-          {/* [+] Attachment and context trigger */}
-          <div className="aiComposerAttachContainer" onClick={(e) => e.stopPropagation()}>
+          {/* Prompt input if needed */}
+          <div style={{ display: "flex", gap: 4 }}>
+            <input
+              type="text"
+              placeholder={hasSelection ? "Yêu cầu AI sửa đoạn đang chọn..." : "Bôi đen đoạn văn bản trong Word rồi nhập yêu cầu..."}
+              value={selectionPrompt}
+              onChange={(e) => setSelectionPrompt(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && selectionPrompt.trim()) {
+                  void handleExecuteSelectionAi(selectionPrompt);
+                  setSelectionPrompt("");
+                }
+              }}
+              style={{
+                flex: 1,
+                height: 26,
+                padding: "0 8px",
+                fontSize: 11,
+                border: "1px solid #cbd5e1",
+                borderRadius: 4,
+              }}
+            />
             <button
               type="button"
-              className="aiComposerAttachBtn"
-              onClick={() => setAttachMenuOpen(!attachMenuOpen)}
-              title="Đính kèm tệp hoặc lấy ngữ cảnh"
+              disabled={busy || !selectionPrompt.trim()}
+              onClick={() => {
+                if (selectionPrompt.trim()) {
+                  void handleExecuteSelectionAi(selectionPrompt);
+                  setSelectionPrompt("");
+                }
+              }}
+              style={{
+                height: 26,
+                padding: "0 8px",
+                fontSize: 11,
+                background: "#0d4f8b",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: 4,
+                cursor: busy || !selectionPrompt.trim() ? "not-allowed" : "pointer",
+              }}
             >
-              ＋
+              {busy ? "…" : "Gửi"}
             </button>
-            {attachMenuOpen && (
-              <div className="aiAttachDropdownMenu">
+          </div>
+
+          {/* AI Revised Output Preview & Replace Button */}
+          {aiRevisedText && (
+            <div style={{ marginTop: 8, padding: 8, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 6 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#166534" }}>✓ Kết quả AI xử lý:</span>
+                <button
+                  type="button"
+                  onClick={() => setAiRevisedText("")}
+                  style={{ background: "none", border: "none", fontSize: 11, color: "#64748b", cursor: "pointer" }}
+                >
+                  ✕
+                </button>
+              </div>
+              <div style={{ fontSize: 11, color: "#1e293b", lineHeight: 1.4, maxHeight: 110, overflowY: "auto", whiteSpace: "pre-wrap" }}>
+                {aiRevisedText}
+              </div>
+              <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
+                {hasSelection ? (
+                  <button
+                    type="button"
+                    onClick={() => void onReplaceSelection(aiRevisedText)}
+                    style={{
+                      flex: 1,
+                      height: 24,
+                      background: "#16a34a",
+                      color: "#ffffff",
+                      border: "none",
+                      borderRadius: 4,
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    🔄 Thay đoạn chọn
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => void onApplyText(aiRevisedText)}
+                    style={{
+                      flex: 1,
+                      height: 24,
+                      background: "#16a34a",
+                      color: "#ffffff",
+                      border: "none",
+                      borderRadius: 4,
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    📥 Chèn vào Word
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => void onInsertBelow(aiRevisedText)}
+                  style={{
+                    height: 24,
+                    padding: "0 6px",
+                    background: "#ffffff",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: 4,
+                    fontSize: 10.5,
+                    cursor: "pointer",
+                  }}
+                >
+                  Chèn dưới
+                </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setAttachMenuOpen(false);
-                    fileInputRef.current?.click();
+                    void onCopyText(aiRevisedText);
+                    setCopiedStatus(true);
+                    setTimeout(() => setCopiedStatus(false), 1500);
+                  }}
+                  style={{
+                    height: 24,
+                    padding: "0 6px",
+                    background: "#ffffff",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: 4,
+                    fontSize: 10.5,
+                    cursor: "pointer",
                   }}
                 >
-                  📎 Đính kèm file...
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setAttachMenuOpen(false);
-                    try {
-                      const sel = await readSelection();
-                      if (sel?.trim()) {
-                        setAttachment({
-                          id: `sel-${Date.now()}`,
-                          name: "Đoạn đang chọn trong Word",
-                          type: "word",
-                          mimeType: "text/plain",
-                          size: sel.length,
-                          extractedText: sel,
-                        });
-                      }
-                    } catch {}
-                  }}
-                >
-                  ✂️ Dùng đoạn đang chọn
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setAttachMenuOpen(false);
-                    try {
-                      await Word.run(async (context) => {
-                        const body = context.document.body;
-                        body.load("text");
-                        await context.sync();
-                        if (body.text?.trim()) {
-                          setAttachment({
-                            id: `doc-${Date.now()}`,
-                            name: "Toàn bộ văn bản Word",
-                            type: "word",
-                            mimeType: "text/plain",
-                            size: body.text.length,
-                            extractedText: body.text,
-                          });
-                        }
-                      });
-                    } catch {}
-                  }}
-                >
-                  📄 Dùng toàn văn bản
+                  {copiedStatus ? "✓ Đã chép" : "Sao chép"}
                 </button>
               </div>
-            )}
-          </div>
-
-          <textarea
-            ref={textareaRef}
-            className="aiChatTextarea"
-            rows={1}
-            value={inputText}
-            placeholder={
-              hasSelection
-                ? "Yêu cầu xử lý đoạn đang chọn..."
-                : "Hỏi AI hoặc yêu cầu soạn thảo văn bản..."
-            }
-            onChange={(e) => {
-              setInputText(e.target.value);
-              e.target.style.height = "auto";
-              e.target.style.height = Math.min(e.target.scrollHeight, 110) + "px";
-            }}
-            onKeyDown={handleKeyDown}
-            disabled={busy}
-          />
-
-          <button
-            type="button"
-            className="aiComposerSendBtn"
-            onClick={() => void handleSend()}
-            disabled={busy || !inputText.trim()}
-            title="Gửi yêu cầu (Enter)"
-          >
-            {busy ? "…" : "↑"}
-          </button>
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* 5. Safe Field Mapping Review Modal */}
-      {fieldReviewModal.isOpen && (
-        <div className="aiFieldReviewBackdrop" onClick={() => setFieldReviewModal({ isOpen: false, proposals: [] })}>
-          <div className="aiFieldReviewDialog" onClick={(e) => e.stopPropagation()}>
-            <div className="aiFieldReviewHeader">
-              <div className="aiFieldReviewTitle">Áp dụng vào biểu mẫu</div>
+        {/* SECTION 2: BẢNG ĐIỀU KHIỂN CÁC TRƯỜNG DỮ LIỆU PHÂN MẢNH (FORM FIELDS CONTROLLER) */}
+        <div style={{ background: "#ffffff", borderRadius: 6, border: "1px solid #e2e8f0", padding: 8 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#0f3f67" }}>
+                📋 CÁC TRƯỜNG DỮ LIỆU BIỂU MẪU
+              </div>
+              <div style={{ fontSize: 9.5, color: "#64748b" }}>
+                {activeTemplate ? activeTemplate.name : "Văn bản Word hiện hành"}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 3 }}>
               <button
                 type="button"
-                className="aiFieldReviewCloseBtn"
-                onClick={() => setFieldReviewModal({ isOpen: false, proposals: [] })}
+                onClick={() => void handleRefreshFieldsFromWord()}
+                title="Đọc lại dữ liệu từ các Content Control trên Word"
+                style={{
+                  background: "#f1f5f9",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: 4,
+                  padding: "2px 6px",
+                  fontSize: 10,
+                  color: "#334155",
+                  cursor: "pointer",
+                }}
               >
-                ✕
+                🔄 Đọc từ Word
+              </button>
+              <button
+                type="button"
+                onClick={() => setFieldValues({})}
+                title="Xóa trắng các trường"
+                style={{
+                  background: "#f1f5f9",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: 4,
+                  padding: "2px 6px",
+                  fontSize: 10,
+                  color: "#64748b",
+                  cursor: "pointer",
+                }}
+              >
+                🗑
               </button>
             </div>
-            <div className="aiFieldReviewDesc">
-              AI đã trích xuất các trường thông tin. Kiểm tra trước khi điền vào Word:
+          </div>
+
+          {/* Sync notification banner */}
+          {syncStatus && (
+            <div style={{ padding: "3px 6px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 4, fontSize: 10, color: "#166534", marginBottom: 6 }}>
+              {syncStatus}
             </div>
-            <div className="aiFieldReviewList">
-              {fieldReviewModal.proposals.map((p, idx) => (
-                <div key={p.tag} className="aiFieldReviewItem">
-                  <label className="aiFieldReviewCheckLabel">
-                    <input
-                      type="checkbox"
-                      checked={p.selected}
-                      onChange={(e) => {
-                        const updated = [...fieldReviewModal.proposals];
-                        updated[idx].selected = e.target.checked;
-                        setFieldReviewModal({ ...fieldReviewModal, proposals: updated });
+          )}
+
+          {/* Dynamic Fields List */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: "calc(100vh - 310px)", overflowY: "auto", paddingRight: 2 }}>
+            {displayFields.map((field) => {
+              const currentVal = fieldValues[field.tag] || "";
+              const presets = PRESET_OPTIONS[field.tag] || null;
+
+              return (
+                <div key={field.tag} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <label style={{ fontSize: 10.5, fontWeight: 600, color: "#334155" }}>
+                      {field.label}
+                      <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 400, marginLeft: 4 }}>({field.tag})</span>
+                    </label>
+
+                    {/* Quick Dropdown Preset selector if available */}
+                    {presets && (
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          if (e.target.value) handleApplyPreset(field.tag, e.target.value);
+                        }}
+                        style={{
+                          fontSize: 9.5,
+                          padding: "1px 4px",
+                          borderRadius: 3,
+                          border: "1px solid #cbd5e1",
+                          background: "#f8fafc",
+                          color: "#0369a1",
+                          cursor: "pointer",
+                          maxWidth: 110,
+                        }}
+                      >
+                        <option value="">▼ Chọn nhanh</option>
+                        {presets.map((p, idx) => (
+                          <option key={idx} value={p}>
+                            {p.length > 25 ? `${p.slice(0, 25)}...` : p}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {field.type === "textarea" ? (
+                    <textarea
+                      rows={field.tag === "NOI_DUNG" ? 4 : 2}
+                      value={currentVal}
+                      placeholder={field.placeholder}
+                      onChange={(e) => handleFieldChange(field.tag, e.target.value)}
+                      style={{
+                        padding: "4px 6px",
+                        fontSize: 11,
+                        borderRadius: 4,
+                        border: "1px solid #cbd5e1",
+                        fontFamily: "inherit",
+                        resize: "vertical",
                       }}
                     />
-                    <span className="aiFieldReviewItemName">{p.label}</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="aiFieldReviewItemInput"
-                    value={p.value}
-                    onChange={(e) => {
-                      const updated = [...fieldReviewModal.proposals];
-                      updated[idx].value = e.target.value;
-                      setFieldReviewModal({ ...fieldReviewModal, proposals: updated });
-                    }}
-                  />
+                  ) : (
+                    <input
+                      type={field.type === "date" ? "date" : "text"}
+                      value={currentVal}
+                      placeholder={field.placeholder}
+                      onChange={(e) => handleFieldChange(field.tag, e.target.value)}
+                      style={{
+                        height: 25,
+                        padding: "0 6px",
+                        fontSize: 11,
+                        borderRadius: 4,
+                        border: "1px solid #cbd5e1",
+                      }}
+                    />
+                  )}
                 </div>
-              ))}
-            </div>
-            <div className="aiFieldReviewFooter">
-              <button
-                type="button"
-                className="btn btn-outline"
-                onClick={() => setFieldReviewModal({ isOpen: false, proposals: [] })}
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => void handleConfirmApplyFields()}
-              >
-                Áp dụng {fieldReviewModal.proposals.filter((p) => p.selected).length} trường
-              </button>
-            </div>
+              );
+            })}
+          </div>
+
+          {/* Apply Button */}
+          <div style={{ marginTop: 8 }}>
+            <button
+              type="button"
+              onClick={() => void handleApplyFieldsToWord()}
+              style={{
+                width: "100%",
+                height: 30,
+                background: "#0d4f8b",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: 4,
+                fontWeight: 700,
+                fontSize: 11.5,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 5,
+              }}
+            >
+              <span>💾</span>
+              <span>Lưu &amp; Cập nhật vào Word</span>
+            </button>
           </div>
         </div>
-      )}
+
+      </div>
     </div>
   );
 }

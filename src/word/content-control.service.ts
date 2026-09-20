@@ -79,3 +79,18 @@ export async function setMultipleContentControlTexts(values: Array<{ tag: string
     return updated;
   });
 }
+
+export async function readTaggedContentControls(): Promise<Record<string, string>> {
+  return Word.run(async (context) => {
+    const controls = context.document.contentControls;
+    controls.load("items/id,items/tag,items/text");
+    await context.sync();
+    const result: Record<string, string> = {};
+    for (const item of controls.items) {
+      if (item.tag) {
+        result[item.tag] = item.text || "";
+      }
+    }
+    return result;
+  });
+}
