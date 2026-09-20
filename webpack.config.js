@@ -32,6 +32,7 @@ module.exports = async (_env, argv) => {
     devtool: argv.mode === "development" ? "source-map" : false,
     entry: {
       taskpane: "./src/taskpane/index.tsx",
+      dialog: "./src/dialog/index.tsx",
       commands: "./src/commands/commands.ts",
     },
     output: {
@@ -63,6 +64,7 @@ module.exports = async (_env, argv) => {
     },
     plugins: [
       new HtmlWebpackPlugin({ template: "./src/taskpane/index.html", filename: "taskpane.html", chunks: ["taskpane"] }),
+      new HtmlWebpackPlugin({ template: "./src/dialog/index.html", filename: "dialog.html", chunks: ["dialog"] }),
       new HtmlWebpackPlugin({ template: "./src/commands/commands.html", filename: "commands.html", chunks: ["commands"] }),
       new CopyWebpackPlugin({ patterns: [
         { from: "assets", to: "assets" },

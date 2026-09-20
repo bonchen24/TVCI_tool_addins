@@ -69,6 +69,7 @@ export function getRuleProfile(id: RuleProfileId): RuleProfile {
 export function resolveRuleProfileForOrganization(organization: TemplateOrganization): RuleProfile {
   if (organization === 'DANG') return getRuleProfile('DANG_05_HD_VPTW_2026');
   if (organization === 'TKV') return getRuleProfile('TKV');
-  return getRuleProfile('IEMM');
+  if (organization === 'IEMM') return getRuleProfile('IEMM');
+  return getRuleProfile('NĐ30_TVCI');
 }
 

@@ -72,7 +72,7 @@ describe("Document Settings Model & Presets", () => {
     it("returns IEMM preset with institute naming", () => {
       const s = getDefaultSettings("IEMM");
       expect(s.presetId).toBe("IEMM");
-      expect(s.agency.issuingAgency).toContain("VIỆN CƠ ĐIỆN MỎ");
+      expect(s.agency.issuingAgency).toContain("VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN");
       expect(s.agency.parentAgency).toContain("TẬP ĐOÀN CÔNG NGHIỆP THAN - KHOÁNG SẢN");
     });
 

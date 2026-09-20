@@ -268,8 +268,8 @@ export function KnowledgeBaseView({
                 <label>
                   Phạm vi áp dụng
                   <select value={newScope} onChange={(e) => setNewScope(e.target.value as KnowledgeScope)}>
-                    <option value="TVCI">Trung tâm TVCI</option>
-                    <option value="IEMM">Viện IEMM</option>
+                    <option value="TVCI">Trung tâm Thử nghiệm - Kiểm định Công nghiệp</option>
+                    <option value="IEMM">Viện Cơ khí Năng lượng và Mỏ - Vinacomin</option>
                     <option value="DANG">Văn bản Đảng</option>
                     <option value="COMMON">Dùng chung</option>
                   </select>

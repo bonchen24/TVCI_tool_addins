@@ -413,8 +413,8 @@ export function TemplateWizardModal({
                 <label>
                   Đơn vị ban hành
                   <select value={organization} onChange={(e) => setOrganization(e.target.value as TemplateOrganization)}>
-                    <option value="TVCI">Trung tâm Thử nghiệm - TVCI</option>
-                    <option value="IEMM">Viện Cơ khí Năng lượng và Mỏ - IEMM</option>
+                    <option value="TVCI">Trung tâm Thử nghiệm - Kiểm định Công nghiệp</option>
+                    <option value="IEMM">Viện Cơ khí Năng lượng và Mỏ - Vinacomin</option>
                     <option value="DANG">Văn bản Đảng</option>
                   </select>
                 </label>

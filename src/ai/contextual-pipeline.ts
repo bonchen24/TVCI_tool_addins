@@ -84,7 +84,7 @@ export function getSuggestedQuickPrompts(context: {
   } else if (context.activeTab === "knowledge") {
     suggestions.push({
       label: "💡 Tra cứu quy định TVCI",
-      prompt: "Quy định bắt buộc về tiêu đề 2 cấp và cách xưng danh pháp nhân của Trung tâm TVCI là gì?",
+      prompt: "Quy định bắt buộc về tiêu đề 2 cấp và cách xưng danh pháp nhân của Trung tâm Thử nghiệm - Kiểm định Công nghiệp là gì?",
     });
     suggestions.push({
       label: "🟢 Mẫu câu hành chính chuẩn",

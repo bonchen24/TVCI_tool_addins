@@ -62,3 +62,20 @@ export async function applyPageRules(rules: PageRules): Promise<void> {
     await context.sync();
   });
 }
+
+export async function toggleDocumentOrientation(): Promise<void> {
+  if (!supportsDesktopPageSetup()) throw new Error('Word hiện tại chưa hỗ trợ PageSetup API.');
+  await Word.run(async (context) => {
+    const sections = context.document.sections;
+    sections.load('items');
+    await context.sync();
+    if (sections.items.length === 0) return;
+
+    const firstSetup = sections.items[0].pageSetup;
+    firstSetup.load('orientation');
+    await context.sync();
+    const next = String(firstSetup.orientation) === 'Landscape' ? 'Portrait' : 'Landscape';
+    for (const section of sections.items) section.pageSetup.orientation = next as Word.PageOrientation;
+    await context.sync();
+  });
+}

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import "./styles.css";
 import { readSelection, readDocumentText, replaceSelection, replaceSelectionIfMatches, insertBelowSelection, insertBelowSelectionIfMatches, replaceFirstInSelection } from "../word/selection.service";
-import { inspectSelectionParagraphs, inspectDocumentParagraphs, applyIssueFix, applyTextIssueFix, selectParagraphByTargetId, applyInversePatches } from "../word/formatting.service";
+import { inspectSelectionParagraphs, applyIssueFix, applyTextIssueFix, selectParagraphByTargetId, applyInversePatches } from "../word/formatting.service";
 import { TransactionManager } from "../word/transaction.service";
 import { validateParagraph } from "../rules/validator";
 import { classifyDocumentComponents, type ClassifiedComponent } from "../rules/component-classifier";
@@ -10,7 +10,7 @@ import { validateComponentParagraph } from "../rules/component-validator";
 import type { ValidationIssue } from "../rules/models";
 import { ACTIVE_RULE_PROFILES, getRuleProfile, resolveRuleProfileForOrganization, type RuleProfileId } from "../rules/profiles";
 import { validatePageSetup } from "../rules/page-validator";
-import { applyPageIssueFix, applyPageRules, inspectPageSetup } from "../word/page-formatting.service";
+import { applyPageIssueFix, applyPageRules } from "../word/page-formatting.service";
 import { TEMPLATE_CATALOG } from "../templates/catalog";
 import { distinctTemplateValues, searchTemplates, type TemplateOrganization, type TemplateRecord } from "../templates/library";
 import { deleteUserTemplate, getUserTemplateData, listUserTemplates, saveUserTemplate } from "../templates/storage";
@@ -46,17 +46,12 @@ import { buildTemplateNarrativePrompt } from "../ai/template-drafting";
 import { runTemplateInsertion } from "./template-insertion";
 import { getTemplateFormSchema, type TemplateFormSchema, type TemplateFormValue, type TemplateFormValues } from "../templates/form-schema";
 import { normalizeTemplateFormValues, validateTemplateForm } from "../templates/form-validation";
-import { deleteTemplateFormDraft, getLatestActiveDraft, loadTemplateFormDraft, saveTemplateFormDraft, type TemplateFormDraft } from "../templates/form-drafts";
+import { loadTemplateFormDraft, saveTemplateFormDraft } from "../templates/form-drafts";
 import { addRecentTemplate, getFavoriteTemplateIds, getRecentTemplateIds, toggleFavoriteTemplate } from "../templates/recent-favorites";
 import { applyTemplateFormToWord } from "../word/form-content-control.service";
 import { buildTemplateFormPrompt, filterTemplateFormSuggestions, parseTemplateFormSuggestions, type TemplateFormAiSuggestion } from "../ai/template-form";
 import { describeTemplateFormSync, mergeAcceptedTemplateFormSuggestions } from "./template-form.service";
-import { TemplateFormPanel } from "./TemplateFormPanel";
-import { SmartStartScreen } from "./components/SmartStartScreen";
-import { FormDraftingView } from "./components/FormDraftingView";
 import { TemplateWizardModal } from "./components/TemplateWizardModal";
-import { KnowledgeBaseView } from "./components/KnowledgeBaseView";
-import { InspectionEditorView } from "./components/InspectionEditorView";
 import { evaluateDocumentRules } from "../rules/document-evaluator";
 import type { DocumentEvaluationSummary } from "../rules/models";
 import { getSuggestedQuickPrompts, buildAugmentedAiPrompt } from "../ai/contextual-pipeline";
@@ -67,12 +62,12 @@ import { AiSettingsModal } from "./components/AiSettingsModal";
 import { suggestMatchingTemplates, mapDraftToFormValues, decomposeDraftIntoFormFields } from "../ai/template-matcher";
 import { detectDocumentContext, type AutoDetectResult } from "../rules/auto-detect.service";
 import { profileStorage } from "../profiles/profile-storage";
-import { DraftingProfilesView } from "./components/DraftingProfilesView";
 import { AiTaskpaneView } from "./components/AiTaskpaneView";
 import { DocumentSettingsModal } from "./components/DocumentSettingsModal";
 import { InspectionModal } from "./components/InspectionModal";
 import { TemplateLibraryModal } from "./components/TemplateLibraryModal";
 import { KnowledgeModal } from "./components/KnowledgeModal";
+import { TemplateFormModal } from "./components/TemplateFormModal";
 import { applyA4Margins } from "../word/page-toolkit.service";
 import {
   loadSavedSettings,
@@ -81,13 +76,14 @@ import {
   applySettingsToWord,
   type DocumentSettings,
 } from "../models/document-settings";
+import { consumeFallbackView, closeDialogContainer } from "../commands/dialog";
+import { inspectCurrentDocument } from "../rules/document-inspection";
 
-type AppMainTab = "drafting" | "inspect" | "library" | "knowledge" | "utilities";
 type ActiveModalType = "none" | "document_settings" | "inspect" | "template_library" | "template_wizard" | "knowledge" | "ai_settings";
 
 const TEMPLATE_ORGANIZATIONS: Array<{ value: TemplateOrganization; label: string }> = [
-  { value: "TVCI", label: "TVCI" },
-  { value: "IEMM", label: "IEMM" },
+  { value: "TVCI", label: "Trung tâm Thử nghiệm - Kiểm định Công nghiệp" },
+  { value: "IEMM", label: "Viện Cơ khí Năng lượng và Mỏ - Vinacomin" },
   { value: "DANG", label: "Đảng" },
 ];
 
@@ -131,6 +127,12 @@ function proofreadingCategoryLabel(category: string): string {
 }
 
 export default function App() {
+  const isDialog = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dialog") === "1";
+  const closeActiveModal = () => {
+    if (isDialog) closeDialogContainer();
+    else setActiveModal("none");
+  };
+
   const [brandExpanded, setBrandExpanded] = useState(() => {
     try {
       const saved = localStorage.getItem("tvci_brand_expanded");
@@ -149,7 +151,6 @@ export default function App() {
     });
   };
 
-  const [activeTab, setActiveTab] = useState<AppMainTab>("drafting");
   const [activeModal, setActiveModal] = useState<ActiveModalType>("none");
   const [documentSettings, setDocumentSettings] = useState<DocumentSettings>(() => loadSavedSettings());
   const [templateLibraryFilter, setTemplateLibraryFilter] = useState<"all" | "recent" | "favorite">("all");
@@ -158,14 +159,13 @@ export default function App() {
   const [issues, setIssues] = useState<ValidationIssue[]>([]);
   const [evaluationSummary, setEvaluationSummary] = useState<DocumentEvaluationSummary | null>(null);
   const [recognizedComponents, setRecognizedComponents] = useState<Array<ClassifiedComponent & { text: string }>>([]);
-  const [ruleProfileId, setRuleProfileId] = useState<RuleProfileId>("IEMM");
-  const [validationScope, setValidationScope] = useState<"selection" | "document">("selection");
+  const [ruleProfileId, setRuleProfileId] = useState<RuleProfileId>("NĐ30_TVCI");
+  const [validationScope, setValidationScope] = useState<"selection" | "document">("document");
   const [customerName, setCustomerName] = useState("");
   const [legalBasisInputText, setLegalBasisInputText] = useState("");
   const [signerRoleInput, setSignerRoleInput] = useState("GIÁM ĐỐC");
   const [signerNameInput, setSignerNameInput] = useState("");
   const [userTemplates, setUserTemplates] = useState<TemplateRecord[]>([]);
-  const [templateLibraryOpen, setTemplateLibraryOpen] = useState(false);
   const [templateOrg, setTemplateOrg] = useState<TemplateOrganization>("TVCI");
   const [templateQuery, setTemplateQuery] = useState("");
   const [templateDepartment, setTemplateDepartment] = useState("Văn bản chung");
@@ -175,7 +175,6 @@ export default function App() {
   const [templatePreferences, setTemplatePreferences] = useState<TemplatePreferences>(() => loadTemplatePreferences());
   const [favoriteIds, setFavoriteIds] = useState<string[]>(() => getFavoriteTemplateIds());
   const [recentIds, setRecentIds] = useState<string[]>(() => getRecentTemplateIds());
-  const [pendingDraft, setPendingDraft] = useState<TemplateFormDraft | null>(() => getLatestActiveDraft());
   const [hasDocumentContent, setHasDocumentContent] = useState(false);
   const [autoDetectResult, setAutoDetectResult] = useState<AutoDetectResult | null>(null);
   const [docStats, setDocStats] = useState<{ paragraphs: number; words: number; snippet: string }>({
@@ -342,11 +341,11 @@ export default function App() {
   }, [ruleProfileId]);
   useEffect(() => {
     void updateDocumentStatus();
-    setPendingDraft(getLatestActiveDraft());
-  }, [activeTab]);
+  }, []);
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const view = params.get("view");
+    const fallbackView = consumeFallbackView();
+    const view = params.get("view") || fallbackView;
     const filter = params.get("filter") as "recent" | "favorite" | null;
 
     if (view === "settings" || view === "doc_settings") {
@@ -355,7 +354,20 @@ export default function App() {
     }
     if (view === "standardize" || view === "inspect") {
       setActiveModal("inspect");
-      void handleCheck();
+      setValidationScope("document");
+      void handleCheck("document");
+      return;
+    }
+    if (view === "template-form" || view === "template") {
+      const templateId = params.get("templateId");
+      if (templateId) {
+        const found = TEMPLATE_CATALOG.find((t) => t.id === templateId);
+        if (found) {
+          void handleOpenTemplateForm(found);
+          return;
+        }
+      }
+      setActiveModal("template_library");
       return;
     }
     if (view === "library") {
@@ -418,11 +430,6 @@ export default function App() {
       .filter((t): t is TemplateRecord => Boolean(t));
   }, [recentIds, allTemplates]);
 
-  const pendingDraftTemplateName = useMemo(() => {
-    if (!pendingDraft) return undefined;
-    return allTemplates.find((t) => t.id === pendingDraft.templateId)?.name;
-  }, [pendingDraft, allTemplates]);
-
   const relatedKnowledgeCount = useMemo(() => {
     if (!activeFormTemplate) return 0;
     return knowledgeRecords.filter(
@@ -476,17 +483,33 @@ export default function App() {
     setStatus(`Đã đọc ${text.length} ký tự từ đoạn chọn.`);
   });
 
-  const handleCheck = () => run(async () => {
-    const profile = getRuleProfile(ruleProfileId);
-    const snapshots = validationScope === "selection" ? await inspectSelectionParagraphs() : await inspectDocumentParagraphs();
-    if (validationScope === "selection" && snapshots.length === 0) throw new Error("Hãy chọn ít nhất một đoạn văn bản trước khi kiểm tra.");
+  const handleCheck = (requestedScope: "selection" | "document" = validationScope) => run(async () => {
+    if (requestedScope === "document") {
+      const inspection = await inspectCurrentDocument(ruleProfileId);
+      const { summary, components, pageSnapshot } = inspection;
+      setRuleProfileId(inspection.profileId);
+      setEvaluationSummary(summary);
+      setRecognizedComponents(components);
+      setIssues(summary.isBlankDocument ? [] : summary.issues);
+      if (summary.isBlankDocument) {
+        setStatus("Tài liệu chưa có nội dung để kiểm tra.");
+        return;
+      }
+      const profile = getRuleProfile(inspection.profileId);
+      const pageNote = profile.page && !pageSnapshot ? " Word hiện tại không hỗ trợ kiểm tra lề tự động." : "";
+      setStatus(`Kiểm tra theo ${profile.name}: Đạt ${summary.passedRules}/${summary.applicableRules} tiêu chuẩn (${summary.healthScore}%). Nhận diện ${components.length} thành phần thể thức.${pageNote}`);
+      return;
+    }
 
-    const pageSnapshot = validationScope === "document" && profile.page ? await inspectPageSetup() : null;
+    const profile = getRuleProfile(ruleProfileId);
+    const snapshots = await inspectSelectionParagraphs();
+    if (snapshots.length === 0) throw new Error("Hãy chọn ít nhất một đoạn văn bản trước khi kiểm tra.");
+
     const summary = evaluateDocumentRules({
       profileId: ruleProfileId,
-      validationScope,
+      validationScope: "selection",
       paragraphSnapshots: snapshots,
-      pageSnapshot,
+      pageSnapshot: null,
       horizontalRuleSnapshot: null,
     });
 
@@ -504,10 +527,9 @@ export default function App() {
     setRecognizedComponents(components.map((component) => ({ ...component, text: snapshots[component.paragraphIndex]?.text ?? "" })));
 
     setIssues(summary.issues);
-    const pageNote = validationScope === "document" && profile.page && !pageSnapshot ? " Word hiện tại không hỗ trợ kiểm tra lề tự động." : "";
     const componentNote = ` Nhận diện ${components.length} thành phần thể thức.`;
     setStatus(
-      `Kiểm tra theo ${profile.name}: Đạt ${summary.passedRules}/${summary.applicableRules} tiêu chuẩn (${summary.healthScore}%).${componentNote}${pageNote}`
+      `Kiểm tra theo ${profile.name}: Đạt ${summary.passedRules}/${summary.applicableRules} tiêu chuẩn (${summary.healthScore}%).${componentNote}`
     );
   });
 
@@ -649,23 +671,9 @@ export default function App() {
     setFavoriteIds(getFavoriteTemplateIds());
   };
 
-  const handleResumeDraft = (draft: TemplateFormDraft) => {
-    const template = allTemplates.find((t) => t.id === draft.templateId);
-    if (template) {
-      void handleOpenTemplateForm(template);
-    }
-  };
-
-  const handleDiscardDraft = (draft: TemplateFormDraft) => {
-    deleteTemplateFormDraft(draft.templateId, draft.organization, draft.documentType);
-    setPendingDraft(getLatestActiveDraft());
-    setStatus("Đã hủy bản nháp biểu mẫu.");
-  };
-
   const handleSaveDraftExplicit = () => {
     if (activeFormTemplate) {
       saveTemplateFormDraft(activeFormTemplate.id, activeFormTemplate.organization, activeFormTemplate.documentType, templateFormValues);
-      setPendingDraft(getLatestActiveDraft());
       setStatus(`Đã lưu bản nháp "${activeFormTemplate.name}".`);
     }
   };
@@ -687,19 +695,12 @@ export default function App() {
     }
     const values = { ...profileValues, ...templateFormSessionValues, ...(draft?.values ?? {}), ...(initialValues ?? {}) };
     setActiveFormTemplate(template);
-    setActiveTab("drafting");
     setAiWorkspaceOpen(false);
-    setTemplateLibraryOpen(false);
     setTemplateFormValues(values);
     setTemplateFormSource("");
     setTemplateFormSuggestions([]);
     setTemplateFormSyncMessage("");
     setStatus(draft ? `Đã mở bản nháp form "${template.name}".` : `Đã mở form "${schema.label}" cho ${template.name}. Hãy điền thông tin rồi bấm "Chèn mẫu & Điền vào Word".`);
-    try {
-      setTimeout(() => {
-        document.getElementById("template-form-section")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 50);
-    } catch {}
   });
 
   const handleInsertTemplateBlank = (template: TemplateRecord) => run(async () => {
@@ -1400,36 +1401,8 @@ export default function App() {
           </button>
         </div>
       )}
-      {/* If a template form is open, render FormDraftingView */}
-      {activeFormTemplate && activeFormSchema ? (
-        <div style={{ flex: 1, overflowY: "auto" }}>
-          <FormDraftingView
-            template={activeFormTemplate}
-            schema={activeFormSchema}
-            values={templateFormValues}
-            sourceText={templateFormSource}
-            suggestions={templateFormSuggestions}
-            busy={busy}
-            syncMessage={templateFormSyncMessage}
-            relatedKnowledgeCount={relatedKnowledgeCount}
-            onOpenRelatedKnowledge={() => setActiveModal("knowledge")}
-            onChange={handleTemplateFormChange}
-            onClose={handleCloseTemplateForm}
-            onInsertBlank={() => handleInsertTemplateBlank(activeFormTemplate)}
-            onInsertAndFill={() => handleInsertTemplateAndFill(activeFormTemplate)}
-            onApplyToWord={handleApplyTemplateForm}
-            onSaveDraft={handleSaveDraftExplicit}
-            onChangeTemplate={() => setActiveFormTemplate(null)}
-            onSourceTextChange={setTemplateFormSource}
-            onSuggestAi={handleSuggestTemplateForm}
-            onAcceptAi={handleAcceptTemplateFormAi}
-            onReviewAi={handleReviewTemplateFormAi}
-            onAiValueChange={handleTemplateFormAiValueChange}
-          />
-        </div>
-      ) : (
-        /* Primary Taskpane View: Single-purpose, distraction-free AI Drafting */
-        <AiTaskpaneView
+      {/* The primary task pane remains AI even when any secondary workflow is open. */}
+      <AiTaskpaneView
           documentSettings={documentSettings}
           onOpenDocumentSettings={() => setActiveModal("document_settings")}
           onOpenAiSettings={() => setAiSettingsModalOpen(true)}
@@ -1488,13 +1461,37 @@ export default function App() {
           onRollback={handleRollbackLastAction}
           hasSelection={Boolean(selection.trim())}
           selectionWordCount={selection.trim() ? selection.trim().split(/\s+/).length : 0}
-        />
-      )}
+      />
+
+      <TemplateFormModal
+        isOpen={Boolean(activeFormTemplate && activeFormSchema)}
+        template={activeFormTemplate!}
+        schema={activeFormSchema!}
+        values={templateFormValues}
+        sourceText={templateFormSource}
+        suggestions={templateFormSuggestions}
+        busy={busy}
+        syncMessage={templateFormSyncMessage}
+        relatedKnowledgeCount={relatedKnowledgeCount}
+        onOpenRelatedKnowledge={() => setActiveModal("knowledge")}
+        onChange={handleTemplateFormChange}
+        onClose={handleCloseTemplateForm}
+        onInsertBlank={() => handleInsertTemplateBlank(activeFormTemplate!)}
+        onInsertAndFill={() => handleInsertTemplateAndFill(activeFormTemplate!)}
+        onApplyToWord={handleApplyTemplateForm}
+        onSaveDraft={handleSaveDraftExplicit}
+        onChangeTemplate={handleCloseTemplateForm}
+        onSourceTextChange={setTemplateFormSource}
+        onSuggestAi={handleSuggestTemplateForm}
+        onAcceptAi={handleAcceptTemplateFormAi}
+        onReviewAi={handleReviewTemplateFormAi}
+        onAiValueChange={handleTemplateFormAiValueChange}
+      />
 
       {/* MODAL 1: Thiết lập Văn bản */}
       <DocumentSettingsModal
         isOpen={activeModal === "document_settings"}
-        onClose={() => setActiveModal("none")}
+        onClose={closeActiveModal}
         onApply={async (s) => {
           await applySettingsToWord(s);
           setDocumentSettings(s);
@@ -1515,7 +1512,7 @@ export default function App() {
       {/* MODAL 2: Kiểm tra Thể thức Văn bản */}
       <InspectionModal
         isOpen={activeModal === "inspect"}
-        onClose={() => setActiveModal("none")}
+        onClose={closeActiveModal}
         onCheck={handleCheck}
         summary={evaluationSummary}
         issues={issues}
@@ -1552,6 +1549,8 @@ export default function App() {
         }}
         onSaved={(newTemplate) => {
           void refreshUserTemplates();
+          setActiveModal("none");
+          setWizardOpen(false);
           void handleOpenTemplateForm(newTemplate);
           setStatus(`Đã lưu và mở biểu mẫu mới "${newTemplate.name}" thành công!`);
         }}
@@ -1590,4 +1589,3 @@ export default function App() {
     </main>
   );
 }
-

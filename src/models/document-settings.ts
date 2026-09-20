@@ -43,6 +43,13 @@ export interface DocumentSignerInfo {
   fullName: string; // Họ và tên
 }
 
+export interface QuickInsertSettings {
+  addressee?: string[];
+  legalBasis?: string[];
+  appendixTitle?: string;
+  outlineKind?: string;
+}
+
 export interface DocumentSettings {
   presetId: DocumentSettingsPresetId;
   docType: string; // CÔNG VĂN, QUYẾT ĐỊNH, TỜ TRÌNH, BÁO CÁO, THÔNG BÁO, GIẤY MỜI
@@ -54,6 +61,8 @@ export interface DocumentSettings {
   typography: DocumentTypographySetup;
   signer: DocumentSignerInfo;
   recipients: string[];
+  /** Optional user-provided content used by Ribbon quick-insert commands. */
+  quickInsert?: QuickInsertSettings;
 }
 
 export const SETTINGS_STORAGE_KEY = "tvci_default_document_settings";
@@ -109,7 +118,7 @@ export const PRESET_PRESETS: Record<DocumentSettingsPresetId, DocumentSettings> 
     },
     signer: {
       title: "CỤC TRƯỞNG",
-      fullName: "Nguyễn Văn A",
+      fullName: "",
     },
     recipients: ["Như Kính gửi", "Lưu: VT, VP."],
   },
@@ -161,7 +170,7 @@ export const PRESET_PRESETS: Record<DocumentSettingsPresetId, DocumentSettings> 
     docTitle: "V/v báo cáo tiến độ các đề tài nghiên cứu khoa học công nghệ",
     agency: {
       parentAgency: "TẬP ĐOÀN CÔNG NGHIỆP THAN - KHOÁNG SẢN VIỆT NAM",
-      issuingAgency: "VIỆN CƠ ĐIỆN MỎ - VINACOMIN",
+      issuingAgency: "VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN",
       agencyAbbr: "CĐM",
     },
     symbol: {
@@ -202,7 +211,7 @@ export const PRESET_PRESETS: Record<DocumentSettingsPresetId, DocumentSettings> 
     docType: "CÔNG VĂN",
     docTitle: "V/v triển khai thử nghiệm giải pháp tự động hóa và cơ điện mỏ",
     agency: {
-      parentAgency: "VIỆN CƠ ĐIỆN MỎ - VINACOMIN",
+      parentAgency: "VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN",
       issuingAgency: "TRUNG TÂM PHÁT TRIỂN CÔNG NGHỆ VÀ THIẾT BỊ CƠ ĐIỆN",
       agencyAbbr: "TVCI",
     },
@@ -235,9 +244,9 @@ export const PRESET_PRESETS: Record<DocumentSettingsPresetId, DocumentSettings> 
     },
     signer: {
       title: "GIÁM ĐỐC",
-      fullName: "Nguyễn Văn B",
+      fullName: "",
     },
-    recipients: ["Viện Cơ điện Mỏ (để b/c)", "Các đơn vị đối tác", "Lưu: VT, TVCI."],
+    recipients: ["Viện Cơ khí Năng lượng và Mỏ - Vinacomin (để b/c)", "Các đơn vị đối tác", "Lưu: VT, TVCI."],
   },
   PARTY: {
     presetId: "PARTY",
@@ -245,7 +254,7 @@ export const PRESET_PRESETS: Record<DocumentSettingsPresetId, DocumentSettings> 
     docTitle: "V/v nâng cao chất lượng sinh hoạt chi bộ và công tác phát triển đảng viên",
     agency: {
       parentAgency: "ĐẢNG CỘNG SẢN VIỆT NAM",
-      issuingAgency: "ĐẢNG ỦY VIỆN CƠ ĐIỆN MỎ",
+      issuingAgency: "ĐẢNG ỦY VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ",
       agencyAbbr: "ĐU",
     },
     symbol: {
@@ -331,6 +340,10 @@ export function getDefaultSettings(presetId: DocumentSettingsPresetId = "TVCI"):
 }
 
 export function loadSavedSettings(): DocumentSettings {
+  return loadSavedSettingsOrNull() || getDefaultSettings("TVCI");
+}
+
+export function loadSavedSettingsOrNull(): DocumentSettings | null {
   try {
     if (typeof localStorage !== "undefined") {
       const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
@@ -344,7 +357,7 @@ export function loadSavedSettings(): DocumentSettings {
   } catch (err) {
     console.warn("Could not load document settings from localStorage:", err);
   }
-  return getDefaultSettings("TVCI");
+  return null;
 }
 
 export function saveDefaultSettings(settings: DocumentSettings): void {

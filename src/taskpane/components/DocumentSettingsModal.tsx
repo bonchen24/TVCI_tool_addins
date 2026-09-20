@@ -220,14 +220,49 @@ export function DocumentSettingsModal({
                         className={`docSettingsPresetChip ${settings.presetId === pid ? "active" : ""}`}
                         onClick={() => handleSelectPreset(pid)}
                       >
-                        {pid === "TVCI" && "Trung tâm TVCI"}
-                        {pid === "IEMM" && "Viện Cơ điện Mỏ"}
+                        {pid === "TVCI" && "Trung tâm Thử nghiệm - Kiểm định Công nghiệp"}
+                        {pid === "IEMM" && "Viện Cơ khí Năng lượng và Mỏ - Vinacomin"}
                         {pid === "TKV" && "Tập đoàn TKV"}
                         {pid === "ND30" && "Nghị định 30 Chuẩn"}
                         {pid === "PARTY" && "Đảng Cộng sản"}
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div className="docSettingsFieldGroup">
+                  <label className="docSettingsLabel">Dữ liệu chèn nhanh (mỗi dòng một mục):</label>
+                  <textarea
+                    className="docSettingsTextarea"
+                    rows={3}
+                    value={(settings.quickInsert?.addressee ?? []).join("\n")}
+                    placeholder="Kính gửi: nhập nội dung đã được phê duyệt"
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      quickInsert: { ...settings.quickInsert, addressee: e.target.value.split("\n").filter((line) => line.trim()) },
+                    })}
+                  />
+                  <textarea
+                    className="docSettingsTextarea"
+                    rows={3}
+                    value={(settings.quickInsert?.legalBasis ?? []).join("\n")}
+                    placeholder="Căn cứ: nhập nội dung pháp lý đã được phê duyệt"
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      quickInsert: { ...settings.quickInsert, legalBasis: e.target.value.split("\n").filter((line) => line.trim()) },
+                    })}
+                  />
+                  <input
+                    type="text"
+                    className="docSettingsInput"
+                    value={settings.quickInsert?.appendixTitle ?? ""}
+                    placeholder="Tên phụ lục đã được phê duyệt (nếu có)"
+                    onChange={(e) => setSettings({
+                      ...settings,
+                      quickInsert: { ...settings.quickInsert, appendixTitle: e.target.value },
+                    })}
+                  />
+                  <span className="docSettingsHint">Ribbon chỉ chèn các nội dung bạn đã cấu hình ở đây, trong hồ sơ, hoặc đang chọn trong Word.</span>
                 </div>
               </div>
             )}
@@ -259,7 +294,7 @@ export function DocumentSettingsModal({
                     type="text"
                     className="docSettingsInput"
                     value={settings.agency.issuingAgency}
-                    placeholder="VÍ DỤ: VIỆN CƠ ĐIỆN MỎ - VINACOMIN"
+                    placeholder="VÍ DỤ: VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN"
                     onChange={(e) =>
                       setSettings({
                         ...settings,
@@ -595,7 +630,7 @@ export function DocumentSettingsModal({
                       type="text"
                       className="docSettingsInput"
                       value={settings.signer.fullName}
-                      placeholder="Nguyễn Văn A"
+                      placeholder="Nhập họ và tên người ký"
                       onChange={(e) =>
                         setSettings({
                           ...settings,
@@ -630,22 +665,12 @@ export function DocumentSettingsModal({
                 <h4 className="docSettingsSectionTitle">Các mẫu cấu hình sẵn theo quy định</h4>
                 <div className="docSettingsPresetGrid">
                   <div
-                    className={`docSettingsPresetCard ${settings.presetId === "TVCI" ? "active" : ""}`}
-                    onClick={() => handleSelectPreset("TVCI")}
+                    className={`docSettingsPresetCard ${settings.presetId === "ND30" ? "active" : ""}`}
+                    onClick={() => handleSelectPreset("ND30")}
                   >
-                    <div className="docSettingsPresetCardTitle">🏢 Trung tâm TVCI</div>
+                    <div className="docSettingsPresetCardTitle">📜 Nghị định 30/2020/NĐ-CP</div>
                     <div className="docSettingsPresetCardDesc">
-                      Cơ quan: TVCI - Viện Cơ điện Mỏ. Ký hiệu: TVCI. Cỡ chữ 14pt, lề A4 chuẩn 20-20-30-15 mm.
-                    </div>
-                  </div>
-
-                  <div
-                    className={`docSettingsPresetCard ${settings.presetId === "IEMM" ? "active" : ""}`}
-                    onClick={() => handleSelectPreset("IEMM")}
-                  >
-                    <div className="docSettingsPresetCardTitle">🏛️ Viện Cơ điện Mỏ (IEMM)</div>
-                    <div className="docSettingsPresetCardDesc">
-                      Cơ quan cấp trên: TKV. Đơn vị: Viện Cơ điện Mỏ - Vinacomin. Ký hiệu: CĐM. Cỡ chữ 14pt.
+                      Chuẩn thể thức hành chính Nhà nước tổng quát, phông Times New Roman 13-14pt.
                     </div>
                   </div>
 
@@ -660,12 +685,22 @@ export function DocumentSettingsModal({
                   </div>
 
                   <div
-                    className={`docSettingsPresetCard ${settings.presetId === "ND30" ? "active" : ""}`}
-                    onClick={() => handleSelectPreset("ND30")}
+                    className={`docSettingsPresetCard ${settings.presetId === "IEMM" ? "active" : ""}`}
+                    onClick={() => handleSelectPreset("IEMM")}
                   >
-                    <div className="docSettingsPresetCardTitle">📜 Nghị định 30/2020/NĐ-CP</div>
+                    <div className="docSettingsPresetCardTitle">🏛️ Viện Cơ khí Năng lượng và Mỏ - Vinacomin</div>
                     <div className="docSettingsPresetCardDesc">
-                      Chuẩn thể thức hành chính Nhà nước tổng quát, phông Times New Roman 13-14pt.
+                      Cơ quan cấp trên: TKV. Đơn vị: Viện Cơ khí Năng lượng và Mỏ - Vinacomin. Ký hiệu: CĐM. Cỡ chữ 14pt.
+                    </div>
+                  </div>
+
+                  <div
+                    className={`docSettingsPresetCard ${settings.presetId === "TVCI" ? "active" : ""}`}
+                    onClick={() => handleSelectPreset("TVCI")}
+                  >
+                    <div className="docSettingsPresetCardTitle">🏢 Trung tâm Thử nghiệm - Kiểm định Công nghiệp</div>
+                    <div className="docSettingsPresetCardDesc">
+                      Cơ quan: Trung tâm Thử nghiệm - Kiểm định Công nghiệp. Ký hiệu: TVCI. Cỡ chữ 14pt, lề A4 chuẩn 20-20-30-15 mm.
                     </div>
                   </div>
 
@@ -676,6 +711,16 @@ export function DocumentSettingsModal({
                     <div className="docSettingsPresetCardTitle">🚩 Đảng Cộng sản Việt Nam</div>
                     <div className="docSettingsPresetCardDesc">
                       Theo Hướng dẫn 36-HD/VPTW. Cơ quan: ĐẢNG CỘNG SẢN VIỆT NAM. Không có tiêu ngữ.
+                    </div>
+                  </div>
+
+                  <div
+                    className={`docSettingsPresetCard ${settings.presetId === "PERSONAL" ? "active" : ""}`}
+                    onClick={() => handleSelectPreset("PERSONAL")}
+                  >
+                    <div className="docSettingsPresetCardTitle">👤 Tùy chỉnh cá nhân</div>
+                    <div className="docSettingsPresetCardDesc">
+                      Thiết lập linh hoạt cho các loại văn bản cá nhân hoặc đơn vị đặc thù khác.
                     </div>
                   </div>
                 </div>
@@ -740,9 +785,9 @@ export function DocumentSettingsModal({
                   {settings.recipients.length > 3 && <div className="a4TextMicro">...</div>}
                 </div>
                 <div className="a4SignerBox">
-                  <div className="a4TextBold">{settings.signer.title || "CHỨC VỤ NGƯỜI KÝ"}</div>
-                  <div className="a4SignatureSpace">(Ký, ghi rõ họ tên)</div>
-                  <div className="a4TextBold">{settings.signer.fullName || "HỌ VÀ TÊN"}</div>
+                  <div className="a4TextBold">{settings.signer.title || ""}</div>
+                  <div className="a4SignatureSpace">&nbsp;</div>
+                  <div className="a4TextBold">{settings.signer.fullName || ""}</div>
                 </div>
               </div>
 

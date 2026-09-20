@@ -1602,6 +1602,29 @@ body {
 }
 
 /* Form Drafting View */
+.templateFormModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 8px;
+  background: rgba(15, 23, 42, 0.72);
+  box-sizing: border-box;
+}
+
+.templateFormModalDialog {
+  width: min(1100px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.28);
+  box-sizing: border-box;
+}
+
 .formDraftingView {
   display: flex;
   flex-direction: column;

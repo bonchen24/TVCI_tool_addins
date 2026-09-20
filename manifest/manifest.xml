@@ -68,10 +68,7 @@
                     <bt:Image size="32" resid="Icon.Drafting.32"/>
                     <bt:Image size="80" resid="Icon.Drafting.80"/>
                   </Icon>
-                  <Action xsi:type="ShowTaskpane">
-                    <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
-                    <SourceLocation resid="Taskpane.Settings.Url"/>
-                  </Action>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>openDocumentSettingsDialog</FunctionName></Action>
                 </Control>
                 <Control xsi:type="Button" id="CheckDocumentButton">
                   <Label resid="CheckDocument.Label"/>
@@ -81,10 +78,7 @@
                     <bt:Image size="32" resid="Icon.Proofread.32"/>
                     <bt:Image size="80" resid="Icon.Proofread.80"/>
                   </Icon>
-                  <Action xsi:type="ShowTaskpane">
-                    <TaskpaneId>Office.AutoShowTaskpaneWithDocument</TaskpaneId>
-                    <SourceLocation resid="Taskpane.Inspect.Url"/>
-                  </Action>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>openInspectorDialog</FunctionName></Action>
                 </Control>
                 <Control xsi:type="Button" id="QuickStandardizeButton">
                   <Label resid="QuickStandardize.Label"/>
@@ -510,7 +504,7 @@
         <bt:String id="SafeFix.Tooltip" DefaultValue="Tự động sửa các lỗi thể thức an toàn có thể khắc phục được."/>
         <bt:String id="Rollback.Tooltip" DefaultValue="Hoàn tác lại lần chuẩn hóa trước đó."/>
 
-        <bt:String id="TemplateLibrary.Tooltip" DefaultValue="Mở kho biểu mẫu chuẩn của TVCI, Viện Cơ điện Mỏ và Đảng."/>
+        <bt:String id="TemplateLibrary.Tooltip" DefaultValue="Mở kho biểu mẫu chuẩn của Trung tâm Thử nghiệm - Kiểm định Công nghiệp, Viện Cơ khí Năng lượng và Mỏ - Vinacomin và Đảng."/>
         <bt:String id="RecentTemplates.Tooltip" DefaultValue="Xem danh sách các biểu mẫu đã sử dụng gần đây."/>
         <bt:String id="FavoriteTemplates.Tooltip" DefaultValue="Xem danh sách các biểu mẫu đã đánh dấu yêu thích."/>
         <bt:String id="TemplateBuilder.Tooltip" DefaultValue="Mở Wizard hướng dẫn 5 bước tạo biểu mẫu mới."/>
@@ -523,7 +517,7 @@
         <bt:String id="Outline.Tooltip" DefaultValue="Chèn cấu trúc đề mục I, 1, a, - chuẩn thể thức."/>
 
         <bt:String id="StandardA4.Tooltip" DefaultValue="Thiết lập lề trang A4 chuẩn (20-20-30-15 mm) theo NĐ30."/>
-        <bt:String id="ToggleOrientation.Tooltip" DefaultValue="Chuyển hướng trang ngang hoặc dọc cho bảng biểu."/>
+        <bt:String id="ToggleOrientation.Tooltip" DefaultValue="Chuyển toàn bộ tài liệu giữa hướng trang ngang và dọc."/>
         <bt:String id="PageNumbers.Tooltip" DefaultValue="Đánh số trang góc trên giữa theo Nghị định 30."/>
         <bt:String id="FixTableOverflow.Tooltip" DefaultValue="Tự động co giãn chiều rộng bảng vừa khít lề trang Word."/>
         <bt:String id="DeleteBlankPages.Tooltip" DefaultValue="Xóa các trang trắng và dòng ngắt thừa ở cuối văn bản."/>

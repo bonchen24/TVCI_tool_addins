@@ -26,6 +26,8 @@ describe("Document Evaluator Engine (4-State Rules Pipeline)", () => {
       expect(result.isBlankDocument).toBe(true);
       expect(result.passedRules).toBe(0);
       expect(result.applicableRules).toBe(0);
+      expect(result.totalRules).toBe(0);
+      expect(result.notApplicableRules).toBe(0);
       expect(result.healthScore).toBe(0);
       // Denominator and numerator must never allow 27/27
       expect(result.results.filter((r) => r.status === "PASS")).toHaveLength(0);
@@ -54,6 +56,8 @@ describe("Document Evaluator Engine (4-State Rules Pipeline)", () => {
       expect(result.isBlankDocument).toBe(true);
       expect(result.passedRules).toBe(0);
       expect(result.applicableRules).toBe(0);
+      expect(result.totalRules).toBe(0);
+      expect(result.notApplicableRules).toBe(0);
       expect(result.healthScore).toBe(0);
     });
   });
@@ -374,6 +378,30 @@ describe("Document Evaluator Engine (4-State Rules Pipeline)", () => {
       expect(pageResults.length).toBeGreaterThan(0);
       expect(pageResults.every((r) => r.status !== "PASS")).toBe(true);
     });
+
+    it("keeps an unavailable page inspection out of the PASS count", () => {
+      const result = evaluateDocumentRules({
+        profileId: "NĐ30_TVCI",
+        validationScope: "document",
+        paragraphSnapshots: [
+          {
+            id: "doc:p:0",
+            text: "Nội dung đã có",
+            fontName: "Times New Roman",
+            fontSize: 13,
+            alignment: "Justified",
+            spaceBefore: 2,
+            spaceAfter: 2,
+          },
+        ],
+        pageSnapshot: null,
+      });
+
+      const pageResults = result.results.filter((r) => r.category === "page");
+      expect(pageResults).toHaveLength(6);
+      expect(pageResults.some((r) => r.status === "PASS")).toBe(false);
+      expect(result.passedRules).toBeLessThan(result.applicableRules);
+      expect(result.healthScore).toBe(Math.round((result.passedRules / result.applicableRules) * 100));
+    });
   });
 });
-

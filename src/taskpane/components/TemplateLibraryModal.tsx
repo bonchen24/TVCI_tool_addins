@@ -122,14 +122,14 @@ export function TemplateLibraryModal({
               className={`inspectionFilterBtn ${tab === "TVCI" ? "active" : ""}`}
               onClick={() => setTab("TVCI")}
             >
-              Trung tâm TVCI
+              Trung tâm Thử nghiệm - Kiểm định Công nghiệp
             </button>
             <button
               type="button"
               className={`inspectionFilterBtn ${tab === "IEMM" ? "active" : ""}`}
               onClick={() => setTab("IEMM")}
             >
-              Viện Cơ điện Mỏ
+              Viện Cơ khí Năng lượng và Mỏ - Vinacomin
             </button>
             <button
               type="button"

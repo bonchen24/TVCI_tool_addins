@@ -93,7 +93,7 @@ export function DraftingProfilesView() {
           <div className="grid2">
             <label>
               Họ và tên
-              <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="VD: Nguyễn Văn A" />
+              <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nhập họ và tên người ký" />
             </label>
             <label>
               Chức vụ / Chức danh
@@ -102,8 +102,8 @@ export function DraftingProfilesView() {
             <label>
               Cơ quan / Đơn vị
               <select value={organization} onChange={e => setOrganization(e.target.value as any)}>
-                <option value="TVCI">Trung tâm Thử nghiệm - TVCI</option>
-                <option value="IEMM">Viện Cơ khí - IEMM</option>
+                <option value="TVCI">Trung tâm Thử nghiệm - Kiểm định Công nghiệp</option>
+                <option value="IEMM">Viện Cơ khí Năng lượng và Mỏ - Vinacomin</option>
                 <option value="DANG">Văn bản Đảng</option>
               </select>
             </label>

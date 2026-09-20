@@ -257,6 +257,15 @@ export async function configurePageNumbers(profileId: RuleProfileId, enabled: bo
   });
 }
 
+export async function hasConfiguredPageNumbers(): Promise<boolean> {
+  return Word.run(async (context) => {
+    const controls = context.document.contentControls.getByTag("TVCI_PAGE_NUMBER");
+    controls.load("items");
+    await context.sync();
+    return controls.items.length > 0;
+  });
+}
+
 export async function configureHeaderFooter(headerText: string, footerText: string): Promise<void> {
   await Word.run(async (context) => {
     await deleteManagedControls(context, "TVCI_MANAGED_HEADER_FOOTER");

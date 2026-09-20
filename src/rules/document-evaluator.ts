@@ -25,8 +25,6 @@ export interface DocumentEvaluationInput {
   horizontalRuleSnapshot?: HorizontalRuleSnapshot | null;
 }
 
-const TOTAL_CATALOG_RULES = 27;
-
 export function evaluateDocumentRules(input: DocumentEvaluationInput): DocumentEvaluationSummary {
   const { profileId, validationScope, paragraphSnapshots, pageSnapshot, horizontalRuleSnapshot } = input;
   const profile = getRuleProfile(profileId);
@@ -41,12 +39,12 @@ export function evaluateDocumentRules(input: DocumentEvaluationInput): DocumentE
   if (isBlankDocument) {
     return {
       isBlankDocument: true,
-      totalRules: TOTAL_CATALOG_RULES,
+      totalRules: 0,
       applicableRules: 0,
       passedRules: 0,
       failedRules: 0,
       missingRules: 0,
-      notApplicableRules: TOTAL_CATALOG_RULES,
+      notApplicableRules: 0,
       healthScore: 0,
       results: [],
       issues: [],

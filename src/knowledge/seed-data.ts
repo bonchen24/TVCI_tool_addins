@@ -3,7 +3,7 @@ import type { KnowledgeRecord } from "./models";
 export const SEED_KNOWLEDGE_RECORDS: KnowledgeRecord[] = [
   {
     id: "kb-header-tvci",
-    title: "Tiêu đề header 2 cấp văn bản Trung tâm TVCI",
+    title: "Tiêu đề header 2 cấp văn bản Trung tâm Thử nghiệm - Kiểm định Công nghiệp",
     content: "Văn bản do Trung tâm hoặc các phòng thuộc Trung tâm ban hành: header bắt buộc 2 cấp gồm VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN và TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP. Tuyệt đối không đưa tên phòng ban thành cấp thứ ba trong header. Tên phòng chỉ xuất hiện tại các vị trí nghiệp vụ phù hợp như đơn vị soạn thảo, nơi nhận, chữ ký.",
     category: "mandatory",
     scope: "TVCI",

@@ -92,7 +92,11 @@ export function FormDraftingView({
     (suggestion) => suggestion.confidence < MIN_TEMPLATE_FORM_AI_CONFIDENCE && suggestion.reviewed !== true
   );
 
-  const breadcrumbOrg = template.organization === "TVCI" ? "Trung tâm" : template.organization === "IEMM" ? "Viện Cơ khí" : "Văn bản Đảng";
+  const breadcrumbOrg = template.organization === "TVCI"
+    ? "Trung tâm Thử nghiệm - Kiểm định Công nghiệp"
+    : template.organization === "IEMM"
+      ? "Viện Cơ khí Năng lượng và Mỏ - Vinacomin"
+      : "Văn bản Đảng";
   const breadcrumbDept = template.department || "Văn bản chung";
   const breadcrumbType = template.documentType;
 
