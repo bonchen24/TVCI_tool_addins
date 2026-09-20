@@ -33,10 +33,21 @@ const mime = {
 
 try {
   const certs = path.join(data, 'certs');
-  const server = https.createServer({
+  const tlsConfig = {
     pfx: fs.readFileSync(path.join(certs, 'localhost.pfx')),
     passphrase: fs.readFileSync(path.join(certs, 'password.txt'), 'utf8').trim()
-  }, (request, response) => {
+  };
+
+  const handleRequest = (request, response) => {
+    const origin = request.headers.origin;
+    if (origin && (origin === 'https://localhost:38473' || origin === 'https://127.0.0.1:38473')) {
+      response.setHeader('Access-Control-Allow-Origin', origin);
+      response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    }
+    if (request.method === 'OPTIONS') {
+      response.writeHead(204); response.end(); return;
+    }
+
     let url;
     try { url = new URL(request.url, `https://localhost:${PORT}`); }
     catch { response.writeHead(400); response.end(); return; }
@@ -117,7 +128,9 @@ try {
       stream.destroy();
     });
     stream.pipe(response);
-  });
+  };
+
+  const server = https.createServer(tlsConfig, handleRequest);
 
   server.on('error', error => {
     log(error.code === 'EADDRINUSE' ? 'Host failed: EADDRINUSE on port 38473; another process remains untouched.' : `Host failed: ${error.code || error.message}`);
@@ -125,6 +138,12 @@ try {
   });
 
   server.listen(PORT, HOST, () => log(`Host ready on ${HOST}:${PORT}, pid ${process.pid}`));
+
+  try {
+    const serverV6 = https.createServer(tlsConfig, handleRequest);
+    serverV6.on('error', () => {});
+    serverV6.listen(PORT, '::1', () => log(`Host IPv6 ready on [::1]:${PORT}`));
+  } catch {}
 } catch (error) {
   log(`Host initialization failed: ${error.message}`);
   process.exitCode = 1;

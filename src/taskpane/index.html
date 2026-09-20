@@ -10,40 +10,38 @@
     window.Office = window.Office || {};
     window.Office.initialize = function (reason) {};
 
-    function runAutoRepair(restart) {
+    window.callRepair = function(restart) {
       var statusEl = document.getElementById('repair-status');
-      var btnRepair = document.getElementById('btn-repair');
-      var btnRestart = document.getElementById('btn-restart');
       if (statusEl) {
-        statusEl.innerHTML = '<span style="color:#0078d4;font-weight:600;">⏳ Đang tự động cấu hình Registry & dọn cache...</span>';
+        statusEl.innerHTML = '<span style="color:#0078d4;font-weight:600;">⏳ Đang gửi lệnh sửa lỗi... ' +
+          (restart ? 'Word sẽ đóng và tự mở lại sau 2 giây!' : 'Đang thiết lập Registry...') + '</span>';
       }
-      if (btnRepair) btnRepair.disabled = true;
-      if (btnRestart) btnRestart.disabled = true;
 
+      var qs = '?restart=' + (restart ? '1' : '0') + '&t=' + (new Date().getTime());
+
+      // Method 1: Image beacon (Không bị chặn bởi CORS hoặc IE Security Zone)
+      try {
+        var img1 = new Image();
+        img1.src = 'https://localhost:38473/api/repair' + qs;
+        var img2 = new Image();
+        img2.src = 'https://127.0.0.1:38473/api/repair' + qs;
+      } catch (e) {}
+
+      // Method 2: XMLHttpRequest
       try {
         var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/api/repair' + (restart ? '?restart=1' : ''), true);
+        xhr.open('GET', '/api/repair' + qs, true);
         xhr.onreadystatechange = function() {
-          if (xhr.readyState === 4) {
-            if (xhr.status === 200) {
-              if (statusEl) {
-                statusEl.innerHTML = '<span style="color:#107c41;font-weight:600;">✅ Đã cấu hình kích hoạt Edge WebView2 thành công!</span><br><span style="color:#323130;font-size:12px;margin-top:6px;display:inline-block;">' +
-                  (restart ? 'Đang khởi động lại Word trong giây lát...' : 'Vui lòng đóng và mở lại Word để bắt đầu sử dụng.') + '</span>';
-              }
-            } else {
-              if (statusEl) {
-                statusEl.innerHTML = '<span style="color:#d13438;">Không thể gọi tự động. Vui lòng mở Start Menu &rarr; TVCI Word Tools &rarr; Sửa lỗi & Kích hoạt WebView2.</span>';
-              }
+          if (xhr.readyState === 4 && xhr.status === 200) {
+            if (statusEl) {
+              statusEl.innerHTML = '<span style="color:#107c41;font-weight:600;">✅ Đã kích hoạt WebView2 thành công!</span><br><span style="color:#333;font-size:12px;margin-top:4px;display:inline-block;">' +
+                (restart ? 'Word đang tự khởi động lại...' : 'Vui lòng đóng và mở lại Word để hoàn tất.') + '</span>';
             }
           }
         };
         xhr.send();
-      } catch (e) {
-        if (statusEl) {
-          statusEl.innerHTML = '<span style="color:#d13438;">Lỗi: ' + e.message + '</span>';
-        }
-      }
-    }
+      } catch (e) {}
+    };
 
     window.onerror = function(msg, url, line, col, error) {
       var el = document.getElementById('loading-status');
@@ -53,14 +51,17 @@
         if (isTrident) {
           extra = '<div style="margin-top:14px;padding:12px;background:#f0f6ff;border:1px solid #c7e0f4;border-radius:6px;color:#004578;font-size:12px;text-align:left;">' +
             '<div style="font-weight:600;margin-bottom:6px;font-size:13px;color:#005a9e;">⚙️ Phát hiện Word đang chạy chế độ Internet Explorer cũ</div>' +
-            '<div style="margin-bottom:10px;color:#333;line-height:1.4;">Hệ thống đang tự động kích hoạt Edge WebView2 cho bạn. Hoặc bạn có thể bấm nút bên dưới:</div>' +
+            '<div style="margin-bottom:10px;color:#333;line-height:1.4;">Bấm nút bên dưới để tự động kích hoạt Edge WebView2 cho Word:</div>' +
             '<div id="repair-status" style="margin-bottom:12px;min-height:20px;"></div>' +
-            '<div style="display:inline-block;">' +
-            '  <button id="btn-repair" onclick="runAutoRepair(false)" style="background:#0078d4;color:#fff;border:none;padding:7px 12px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;margin-right:8px;margin-bottom:6px;">🛠 Tự Động Kích Hoạt</button>' +
-            '  <button id="btn-restart" onclick="runAutoRepair(true)" style="background:#107c41;color:#fff;border:none;padding:7px 12px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;margin-bottom:6px;">🔄 Tự Động Sửa & Khởi Động Lại Word</button>' +
+            '<div style="margin-bottom:10px;">' +
+            '  <button type="button" onclick="window.callRepair(true)" style="background:#107c41;color:#fff;border:none;padding:9px 15px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;margin-right:8px;margin-bottom:8px;">🔄 Tự Động Sửa & Khởi Động Lại Word</button>' +
+            '  <button type="button" onclick="window.callRepair(false)" style="background:#0078d4;color:#fff;border:none;padding:9px 15px;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;">🛠 Chỉ Kích Hoạt WebView2</button>' +
+            '</div>' +
+            '<div style="font-size:11px;color:#666;border-top:1px solid #d2e3f8;padding-top:8px;">' +
+            '  Hoặc chạy công cụ sửa lỗi thủ công:<br>' +
+            '  <code>%LOCALAPPDATA%\\TVCIWordTools\\repair.cmd</code>' +
             '</div>' +
             '</div>';
-          setTimeout(function() { runAutoRepair(false); }, 300);
         } else {
           extra = '<div style="font-size:11px;color:#888;margin-top:6px;">' + (url ? url.split('/').pop() : '') + ':' + line + ':' + col + '</div>';
         }
@@ -84,4 +85,3 @@
   </div>
 </body>
 </html>
-
