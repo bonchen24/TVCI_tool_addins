@@ -1,10 +1,56 @@
-import React, { useState } from "react";
+import React from "react";
 import type { TemplateRecord } from "../../templates/library";
 import type { TemplateFormAiSuggestion } from "../../ai/template-form";
-import type { TemplateFormField, TemplateFormSchema, TemplateFormValue, TemplateFormValues } from "../../templates/form-schema";
+import {
+  isMainContentField,
+  type TemplateFormField,
+  type TemplateFormSchema,
+  type TemplateFormValue,
+  type TemplateFormValues,
+} from "../../templates/form-schema";
 import { MIN_TEMPLATE_FORM_AI_CONFIDENCE } from "../../ai/template-form";
 import { templateFormInputToValue, templateFormInputValue } from "../template-form.service";
 import { A4DocumentPreview } from "./A4DocumentPreview";
+
+const PRESET_OPTIONS: Record<string, string[]> = {
+  CO_QUAN_BAN_HANH: [
+    "VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN",
+    "TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP",
+    "TẬP ĐOÀN CÔNG NGHIỆP THAN - KHOÁNG SẢN VIỆT NAM",
+  ],
+  DON_VI_BAN_HANH: [
+    "TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP",
+    "PHÒNG THỬ NGHIỆM & ĐO LƯỜNG CHẤT LƯỢNG",
+    "PHÒNG KIỂM ĐỊNH AN TOÀN THIẾT BỊ",
+  ],
+  DIA_DANH: ["Hà Nội", "Quảng Ninh", "Thái Nguyên", "Lào Cai"],
+  CHUC_VU_NGUOI_KY: [
+    "GIÁM ĐỐC",
+    "PHÓ GIÁM ĐỐC",
+    "VIỆN TRƯỞNG",
+    "PHÓ VIỆN TRƯỞNG",
+    "TRƯỞNG PHÒNG",
+    "PHÓ TRƯỞNG PHÒNG",
+  ],
+  CAN_CU: [
+    "Căn cứ Nghị định số 30/2020/NĐ-CP ngày 05/3/2020 của Chính phủ về công tác văn thư;",
+    "Căn cứ Điều lệ tổ chức và hoạt động của Viện Cơ khí Năng lượng và Mỏ - Vinacomin;",
+    "Căn cứ Quy chế làm việc của Trung tâm Thử nghiệm - Kiểm định Công nghiệp;",
+    "Theo đề nghị của Trưởng phòng Thử nghiệm và Đo lường chất lượng,",
+  ],
+  NOI_NHAN: [
+    "- Như trên;\n- Lưu: VT, TVCI.",
+    "- Lãnh đạo Viện (để b/c);\n- Các đơn vị liên quan (để t/h);\n- Lưu: VT, hồ sơ.",
+    "- Ban Giám đốc TVCI;\n- Các phòng nghiệp vụ;\n- Lưu: VT.",
+  ],
+  KY_BAO_CAO: [
+    "Tháng " + (new Date().getMonth() + 1) + " năm " + new Date().getFullYear(),
+    "Quý " + Math.floor((new Date().getMonth() + 3) / 3) + " năm " + new Date().getFullYear(),
+    "6 tháng đầu năm " + new Date().getFullYear(),
+    "Năm " + new Date().getFullYear(),
+  ],
+};
+
 
 export interface FormDraftingViewProps {
   template: TemplateRecord;
@@ -86,8 +132,6 @@ export function FormDraftingView({
   onReviewAi,
   onAiValueChange,
 }: FormDraftingViewProps): React.ReactElement {
-  const [viewMode, setViewMode] = useState<"form" | "preview">("form");
-
   const requiresReview = suggestions.some(
     (suggestion) => suggestion.confidence < MIN_TEMPLATE_FORM_AI_CONFIDENCE && suggestion.reviewed !== true
   );
@@ -142,70 +186,52 @@ export function FormDraftingView({
         )}
       </div>
 
-      {/* 2. Responsive View Switcher Tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: 6,
-          margin: "8px 0",
-          borderBottom: "1px solid #e2e8f0",
-          paddingBottom: "8px",
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setViewMode("form")}
-          style={{
-            flex: 1,
-            padding: "6px 12px",
-            fontSize: "12px",
-            fontWeight: viewMode === "form" ? 700 : 500,
-            background: viewMode === "form" ? "#0f3f67" : "#f1f5f9",
-            color: viewMode === "form" ? "#ffffff" : "#475569",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            transition: "all 0.15s ease",
-          }}
-        >
-          📝 Điền thông tin ({schema.fields.length} trường)
-        </button>
-        <button
-          type="button"
-          onClick={() => setViewMode("preview")}
-          style={{
-            flex: 1,
-            padding: "6px 12px",
-            fontSize: "12px",
-            fontWeight: viewMode === "preview" ? 700 : 500,
-            background: viewMode === "preview" ? "#0f3f67" : "#f1f5f9",
-            color: viewMode === "preview" ? "#ffffff" : "#475569",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            transition: "all 0.15s ease",
-          }}
-        >
-          👁️ Xem trước A4 (75%)
-        </button>
-      </div>
-
-      {/* 3. Main Form Fields Workspace OR A4 Preview */}
-      {viewMode === "form" ? (
-        <div className="formDraftingWorkspace">
+      {/* 2. Unified Workspace: Form Fields (Left) + Live A4 Preview (Right) on 1 Single Tab */}
+      <div className="formDraftingWorkspace splitView">
           <div className="formFieldsContainer">
             <div className="formFieldsList">
               {schema.fields.map((field) => {
                 const value = templateFormInputValue(values[field.tag]);
+                const isMain = isMainContentField(field);
                 return (
-                  <label key={field.tag} className="templateFormField">
-                    <span className="fieldLabel">
-                      {field.label}
-                      {field.required ? <span className="reqStar"> *</span> : ""}
-                    </span>
+                  <div
+                    key={field.tag}
+                    className={`templateFormField ${isMain ? "templateFormFieldFull" : "templateFormFieldHalf"}`}
+                  >
+                    <div className="fieldLabelRow">
+                      <label className="fieldLabel">
+                        {field.label}
+                        {field.required ? <span className="reqStar"> *</span> : ""}
+                        <span className="fieldTagBadge">({field.tag})</span>
+                      </label>
+                      {PRESET_OPTIONS[field.tag] && (
+                        <select
+                          className="fieldQuickPreset"
+                          value=""
+                          title={`Chọn nhanh mẫu cho ${field.label}`}
+                          onChange={(e) => {
+                            const selected = e.target.value;
+                            if (!selected) return;
+                            if (field.type === "repeatable" || field.type === "multi-line" || field.tag === "CAN_CU" || field.tag === "NOI_NHAN") {
+                              const next = value.trim() ? `${value.trim()}\n${selected}` : selected;
+                              onChange(field.tag, templateFormInputToValue(field, next));
+                            } else {
+                              onChange(field.tag, templateFormInputToValue(field, selected));
+                            }
+                          }}
+                        >
+                          <option value="">⚡ Chọn mẫu...</option>
+                          {PRESET_OPTIONS[field.tag].map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt.length > 32 ? `${opt.slice(0, 32)}...` : opt}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
                     {fieldControl(field, value, (input) => onChange(field.tag, templateFormInputToValue(field, input)))}
                     {field.helpText && <small className="fieldHelp">{field.helpText}</small>}
-                  </label>
+                  </div>
                 );
               })}
             </div>
@@ -251,12 +277,12 @@ export function FormDraftingView({
               )}
             </details>
           </div>
+
+          {/* Live A4 Document Preview on the same screen (Single View) */}
+          <div className="formPreviewContainer">
+            <A4DocumentPreview template={template} schema={schema} values={values} />
+          </div>
         </div>
-      ) : (
-        <div style={{ minHeight: "450px", height: "60vh", width: "100%", marginBottom: "12px" }}>
-          <A4DocumentPreview template={template} schema={schema} values={values} />
-        </div>
-      )}
 
       {/* 4. Sync Message Alert */}
       {syncMessage && <div className="alert syncAlert">{syncMessage}</div>}

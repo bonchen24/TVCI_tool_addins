@@ -16,6 +16,7 @@ import { cleanExtraSpaces, normalizePunctuation, fixManualLineBreaks } from "../
 import { detectEncoding, convertTCVN3ToUnicode, convertVNIToUnicode } from "../word/unicode-converter.service";
 import { resolveCommandContext, type CommandContext } from "./command-context";
 import { openOfficeDialog } from "./dialog";
+import { safeIssues, applySafeIssues } from "./safe-issues";
 import { createDocumentSkeleton, type SkeletonDocumentType } from "../word/document-skeleton.service";
 import { PRESET_PRESETS } from "../models/document-settings";
 
@@ -30,39 +31,35 @@ type CommandEvent = Office.AddinCommands.Event;
 const g = getGlobal();
 const txManager = new TransactionManager();
 
-async function runCommand(event: CommandEvent, action: () => Promise<void>, errorLabel = "Ribbon command failed"): Promise<void> {
+function logCommand(commandName: string, status: "start" | "success" | "error", extra?: Record<string, any>): void {
+  try {
+    fetch("/api/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ source: "commands.ts", command: commandName, status, ...extra }),
+    }).catch(() => {});
+  } catch {}
+}
+
+async function runCommand(
+  event: CommandEvent,
+  action: () => Promise<void>,
+  errorLabel = "Ribbon command failed",
+  commandName = "unknown"
+): Promise<void> {
+  logCommand(commandName, "start");
   try {
     await action();
+    logCommand(commandName, "success");
   } catch (error) {
+    const errorMsg = error instanceof Error ? error.stack || error.message : String(error);
+    logCommand(commandName, "error", { error: errorMsg, errorLabel });
     console.error(errorLabel, error);
   } finally {
-    event.completed();
-  }
-}
-
-function safeIssues(context: CommandContext) {
-  const failedResults = context.inspection.summary.results.filter((result) => result.status === "FAIL");
-  const failedRuleIds = new Set(failedResults.map((result) => result.ruleId));
-  const failedTargetIds = new Set(failedResults.map((result) => result.targetId).filter(Boolean));
-  // MISSING rules never have a repair payload and are explicitly excluded here.
-  return context.inspection.summary.issues.filter(
-    (issue) => issue.autoFixable && (failedRuleIds.has(issue.ruleId) || failedTargetIds.has(issue.targetId)),
-  );
-}
-
-async function applySafeIssues(context: CommandContext): Promise<number> {
-  let fixed = 0;
-  for (const issue of safeIssues(context)) {
     try {
-      if (issue.targetId === "page") await applyPageIssueFix(issue);
-      else if (issue.ruleId.startsWith("text.")) await applyTextIssueFix(issue);
-      else await applyIssueFix(issue);
-      fixed += 1;
-    } catch (error) {
-      console.warn("Could not apply safe issue", issue.ruleId, error);
-    }
+      event.completed();
+    } catch {}
   }
-  return fixed;
 }
 
 function configuredLines(lines: string[] | undefined): string[] {

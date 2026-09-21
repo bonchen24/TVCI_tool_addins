@@ -340,7 +340,6 @@ export function TemplateLibraryModal({
                     style={{ height: 28, fontSize: 11, padding: "0 12px", borderRadius: 4, border: "1px solid #0f3f67", color: "#0f3f67", background: "#ffffff", fontWeight: 600, cursor: "pointer" }}
                     onClick={() => {
                       onOpenForm(selectedTemplate);
-                      onClose();
                     }}
                   >
                     📝 Điền &amp; Chèn form
@@ -352,7 +351,6 @@ export function TemplateLibraryModal({
                   style={{ height: 28, fontSize: 11, padding: "0 14px", borderRadius: 4, border: "none", background: "#0d4f8b", color: "#ffffff", fontWeight: 600, cursor: "pointer" }}
                   onClick={() => {
                     onDirectInsert(selectedTemplate);
-                    onClose();
                   }}
                 >
                   📥 Mở mẫu vào Word (Chèn nhanh)

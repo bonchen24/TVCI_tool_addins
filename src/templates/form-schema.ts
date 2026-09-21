@@ -215,3 +215,43 @@ export function getTemplateFormSchema(template: TemplateRecord): TemplateFormSch
   const documentType = schemaByTemplateId[template.id] ?? template.documentType;
   return getTemplateFormSchemaByDocumentType(documentType);
 }
+
+/**
+ * Determines whether a form field represents main narrative or block content
+ * that should span the full width (span 2 / 100%) of the drafting form,
+ * or a compact metadata field that can be paired side-by-side in 2 columns.
+ */
+export function isMainContentField(
+  field: Pick<TemplateFormField, "tag"> & Partial<Pick<TemplateFormField, "type" | "label">>
+): boolean {
+  if (field.type === "textarea" || field.type === "multi-line" || field.type === "repeatable") {
+    return true;
+  }
+  const tag = (field.tag || "").toUpperCase();
+  const MAIN_TAGS = [
+    "TRICH_YEU",
+    "TIEU_DE",
+    "TEN_DE_TAI",
+    "NOI_DUNG",
+    "NOI_DUNG_CHUNG",
+    "NOI_DUNG_DIEN_BIEN",
+    "NOI_DUNG_CUOC_HOP",
+    "CAN_CU",
+    "DIEU_KHOAN",
+    "LY_DO",
+    "DE_XUAT_KIEN_NGHI",
+    "KIEN_NGHI",
+    "DIEN_BIEN",
+    "KET_LUAN",
+    "Y_KIEN",
+    "NOI_NHAN",
+    "KINH_GUI",
+    "DOI_TUONG_MOI",
+    "CHUAN_BI",
+    "THANH_PHAN",
+    "GHI_CHU",
+    "TOM_TAT",
+  ];
+  return MAIN_TAGS.some((t) => tag === t || tag.startsWith(`${t}_`) || tag.endsWith(`_${t}`));
+}
+

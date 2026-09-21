@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import type { TemplateRecord, TemplateOrganization } from "../../templates/library";
-import { getTemplateFormSchema, type TemplateFormSchema, type TemplateFormValues } from "../../templates/form-schema";
+import { getTemplateFormSchema, isMainContentField, type TemplateFormSchema, type TemplateFormValues } from "../../templates/form-schema";
 import { decomposeDraftIntoFormFields } from "../../ai/template-matcher";
 import { requestAiPromptDirect, type AiSettings } from "../../ai/direct-client";
 import { PRESET_OPTIONS } from "./AiTaskpaneView";
@@ -702,8 +702,8 @@ export function SmartDraftingModal({
                       style={{
                         display: "flex",
                         flexDirection: "column",
-                        gap: 3,
-                        gridColumn: (field.type === "textarea" || field.type === "multi-line" || field.tag === "NOI_DUNG" || field.tag === "TRICH_YEU") ? "span 2" : "span 1",
+                        gap: 4,
+                        gridColumn: isMainContentField(field) ? "span 2" : "span 1",
                       }}
                     >
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

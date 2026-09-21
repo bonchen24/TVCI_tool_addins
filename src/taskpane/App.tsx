@@ -367,8 +367,35 @@ export default function App() {
     setPageNumberPosition(preset.position);
   }, [ruleProfileId]);
   useEffect(() => {
-    void updateDocumentStatus();
-  }, []);
+    if (!isDialog) {
+      void updateDocumentStatus();
+    }
+  }, [isDialog]);
+
+  useEffect(() => {
+    if (!isDialog) return;
+    const readCachedInspection = () => {
+      try {
+        const cachedRaw = localStorage.getItem("tvci_cached_inspection");
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw);
+          setRuleProfileId(cached.profileId || "NĐ30_TVCI");
+          setEvaluationSummary(cached.summary);
+          setRecognizedComponents(cached.components || []);
+          setIssues(cached.summary?.isBlankDocument ? [] : (cached.summary?.issues || []));
+        }
+      } catch {}
+    };
+    readCachedInspection();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "tvci_inspection_updated" || e.key === "tvci_cached_inspection") {
+        readCachedInspection();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [isDialog]);
+
   useEffect(() => {
     if (!isDialog) {
       // In Task Pane mode: strictly keep activeModal as "none".
@@ -397,6 +424,8 @@ export default function App() {
         setActiveModal("knowledge");
       } else if (v === "settings_modal") {
         setActiveModal("ai_settings");
+      } else if (v === "learn_experience" || v === "learn" || v === "experience") {
+        setActiveModal("learn_experience");
       }
     };
 
@@ -495,6 +524,31 @@ export default function App() {
   });
 
   const handleCheck = (requestedScope: "selection" | "document" = validationScope) => run(async () => {
+    if (isDialog) {
+      try {
+        Office.context.ui.messageParent(JSON.stringify({ type: "inspect_request" }));
+      } catch (e) {
+        sendDebug(`messageParent inspect_request error: ${String(e)}`);
+      }
+      try {
+        const cachedRaw = localStorage.getItem("tvci_cached_inspection");
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw);
+          setRuleProfileId(cached.profileId || "NĐ30_TVCI");
+          setEvaluationSummary(cached.summary);
+          setRecognizedComponents(cached.components || []);
+          setIssues(cached.summary?.isBlankDocument ? [] : (cached.summary?.issues || []));
+          const summary = cached.summary;
+          if (summary) {
+            setStatus(`Kiểm tra theo ${cached.profileId}: Đạt ${summary.passedRules}/${summary.applicableRules} tiêu chuẩn (${summary.healthScore}%). Nhận diện ${(cached.components || []).length} thành phần thể thức.`);
+          }
+        }
+      } catch (e) {
+        sendDebug(`read cached inspection error: ${String(e)}`);
+      }
+      return;
+    }
+
     if (requestedScope === "document") {
       const inspection = await inspectCurrentDocument(ruleProfileId);
       const { summary, components, pageSnapshot } = inspection;
@@ -545,6 +599,16 @@ export default function App() {
   });
 
   const handleFix = (issue: ValidationIssue) => run(async () => {
+    if (isDialog) {
+      try {
+        Office.context.ui.messageParent(JSON.stringify({ type: "fix_issue", issue }));
+      } catch (e) {
+        sendDebug(`messageParent fix_issue error: ${String(e)}`);
+      }
+      setIssues((current) => current.filter((item) => item.id !== issue.id));
+      setStatus("Đang gửi lệnh sửa lỗi tới Word...");
+      return;
+    }
     if (issue.targetId === "page") await applyPageIssueFix(issue);
     else if (issue.ruleId.startsWith("text.")) await applyTextIssueFix(issue);
     else await applyIssueFix(issue);
@@ -553,6 +617,15 @@ export default function App() {
   });
 
   const handleFixAllSafeIssues = () => run(async () => {
+    if (isDialog) {
+      try {
+        Office.context.ui.messageParent(JSON.stringify({ type: "fix_all_safe" }));
+      } catch (e) {
+        sendDebug(`messageParent fix_all_safe error: ${String(e)}`);
+      }
+      setStatus("Đang tự động sửa các lỗi an toàn trên Word...");
+      return;
+    }
     const safeIssues = issues.filter((i) => i.autoFixable);
     if (safeIssues.length === 0) return;
     let fixed = 0;
@@ -571,12 +644,30 @@ export default function App() {
   });
 
   const handle1ClickStandardize = () => run(async () => {
+    if (isDialog) {
+      try {
+        Office.context.ui.messageParent(JSON.stringify({ type: "standardize_1click" }));
+      } catch (e) {
+        sendDebug(`messageParent standardize_1click error: ${String(e)}`);
+      }
+      setStatus("Đang thực hiện Chuẩn hóa 1-click (Lề A4 + Sửa lỗi an toàn)...");
+      return;
+    }
     await applyA4Margins();
     await handleFixAllSafeIssues();
     setStatus("Đã hoàn tất Chuẩn hóa 1-click (Lề A4 + Sửa toàn bộ lỗi an toàn).");
   });
 
   const handleRollbackLastAction = () => run(async () => {
+    if (isDialog) {
+      try {
+        Office.context.ui.messageParent(JSON.stringify({ type: "rollback" }));
+      } catch (e) {
+        sendDebug(`messageParent rollback error: ${String(e)}`);
+      }
+      setStatus("Đang hoàn tác thao tác chuẩn hóa gần nhất...");
+      return;
+    }
     const txManager = new TransactionManager();
     const tx = await txManager.getLatestTransaction();
     if (tx && tx.inversePatches && tx.inversePatches.length > 0) {
@@ -589,6 +680,15 @@ export default function App() {
   });
 
   const handleLocateIssue = (issue: ValidationIssue) => run(async () => {
+    if (isDialog) {
+      try {
+        Office.context.ui.messageParent(JSON.stringify({ type: "locate_issue", targetId: issue.targetId }));
+      } catch (e) {
+        sendDebug(`messageParent locate_issue error: ${String(e)}`);
+      }
+      setStatus(`Đã chọn đoạn văn bản liên quan đến lỗi "${issue.message}".`);
+      return;
+    }
     const success = await selectParagraphByTargetId(issue.targetId);
     if (success) {
       setStatus(`Đã chọn đoạn văn bản liên quan đến lỗi "${issue.message}".`);
@@ -736,7 +836,7 @@ export default function App() {
     if (!schema) throw new Error("Mẫu này không thuộc phạm vi form Viện, Trung tâm hoặc Văn bản Đảng.");
     sendDebug(`handleInsertTemplateAndFill: ${template.id} (${template.name})`);
     setStatus(`Đang chèn mẫu và điền thông tin cho "${template.name}"...`);
-    const values = { ...templateFormSessionValues, ...loadFormValuesForTemplate(template) };
+    const values = { ...templateFormSessionValues, ...loadFormValuesForTemplate(template), ...templateFormValues };
     const normalized = normalizeTemplateFormValues(schema, values);
     const errors = validateTemplateForm(schema, values);
     setActiveFormTemplate(template);
@@ -1456,6 +1556,15 @@ export default function App() {
           isOpen={activeModal === "document_settings"}
           onClose={closeActiveModal}
           onApply={async (s) => {
+            if (isDialog) {
+              try {
+                Office.context.ui.messageParent(JSON.stringify({ type: "apply_settings", settings: s }));
+                setDocumentSettings(s);
+                return;
+              } catch (e) {
+                sendDebug(`messageParent apply_settings error: ${String(e)}`);
+              }
+            }
             await applySettingsToWord(s);
             setDocumentSettings(s);
             closeDialogContainer();
@@ -1466,6 +1575,16 @@ export default function App() {
             closeDialogContainer();
           }}
           onSaveAndApply={async (s) => {
+            if (isDialog) {
+              saveDefaultSettings(s);
+              try {
+                Office.context.ui.messageParent(JSON.stringify({ type: "apply_settings", settings: s }));
+                setDocumentSettings(s);
+                return;
+              } catch (e) {
+                sendDebug(`messageParent apply_settings error: ${String(e)}`);
+              }
+            }
             await saveAndApplySettings(s);
             setDocumentSettings(s);
             closeDialogContainer();
@@ -1494,7 +1613,6 @@ export default function App() {
           templates={allTemplates}
           initialFilter={templateLibraryFilter}
           onOpenForm={(tmpl) => {
-            setActiveModal("none");
             void handleOpenTemplateForm(tmpl);
           }}
           onDirectInsert={(tmpl) => {

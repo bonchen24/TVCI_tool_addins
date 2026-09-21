@@ -33,7 +33,13 @@ function profileForDraftingProfile(profile: UserDraftingProfile | null): RulePro
 export async function resolveCommandContext(): Promise<CommandContext> {
   const settings = loadSavedSettingsOrNull();
   const activeProfile = profileStorage.getActiveProfile();
-  const paragraphSnapshots = await inspectDocumentParagraphs();
+  let paragraphSnapshots: import("../rules/models").ParagraphSnapshot[] = [];
+  try {
+    paragraphSnapshots = await inspectDocumentParagraphs();
+  } catch (e) {
+    console.warn("inspectDocumentParagraphs fallback to empty:", e);
+    paragraphSnapshots = [];
+  }
   const detected = detectProfileForDocument(paragraphSnapshots);
   const configuredProfile = settings ? presetToProfile[settings.presetId] : profileForDraftingProfile(activeProfile);
   // Strong document evidence wins; otherwise use the user's saved configuration.

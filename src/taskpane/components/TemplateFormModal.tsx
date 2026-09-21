@@ -11,6 +11,16 @@ export interface TemplateFormModalProps extends FormDraftingViewProps {
  */
 export function TemplateFormModal({ isOpen, ...props }: TemplateFormModalProps): React.ReactElement | null {
   if (!isOpen) return null;
+  const isDialog = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dialog") === "1";
+
+  if (isDialog) {
+    return (
+      <div className="templateFormModalDialogFullscreen" role="dialog" aria-modal="true" aria-label="Điền biểu mẫu">
+        <FormDraftingView {...props} />
+      </div>
+    );
+  }
+
   return (
     <div className="templateFormModalBackdrop" role="presentation">
       <div className="templateFormModalDialog" role="dialog" aria-modal="true" aria-label="Điền biểu mẫu">

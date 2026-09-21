@@ -2,10 +2,18 @@ import { insertTemplate } from "../word/template.service";
 import { getTemplateFormSchema } from "../templates/form-schema";
 import { applyTemplateFormToWord } from "../word/form-content-control.service";
 import { setMultipleContentControlTexts } from "../word/content-control.service";
+import { applySettingsToWord } from "../models/document-settings";
+import { resolveCommandContext } from "./command-context";
+import { applySafeIssues } from "./safe-issues";
+import { applyIssueFix, applyTextIssueFix, applyInversePatches, selectParagraphByTargetId } from "../word/formatting.service";
+import { applyPageIssueFix } from "../word/page-formatting.service";
+import { applyA4Margins } from "../word/page-toolkit.service";
+import { TransactionManager } from "../word/transaction.service";
 
 export type DialogView = "settings" | "inspect" | "template" | "template-form" | "knowledge" | "settings_modal" | "smart_draft" | "learn_experience";
 
 let activeDialog: Office.Dialog | null = null;
+const txManager = new TransactionManager();
 
 function logDialog(msg: string, extra?: Record<string, any>): void {
   try {
@@ -34,6 +42,23 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
       activeDialog.close();
     } catch {}
     activeDialog = null;
+  }
+
+  if (view === "inspect") {
+    try {
+      const ctx = await resolveCommandContext();
+      localStorage.setItem("tvci_cached_inspection", JSON.stringify(ctx.inspection));
+    } catch (e) {
+      logDialog("Pre-inspection error", { error: String(e) });
+    }
+  } else if (view === "learn_experience") {
+    try {
+      const { readDocumentText } = await import("../word/selection.service");
+      const docText = await readDocumentText();
+      localStorage.setItem("tvci_current_doc_text", docText || "");
+    } catch (e) {
+      logDialog("Pre-read document text error", { error: String(e) });
+    }
   }
 
   return new Promise<void>((resolve) => {
@@ -89,22 +114,28 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
 
         const dialog = result.value;
         activeDialog = dialog;
-        resolve();
 
         dialog.addEventHandler(Office.EventType.DialogEventReceived, () => {
+          logDialog("Dialog closed event received");
           activeDialog = null;
+          resolve();
         });
 
         dialog.addEventHandler(Office.EventType.DialogMessageReceived, async (arg: any) => {
           try {
             const raw = typeof arg === "object" && arg.message ? arg.message : String(arg);
+            logDialog("DialogMessageReceived", { raw });
             const data = JSON.parse(raw);
+
             if (data.type === "closed") {
               dialog.close();
               activeDialog = null;
+              resolve();
               return;
             }
+
             if (data.type === "smart_draft_complete" && data.template) {
+              logDialog("Handling smart_draft_complete in parent", { templateId: data.template?.id });
               await insertTemplate(data.template);
               if (data.values) {
                 const schema = getTemplateFormSchema(data.template);
@@ -118,20 +149,23 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
                   await setMultipleContentControlTexts(items);
                 }
               }
-              try {
-                await (Office as any).addin?.showAsTaskpane();
-              } catch {}
               dialog.close();
               activeDialog = null;
+              resolve();
               return;
             }
+
             if (data.type === "insert_template" && data.template) {
+              logDialog("Handling insert_template in parent", { templateId: data.template?.id });
               await insertTemplate(data.template);
               dialog.close();
               activeDialog = null;
+              resolve();
               return;
             }
+
             if (data.type === "insert_template_fill" && data.template) {
+              logDialog("Handling insert_template_fill in parent", { templateId: data.template?.id });
               await insertTemplate(data.template);
               if (data.values) {
                 const schema = getTemplateFormSchema(data.template);
@@ -141,22 +175,93 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
               }
               dialog.close();
               activeDialog = null;
+              resolve();
               return;
             }
+
             if (data.type === "apply_template_form" && data.template && data.values) {
+              logDialog("Handling apply_template_form in parent", { templateId: data.template?.id });
               const schema = getTemplateFormSchema(data.template);
               if (schema) {
                 await applyTemplateFormToWord(schema, data.values);
               }
               dialog.close();
               activeDialog = null;
+              resolve();
+              return;
+            }
+
+            if (data.type === "apply_settings" && data.settings) {
+              logDialog("Handling apply_settings in parent");
+              await applySettingsToWord(data.settings);
+              dialog.close();
+              activeDialog = null;
+              resolve();
+              return;
+            }
+
+            if (data.type === "inspect_request") {
+              logDialog("Handling inspect_request in parent");
+              const ctx = await resolveCommandContext();
+              localStorage.setItem("tvci_cached_inspection", JSON.stringify(ctx.inspection));
+              localStorage.setItem("tvci_inspection_updated", String(Date.now()));
+              return;
+            }
+
+            if (data.type === "fix_issue" && data.issue) {
+              logDialog("Handling fix_issue in parent", { ruleId: data.issue.ruleId });
+              if (data.issue.targetId === "page") await applyPageIssueFix(data.issue);
+              else if (data.issue.ruleId.startsWith("text.")) await applyTextIssueFix(data.issue);
+              else await applyIssueFix(data.issue);
+              const ctx = await resolveCommandContext();
+              localStorage.setItem("tvci_cached_inspection", JSON.stringify(ctx.inspection));
+              localStorage.setItem("tvci_inspection_updated", String(Date.now()));
+              return;
+            }
+
+            if (data.type === "fix_all_safe") {
+              logDialog("Handling fix_all_safe in parent");
+              const ctx = await resolveCommandContext();
+              await applySafeIssues(ctx);
+              const updatedCtx = await resolveCommandContext();
+              localStorage.setItem("tvci_cached_inspection", JSON.stringify(updatedCtx.inspection));
+              localStorage.setItem("tvci_inspection_updated", String(Date.now()));
+              return;
+            }
+
+            if (data.type === "standardize_1click") {
+              logDialog("Handling standardize_1click in parent");
+              await applyA4Margins();
+              const ctx = await resolveCommandContext();
+              await applySafeIssues(ctx);
+              const updatedCtx = await resolveCommandContext();
+              localStorage.setItem("tvci_cached_inspection", JSON.stringify(updatedCtx.inspection));
+              localStorage.setItem("tvci_inspection_updated", String(Date.now()));
+              return;
+            }
+
+            if (data.type === "rollback") {
+              logDialog("Handling rollback in parent");
+              const transaction = await txManager.getLatestTransaction();
+              if (transaction?.inversePatches?.length) {
+                await applyInversePatches(transaction.inversePatches);
+                await txManager.clearHistory();
+              }
+              const updatedCtx = await resolveCommandContext();
+              localStorage.setItem("tvci_cached_inspection", JSON.stringify(updatedCtx.inspection));
+              localStorage.setItem("tvci_inspection_updated", String(Date.now()));
+              return;
+            }
+
+            if (data.type === "locate_issue" && data.targetId) {
+              logDialog("Handling locate_issue in parent", { targetId: data.targetId });
+              await selectParagraphByTargetId(data.targetId);
               return;
             }
           } catch (e) {
+            logDialog("Dialog message handling error", { error: String(e) });
             console.error("Dialog message handling error:", e);
           }
-          dialog.close();
-          activeDialog = null;
         });
       },
     );
