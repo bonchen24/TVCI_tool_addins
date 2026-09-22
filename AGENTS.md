@@ -29,6 +29,20 @@ All non-trivial tasks must adhere to the Superpowers lifecycle:
 5. **Verification Before Completion (`superpowers:verification-before-completion`)**:
    - Never claim a task or bugfix is complete without executing the verification commands and confirming successful output.
 
+## Fast Operational Tasks
+
+Narrowly scoped operational tasks such as git status inspection, build or package, test execution, typecheck, lint, manifest validation, installer packaging, checksum generation, verification, and read-only inspection do not require the full Brainstorming -> Planning -> TDD lifecycle when no product logic is being changed.
+
+For these tasks, use: `Inspect -> Execute -> Verify -> Report`.
+
+Do not create `implementation_plan.md`, new design/spec documents, or worktrees just to run build, test, package, hash, or validation commands.
+
+If an operational task reveals that actual code or behavior must be changed, apply the appropriate Superpowers workflow to that code change.
+
+Keep connector tasks small enough to complete within the runner time limit.
+
+Verification remains mandatory before claiming success.
+
 ---
 
 ## 2. Project Tech Stack & Verification Commands

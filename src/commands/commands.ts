@@ -288,9 +288,13 @@ g.openTemplateLibraryDialog = (event: CommandEvent) => runCommand(event, async (
   await openOfficeDialog("template");
 }, "Không thể mở Kho biểu mẫu");
 
+g.openTemplateWizardDialog = (event: CommandEvent) => runCommand(event, async () => {
+  await openOfficeDialog("builder");
+}, "Không thể mở Tạo biểu mẫu");
+
 g.openKnowledgeDialog = (event: CommandEvent) => runCommand(event, async () => {
   await openOfficeDialog("knowledge");
-}, "Không thể mở Kho kiến thức");
+}, "Không thể mở Kho tri thức");
 
 g.openSettingsDialog = (event: CommandEvent) => runCommand(event, async () => {
   await openOfficeDialog("settings_modal");
@@ -298,7 +302,7 @@ g.openSettingsDialog = (event: CommandEvent) => runCommand(event, async () => {
 
 g.openLearnExperienceDialog = (event: CommandEvent) => runCommand(event, async () => {
   await openOfficeDialog("learn_experience");
-}, "Không thể mở Nhận kinh nghiệm");
+}, "Không thể mở Tạo kinh nghiệm");
 
 g.createCongVan = (event: CommandEvent) => runCommand(event, async () => {
   const context = await resolveCommandContext();
@@ -493,6 +497,7 @@ const functionMap: Record<string, (event: CommandEvent) => Promise<void> | void>
   openDocumentSettingsDialog: g.openDocumentSettingsDialog,
   openInspectorDialog: g.openInspectorDialog,
   openTemplateLibraryDialog: g.openTemplateLibraryDialog,
+  openTemplateWizardDialog: g.openTemplateWizardDialog,
   openKnowledgeDialog: g.openKnowledgeDialog,
   openSettingsDialog: g.openSettingsDialog,
   openLearnExperienceDialog: g.openLearnExperienceDialog,

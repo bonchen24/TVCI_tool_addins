@@ -35,6 +35,19 @@ test("discovers Gemini models and keeps only generateContent-capable models", as
   assert.ok(result.recommended);
 });
 
+test("recommends the newest stable standard Flash before preview, Pro, and Flash Lite", () => {
+  const models = [
+    "gemini-2.0-flash",
+    "gemini-2.5-flash-preview-09-2025",
+    "gemini-3.0-pro",
+    "gemini-3.1-flash-lite",
+    "gemini-3.0-flash",
+    "gemini-3.2-flash",
+  ];
+
+  assert.equal(pickPreferredModel("gemini", models), "gemini-3.2-flash");
+});
+
 test("preferred model falls back to first available model", () => {
   assert.equal(pickPreferredModel("openai", ["gpt-4.1-mini", "gpt-4o-mini"]), "gpt-4o-mini");
   assert.equal(pickPreferredModel("gemini", []), "");

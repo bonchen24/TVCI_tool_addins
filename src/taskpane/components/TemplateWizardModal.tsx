@@ -7,7 +7,6 @@ import { saveUserTemplate } from "../../templates/storage";
 import { readDocumentText } from "../../word/selection.service";
 import { readCurrentDocumentAsArrayBuffer } from "../../word/document-export.service";
 import { listTaggedContentControls } from "../../word/content-control.service";
-import { TVCI_TEMPLATE_TABS } from "../../templates/tvci-tabs";
 
 export interface TemplateWizardModalProps {
   isOpen: boolean;
@@ -17,13 +16,6 @@ export interface TemplateWizardModalProps {
 }
 
 type WizardStep = 1 | 2 | 3 | 4 | 5;
-
-const DEFAULT_DEPARTMENTS: Record<TemplateOrganization, string[]> = {
-  TVCI: TVCI_TEMPLATE_TABS.filter((t) => t.enabled).map((t) => t.label),
-  IEMM: ["Văn bản chung", "Phòng Kỹ thuật", "Phòng Kế hoạch", "Văn phòng"],
-  DANG: ["Văn bản Đảng", "Chi bộ", "Đảng ủy"],
-  TKV: ["Văn bản Tập đoàn", "Ban chuyên môn"],
-};
 
 const COMMON_DOC_TYPES = [
   "Công văn",
@@ -52,7 +44,6 @@ export function TemplateWizardModal({
   // Template Metadata
   const [name, setName] = useState("");
   const [organization, setOrganization] = useState<TemplateOrganization>("TVCI");
-  const [department, setDepartment] = useState("Văn bản chung");
   const [documentType, setDocumentType] = useState("Công văn");
   const [description, setDescription] = useState("");
   const [keywords, setKeywords] = useState("");
@@ -210,7 +201,6 @@ export function TemplateWizardModal({
     const candidate = {
       name,
       organization,
-      department,
       documentType,
       fields,
       docxBuffer: docxBuffer ?? undefined,
@@ -228,7 +218,6 @@ export function TemplateWizardModal({
       const candidate = {
         name,
         organization,
-        department,
         documentType,
         fields,
         docxBuffer: docxBuffer ?? undefined,
@@ -246,7 +235,6 @@ export function TemplateWizardModal({
       const record = makeUserTemplateRecord({
         name,
         organization,
-        department,
         documentType,
         keywords,
       });
@@ -424,24 +412,14 @@ export function TemplateWizardModal({
                 </label>
               </div>
 
-              <div className="grid2" style={{ marginBottom: 10 }}>
-                <label>
-                  Phòng ban / Nhóm
-                  <select value={department} onChange={(e) => setDepartment(e.target.value)}>
-                    {DEFAULT_DEPARTMENTS[organization].map((dep) => (
-                      <option key={dep} value={dep}>{dep}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Loại văn bản
-                  <select value={documentType} onChange={(e) => setDocumentType(e.target.value)}>
-                    {COMMON_DOC_TYPES.map((type) => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
+              <label style={{ display: "block", marginBottom: 10 }}>
+                Loại văn bản
+                <select value={documentType} onChange={(e) => setDocumentType(e.target.value)}>
+                  {COMMON_DOC_TYPES.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </label>
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12, marginBottom: 6 }}>
                 <strong>Danh sách trường nhập liệu ({fields.length}):</strong>
@@ -556,7 +534,6 @@ export function TemplateWizardModal({
               <div className="summaryCard">
                 <div className="summaryRow"><strong>Tên mẫu:</strong> <span>{name}</span></div>
                 <div className="summaryRow"><strong>Đơn vị:</strong> <span>{organization}</span></div>
-                <div className="summaryRow"><strong>Bộ phận / Tab:</strong> <span>{department}</span></div>
                 <div className="summaryRow"><strong>Loại văn bản:</strong> <span>{documentType}</span></div>
                 <div className="summaryRow"><strong>Số lượng trường:</strong> <span>{fields.length} trường</span></div>
                 <div className="summaryRow"><strong>Nguồn tệp Word:</strong> <span>{sourceFileName || "Tạo mới"}</span></div>

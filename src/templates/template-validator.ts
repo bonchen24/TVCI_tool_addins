@@ -10,7 +10,8 @@ export type TemplateCandidateField = Partial<TemplateFormField> & {
 export interface TemplateCandidateInput {
   name: string;
   organization: TemplateOrganization;
-  department: string;
+  /** Legacy metadata only; template creation no longer requires user input. */
+  department?: string;
   documentType: string;
   fields?: TemplateCandidateField[];
   docxBuffer?: ArrayBuffer;
@@ -57,13 +58,7 @@ export function validateTemplateCandidate(candidate: TemplateCandidateInput): Te
     });
   }
 
-  // 3. Phòng ban / Bộ phận
-  const trimmedDept = (candidate.department || "").trim();
-  if (!trimmedDept) {
-    errors.push({ field: "department", severity: "error", message: "Phòng ban/Bộ phận không được để trống." });
-  }
-
-  // 4. Loại văn bản
+  // 3. Loại văn bản
   const trimmedType = (candidate.documentType || "").trim();
   if (!trimmedType) {
     errors.push({ field: "documentType", severity: "error", message: "Loại văn bản không được để trống." });

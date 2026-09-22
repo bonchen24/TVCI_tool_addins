@@ -5,14 +5,14 @@
            xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
            xsi:type="TaskPaneApp">
   <Id>8d912cc6-37a5-4b7a-8c41-6f661a999b36</Id>
-  <Version>1.0.0.16</Version>
+  <Version>1.0.0.17</Version>
   <ProviderName>TVCI</ProviderName>
   <DefaultLocale>vi-VN</DefaultLocale>
   <DisplayName DefaultValue="TVCI Word Tools"/>
   <Description DefaultValue="Chuẩn hóa văn bản, biểu mẫu và AI trợ lý cho TVCI."/>
   <IconUrl DefaultValue="https://localhost:38473/assets/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://localhost:38473/assets/icon-80.png"/>
-  <SupportUrl DefaultValue="https://localhost:38473/taskpane.html"/>
+  <SupportUrl DefaultValue="https://localhost:38473/commands.html"/>
   <AppDomains>
     <AppDomain>https://localhost:38473</AppDomain>
     <AppDomain>https://api.openai.com</AppDomain>
@@ -29,7 +29,7 @@
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
             <CustomTab id="TabTVCI">
 
-              <!-- NHÓM 1: AI TRỢ LÝ (AI ASSISTANT) -->
+              <!-- NHÓM 1: AI TRỢ LÝ -->
               <Group id="GroupAi">
                 <Label resid="AiGroup.Label"/>
                 <Icon>
@@ -47,9 +47,39 @@
                   </Icon>
                   <Action xsi:type="ExecuteFunction"><FunctionName>openSmartDraftingDialog</FunctionName></Action>
                 </Control>
+                <Control xsi:type="Button" id="LearnExperienceButton">
+                  <Label resid="LearnExperience.Label"/>
+                  <Supertip><Title resid="LearnExperience.Label"/><Description resid="LearnExperience.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Guidance.16"/>
+                    <bt:Image size="32" resid="Icon.Guidance.32"/>
+                    <bt:Image size="80" resid="Icon.Guidance.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>openLearnExperienceDialog</FunctionName></Action>
+                </Control>
+                <Control xsi:type="Button" id="KnowledgeButton">
+                  <Label resid="Knowledge.Label"/>
+                  <Supertip><Title resid="Knowledge.Label"/><Description resid="Knowledge.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Read.16"/>
+                    <bt:Image size="32" resid="Icon.Read.32"/>
+                    <bt:Image size="80" resid="Icon.Read.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>openKnowledgeDialog</FunctionName></Action>
+                </Control>
+                <Control xsi:type="Button" id="SettingsButton">
+                  <Label resid="Settings.Label"/>
+                  <Supertip><Title resid="Settings.Label"/><Description resid="Settings.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Brand.16"/>
+                    <bt:Image size="32" resid="Icon.Brand.32"/>
+                    <bt:Image size="80" resid="Icon.Brand.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>openSettingsDialog</FunctionName></Action>
+                </Control>
               </Group>
 
-              <!-- NHÓM 2: VĂN BẢN (DOCUMENT) -->
+              <!-- NHÓM 2: VĂN BẢN VÀ BIỂU MẪU -->
               <Group id="GroupDocument">
                 <Label resid="DocumentGroup.Label"/>
                 <Icon>
@@ -158,38 +188,59 @@
                       </Icon>
                       <Action xsi:type="ExecuteFunction"><FunctionName>createPhieu</FunctionName></Action>
                     </Item>
-                    <Item id="ItemAllTemplates">
-                      <Label resid="ItemAllTemplates.Label"/>
-                      <Supertip><Title resid="ItemAllTemplates.Label"/><Description resid="ItemAllTemplates.Tooltip"/></Supertip>
-                      <Icon>
-                        <bt:Image size="16" resid="Icon.Open.16"/>
-                        <bt:Image size="32" resid="Icon.Open.32"/>
-                        <bt:Image size="80" resid="Icon.Open.80"/>
-                      </Icon>
-                      <Action xsi:type="ExecuteFunction"><FunctionName>openTemplateLibraryDialog</FunctionName></Action>
-                    </Item>
                   </Items>
                 </Control>
 
-                <Control xsi:type="Button" id="DocumentSettingsButton">
-                  <Label resid="DocumentSettings.Label"/>
-                  <Supertip><Title resid="DocumentSettings.Label"/><Description resid="DocumentSettings.Tooltip"/></Supertip>
+                <Control xsi:type="Button" id="TemplateLibraryButton">
+                  <Label resid="TemplateLibrary.Label"/>
+                  <Supertip><Title resid="TemplateLibrary.Label"/><Description resid="TemplateLibrary.Tooltip"/></Supertip>
                   <Icon>
-                    <bt:Image size="16" resid="Icon.Drafting.16"/>
-                    <bt:Image size="32" resid="Icon.Drafting.32"/>
-                    <bt:Image size="80" resid="Icon.Drafting.80"/>
+                    <bt:Image size="16" resid="Icon.Library.16"/>
+                    <bt:Image size="32" resid="Icon.Library.32"/>
+                    <bt:Image size="80" resid="Icon.Library.80"/>
                   </Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>openDocumentSettingsDialog</FunctionName></Action>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>openTemplateLibraryDialog</FunctionName></Action>
                 </Control>
-                <Control xsi:type="Button" id="CheckDocumentButton">
-                  <Label resid="CheckDocument.Label"/>
-                  <Supertip><Title resid="CheckDocument.Label"/><Description resid="CheckDocument.Tooltip"/></Supertip>
+                <Control xsi:type="Button" id="TemplateWizardButton">
+                  <Label resid="TemplateWizard.Label"/>
+                  <Supertip><Title resid="TemplateWizard.Label"/><Description resid="TemplateWizard.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Builder.16"/>
+                    <bt:Image size="32" resid="Icon.Builder.32"/>
+                    <bt:Image size="80" resid="Icon.Builder.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>openTemplateWizardDialog</FunctionName></Action>
+                </Control>
+                <Control xsi:type="Menu" id="DocumentToolsMenu">
+                  <Label resid="DocumentToolsMenu.Label"/>
+                  <Supertip><Title resid="DocumentToolsMenu.Label"/><Description resid="DocumentToolsMenu.Tooltip"/></Supertip>
                   <Icon>
                     <bt:Image size="16" resid="Icon.Proofread.16"/>
                     <bt:Image size="32" resid="Icon.Proofread.32"/>
                     <bt:Image size="80" resid="Icon.Proofread.80"/>
                   </Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>openInspectorDialog</FunctionName></Action>
+                  <Items>
+                    <Item id="ItemCheckDocument">
+                      <Label resid="CheckDocument.Label"/>
+                      <Supertip><Title resid="CheckDocument.Label"/><Description resid="CheckDocument.Tooltip"/></Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.Proofread.16"/>
+                        <bt:Image size="32" resid="Icon.Proofread.32"/>
+                        <bt:Image size="80" resid="Icon.Proofread.80"/>
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>openInspectorDialog</FunctionName></Action>
+                    </Item>
+                    <Item id="ItemDocumentSettings">
+                      <Label resid="DocumentSettings.Label"/>
+                      <Supertip><Title resid="DocumentSettings.Label"/><Description resid="DocumentSettings.Tooltip"/></Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.Drafting.16"/>
+                        <bt:Image size="32" resid="Icon.Drafting.32"/>
+                        <bt:Image size="80" resid="Icon.Drafting.80"/>
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>openDocumentSettingsDialog</FunctionName></Action>
+                    </Item>
+                  </Items>
                 </Control>
                 <Control xsi:type="Button" id="QuickStandardizeButton">
                   <Label resid="QuickStandardize.Label"/>
@@ -201,9 +252,19 @@
                   </Icon>
                   <Action xsi:type="ExecuteFunction"><FunctionName>run1ClickStandardize</FunctionName></Action>
                 </Control>
+                <Control xsi:type="Button" id="RollbackButton">
+                  <Label resid="Rollback.Label"/>
+                  <Supertip><Title resid="Rollback.Label"/><Description resid="Rollback.Tooltip"/></Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.Rollback.16"/>
+                    <bt:Image size="32" resid="Icon.Rollback.32"/>
+                    <bt:Image size="80" resid="Icon.Rollback.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction"><FunctionName>runRollbackLastAction</FunctionName></Action>
+                </Control>
               </Group>
 
-              <!-- NHÓM 3: CHÈN NHANH (QUICK INSERT) -->
+              <!-- NHÓM 3: CHÈN NHANH -->
               <Group id="GroupQuickInsert">
                 <Label resid="QuickInsertGroup.Label"/>
                 <Icon>
@@ -284,7 +345,7 @@
                 </Control>
               </Group>
 
-              <!-- NHÓM 4: BỐ CỤC (LAYOUT) -->
+              <!-- NHÓM 4: TRANG VÀ CÔNG CỤ -->
               <Group id="GroupLayout">
                 <Label resid="PageLayoutGroup.Label"/>
                 <Icon>
@@ -321,6 +382,26 @@
                       </Icon>
                       <Action xsi:type="ExecuteFunction"><FunctionName>toggleOrientationCmd</FunctionName></Action>
                     </Item>
+                    <Item id="ItemConvertUnicode">
+                      <Label resid="ConvertUnicode.Label"/>
+                      <Supertip><Title resid="ConvertUnicode.Label"/><Description resid="ConvertUnicode.Tooltip"/></Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.ConvertUnicode.16"/>
+                        <bt:Image size="32" resid="Icon.ConvertUnicode.32"/>
+                        <bt:Image size="80" resid="Icon.ConvertUnicode.80"/>
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>convertSelectionToUnicode</FunctionName></Action>
+                    </Item>
+                    <Item id="ItemCleanExtraSpaces">
+                      <Label resid="CleanExtraSpaces.Label"/>
+                      <Supertip><Title resid="CleanExtraSpaces.Label"/><Description resid="CleanExtraSpaces.Tooltip"/></Supertip>
+                      <Icon>
+                        <bt:Image size="16" resid="Icon.FixSpacing.16"/>
+                        <bt:Image size="32" resid="Icon.FixSpacing.32"/>
+                        <bt:Image size="80" resid="Icon.FixSpacing.80"/>
+                      </Icon>
+                      <Action xsi:type="ExecuteFunction"><FunctionName>cleanExtraSpacesCmd</FunctionName></Action>
+                    </Item>
                     <Item id="ItemPageNumbers">
                       <Label resid="PageNumbers.Label"/>
                       <Supertip><Title resid="PageNumbers.Label"/><Description resid="PageNumbers.Tooltip"/></Supertip>
@@ -355,46 +436,6 @@
                 </Control>
               </Group>
 
-              <!-- NHÓM 5: TÀI NGUYÊN (RESOURCES) -->
-              <Group id="GroupResources">
-                <Label resid="ResourcesGroup.Label"/>
-                <Icon>
-                  <bt:Image size="16" resid="Icon.Guidance.16"/>
-                  <bt:Image size="32" resid="Icon.Guidance.32"/>
-                  <bt:Image size="80" resid="Icon.Guidance.80"/>
-                </Icon>
-                <Control xsi:type="Button" id="TemplateLibraryButton">
-                  <Label resid="TemplateLibrary.Label"/>
-                  <Supertip><Title resid="TemplateLibrary.Label"/><Description resid="TemplateLibrary.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.Library.16"/>
-                    <bt:Image size="32" resid="Icon.Library.32"/>
-                    <bt:Image size="80" resid="Icon.Library.80"/>
-                  </Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>openTemplateLibraryDialog</FunctionName></Action>
-                </Control>
-                <Control xsi:type="Button" id="LearnExperienceButton">
-                  <Label resid="LearnExperience.Label"/>
-                  <Supertip><Title resid="LearnExperience.Label"/><Description resid="LearnExperience.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.Guidance.16"/>
-                    <bt:Image size="32" resid="Icon.Guidance.32"/>
-                    <bt:Image size="80" resid="Icon.Guidance.80"/>
-                  </Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>openLearnExperienceDialog</FunctionName></Action>
-                </Control>
-                <Control xsi:type="Button" id="SettingsButton">
-                  <Label resid="Settings.Label"/>
-                  <Supertip><Title resid="Settings.Label"/><Description resid="Settings.Tooltip"/></Supertip>
-                  <Icon>
-                    <bt:Image size="16" resid="Icon.Brand.16"/>
-                    <bt:Image size="32" resid="Icon.Brand.32"/>
-                    <bt:Image size="80" resid="Icon.Brand.80"/>
-                  </Icon>
-                  <Action xsi:type="ExecuteFunction"><FunctionName>openSettingsDialog</FunctionName></Action>
-                </Control>
-              </Group>
-
               <Label resid="Tab.Label"/>
             </CustomTab>
           </ExtensionPoint>
@@ -406,12 +447,12 @@
         <bt:Image id="Icon.Brand.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-brand-badge-16.png"/>
         <bt:Image id="Icon.Brand.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-brand-badge-32.png"/>
         <bt:Image id="Icon.Brand.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-brand-badge-80.png"/>
-        <bt:Image id="Icon.Read.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-read-16.png"/>
-        <bt:Image id="Icon.Read.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-read-32.png"/>
-        <bt:Image id="Icon.Read.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-read-80.png"/>
-        <bt:Image id="Icon.Open.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-open-16.png"/>
-        <bt:Image id="Icon.Open.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-open-32.png"/>
-        <bt:Image id="Icon.Open.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-open-80.png"/>
+        <bt:Image id="Icon.Library.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-library-16.png"/>
+        <bt:Image id="Icon.Library.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-library-32.png"/>
+        <bt:Image id="Icon.Library.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-library-80.png"/>
+        <bt:Image id="Icon.Builder.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-builder-16.png"/>
+        <bt:Image id="Icon.Builder.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-builder-32.png"/>
+        <bt:Image id="Icon.Builder.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-builder-80.png"/>
         <bt:Image id="Icon.Drafting.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-drafting-16.png"/>
         <bt:Image id="Icon.Drafting.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-drafting-32.png"/>
         <bt:Image id="Icon.Drafting.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-drafting-80.png"/>
@@ -430,27 +471,18 @@
         <bt:Image id="Icon.Appendix.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-appendix-16.png"/>
         <bt:Image id="Icon.Appendix.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-appendix-32.png"/>
         <bt:Image id="Icon.Appendix.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-appendix-80.png"/>
-        <bt:Image id="Icon.Table.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-16.png"/>
-        <bt:Image id="Icon.Table.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-32.png"/>
-        <bt:Image id="Icon.Table.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-80.png"/>
-        <bt:Image id="Icon.Library.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-library-16.png"/>
-        <bt:Image id="Icon.Library.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-library-32.png"/>
-        <bt:Image id="Icon.Library.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-library-80.png"/>
         <bt:Image id="Icon.Ai.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-ai-16.png"/>
         <bt:Image id="Icon.Ai.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-ai-32.png"/>
         <bt:Image id="Icon.Ai.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-ai-80.png"/>
         <bt:Image id="Icon.Proofread.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-proofread-16.png"/>
         <bt:Image id="Icon.Proofread.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-proofread-32.png"/>
         <bt:Image id="Icon.Proofread.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-proofread-80.png"/>
-        <bt:Image id="Icon.Builder.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-builder-16.png"/>
-        <bt:Image id="Icon.Builder.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-builder-32.png"/>
-        <bt:Image id="Icon.Builder.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-builder-80.png"/>
-        <bt:Image id="Icon.Fill.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-fill-16.png"/>
-        <bt:Image id="Icon.Fill.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-fill-32.png"/>
-        <bt:Image id="Icon.Fill.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-fill-80.png"/>
         <bt:Image id="Icon.Guidance.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-guidance-16.png"/>
         <bt:Image id="Icon.Guidance.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-guidance-32.png"/>
         <bt:Image id="Icon.Guidance.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-guidance-80.png"/>
+        <bt:Image id="Icon.Read.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-read-16.png"/>
+        <bt:Image id="Icon.Read.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-read-32.png"/>
+        <bt:Image id="Icon.Read.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-read-80.png"/>
         <bt:Image id="Icon.QuickStandardize.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-quick-standardize-16.png"/>
         <bt:Image id="Icon.QuickStandardize.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-quick-standardize-32.png"/>
         <bt:Image id="Icon.QuickStandardize.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-quick-standardize-80.png"/>
@@ -460,45 +492,28 @@
         <bt:Image id="Icon.A4Margins.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-a4-margins-16.png"/>
         <bt:Image id="Icon.A4Margins.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-a4-margins-32.png"/>
         <bt:Image id="Icon.A4Margins.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-a4-margins-80.png"/>
-        <bt:Image id="Icon.DeleteBlankPages.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-pages-16.png"/>
-        <bt:Image id="Icon.DeleteBlankPages.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-pages-32.png"/>
-        <bt:Image id="Icon.DeleteBlankPages.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-pages-80.png"/>
-        <bt:Image id="Icon.TableFit.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-fit-16.png"/>
-        <bt:Image id="Icon.TableFit.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-fit-32.png"/>
-        <bt:Image id="Icon.TableFit.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-fit-80.png"/>
         <bt:Image id="Icon.ConvertUnicode.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-convert-unicode-16.png"/>
         <bt:Image id="Icon.ConvertUnicode.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-convert-unicode-32.png"/>
         <bt:Image id="Icon.ConvertUnicode.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-convert-unicode-80.png"/>
         <bt:Image id="Icon.FixSpacing.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-fix-spacing-16.png"/>
         <bt:Image id="Icon.FixSpacing.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-fix-spacing-32.png"/>
         <bt:Image id="Icon.FixSpacing.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-fix-spacing-80.png"/>
-        <bt:Image id="Icon.FixLineBreaks.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-fix-linebreaks-16.png"/>
-        <bt:Image id="Icon.FixLineBreaks.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-fix-linebreaks-32.png"/>
-        <bt:Image id="Icon.FixLineBreaks.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-fix-linebreaks-80.png"/>
-        <bt:Image id="Icon.Punctuation.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-punctuation-16.png"/>
-        <bt:Image id="Icon.Punctuation.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-punctuation-32.png"/>
-        <bt:Image id="Icon.Punctuation.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-punctuation-80.png"/>
+        <bt:Image id="Icon.DeleteBlankPages.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-page-16.png"/>
+        <bt:Image id="Icon.DeleteBlankPages.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-page-32.png"/>
+        <bt:Image id="Icon.DeleteBlankPages.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-delete-blank-page-80.png"/>
+        <bt:Image id="Icon.TableFit.16" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-fit-16.png"/>
+        <bt:Image id="Icon.TableFit.32" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-fit-32.png"/>
+        <bt:Image id="Icon.TableFit.80" DefaultValue="https://localhost:38473/assets/ribbon/icon-table-fit-80.png"/>
       </bt:Images>
       <bt:Urls>
         <bt:Url id="Commands.Url" DefaultValue="https://localhost:38473/commands.html"/>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai"/>
-        <bt:Url id="Taskpane.Ai.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai"/>
-        <bt:Url id="Taskpane.Settings.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai"/>
-        <bt:Url id="Taskpane.Inspect.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai"/>
-        <bt:Url id="Taskpane.Library.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai"/>
-        <bt:Url id="Taskpane.Recent.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai"/>
-        <bt:Url id="Taskpane.Favorite.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai"/>
-        <bt:Url id="Taskpane.Builder.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai"/>
-        <bt:Url id="Taskpane.Knowledge.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai"/>
-        <bt:Url id="Taskpane.SettingsModal.Url" DefaultValue="https://localhost:38473/taskpane.html?view=ai"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Tab.Label" DefaultValue="TVCI"/>
-        <bt:String id="DocumentGroup.Label" DefaultValue="Văn bản"/>
-        <bt:String id="QuickInsertGroup.Label" DefaultValue="Chèn"/>
-        <bt:String id="PageLayoutGroup.Label" DefaultValue="Bố cục"/>
-        <bt:String id="AiGroup.Label" DefaultValue="AI"/>
-        <bt:String id="ResourcesGroup.Label" DefaultValue="Tài nguyên"/>
+        <bt:String id="DocumentGroup.Label" DefaultValue="Văn bản và biểu mẫu"/>
+        <bt:String id="QuickInsertGroup.Label" DefaultValue="Chèn nhanh"/>
+        <bt:String id="PageLayoutGroup.Label" DefaultValue="Trang và công cụ"/>
+        <bt:String id="AiGroup.Label" DefaultValue="AI trợ lý"/>
 
         <bt:String id="CreateDocMenu.Label" DefaultValue="Tạo văn bản"/>
         <bt:String id="ItemCongVan.Label" DefaultValue="Công văn"/>
@@ -511,45 +526,39 @@
         <bt:String id="ItemGiayMoi.Label" DefaultValue="Giấy mời"/>
         <bt:String id="ItemPhieu.Label" DefaultValue="Phiếu"/>
 
-        <bt:String id="DeptTemplatesMenu.Label" DefaultValue="Mẫu chuyên môn"/>
-        <bt:String id="ItemDienDienTu.Label" DefaultValue="Điện - điện tử"/>
-        <bt:String id="ItemHieuSuat.Label" DefaultValue="Hiệu suất năng lượng"/>
-        <bt:String id="ItemVatLieu.Label" DefaultValue="Thử nghiệm Vật liệu"/>
-        <bt:String id="ItemMoiTruong.Label" DefaultValue="Quan trắc Môi trường"/>
-        <bt:String id="ItemGiamDinh.Label" DefaultValue="Giám định &amp; Kiểm định"/>
-        <bt:String id="ItemAllTemplates.Label" DefaultValue="Tất cả biểu mẫu..."/>
+        <bt:String id="TemplateLibrary.Label" DefaultValue="Kho biểu mẫu"/>
+        <bt:String id="TemplateWizard.Label" DefaultValue="Tạo biểu mẫu"/>
 
-        <bt:String id="DocumentSettings.Label" DefaultValue="Thiết lập"/>
-        <bt:String id="CheckDocument.Label" DefaultValue="Kiểm tra"/>
-        <bt:String id="QuickStandardize.Label" DefaultValue="Chuẩn hóa"/>
-        <bt:String id="Rollback.Label" DefaultValue="Hoàn tác"/>
+        <bt:String id="DocumentSettings.Label" DefaultValue="Cấu hình văn bản"/>
+        <bt:String id="CheckDocument.Label" DefaultValue="Kiểm tra văn bản"/>
+        <bt:String id="DocumentToolsMenu.Label" DefaultValue="Kiểm tra &amp; cấu hình"/>
+        <bt:String id="QuickStandardize.Label" DefaultValue="Chuẩn hóa nhanh"/>
+        <bt:String id="Rollback.Label" DefaultValue="Hoàn tác chuẩn hóa"/>
 
         <bt:String id="QuickInsertMenu.Label" DefaultValue="Chèn nhanh"/>
         <bt:String id="Addressee.Label" DefaultValue="Kính gửi"/>
         <bt:String id="LegalBasis.Label" DefaultValue="Căn cứ"/>
         <bt:String id="Recipients.Label" DefaultValue="Nơi nhận"/>
-        <bt:String id="Signer.Label" DefaultValue="Chữ ký"/>
+        <bt:String id="Signer.Label" DefaultValue="Người ký"/>
         <bt:String id="Appendix.Label" DefaultValue="Phụ lục"/>
         <bt:String id="Outline.Label" DefaultValue="Đề mục"/>
 
-        <bt:String id="StandardA4.Label" DefaultValue="A4 chuẩn"/>
-        <bt:String id="ItemStandardA4.Label" DefaultValue="A4 chuẩn"/>
-        <bt:String id="ToggleOrientation.Label" DefaultValue="Dọc/Ngang"/>
-        <bt:String id="ItemToggleOrientation.Label" DefaultValue="Dọc / Ngang"/>
-        <bt:String id="PageLayoutMenu.Label" DefaultValue="Trang"/>
+        <bt:String id="ItemStandardA4.Label" DefaultValue="Khổ lề A4"/>
+        <bt:String id="ItemToggleOrientation.Label" DefaultValue="Hướng trang"/>
+        <bt:String id="PageLayoutMenu.Label" DefaultValue="Bố cục trang"/>
+        <bt:String id="ConvertUnicode.Label" DefaultValue="Chuyển Unicode"/>
+        <bt:String id="CleanExtraSpaces.Label" DefaultValue="Dọn khoảng trắng"/>
         <bt:String id="PageNumbers.Label" DefaultValue="Số trang"/>
-        <bt:String id="FixTableOverflow.Label" DefaultValue="Bảng vừa lề"/>
+        <bt:String id="FixTableOverflow.Label" DefaultValue="Co bảng vừa trang"/>
         <bt:String id="DeleteBlankPages.Label" DefaultValue="Xóa trang trắng"/>
 
         <bt:String id="SmartDrafting.Label" DefaultValue="Soạn thảo AI"/>
-        <bt:String id="AiWorkspace.Label" DefaultValue="Trường dữ liệu"/>
-        <bt:String id="TemplateLibrary.Label" DefaultValue="Kho biểu mẫu"/>
-        <bt:String id="LearnExperience.Label" DefaultValue="Nhận kinh nghiệm"/>
-        <bt:String id="Knowledge.Label" DefaultValue="Kho kiến thức"/>
-        <bt:String id="Settings.Label" DefaultValue="Cài đặt"/>
+        <bt:String id="LearnExperience.Label" DefaultValue="Tạo kinh nghiệm"/>
+        <bt:String id="Knowledge.Label" DefaultValue="Kho tri thức"/>
+        <bt:String id="Settings.Label" DefaultValue="Cài đặt AI"/>
       </bt:ShortStrings>
       <bt:LongStrings>
-        <bt:String id="CreateDocMenu.Tooltip" DefaultValue="Chọn nhanh loại văn bản hành chính để tạo khung chuẩn Nghị định 30."/>
+        <bt:String id="CreateDocMenu.Tooltip" DefaultValue="Chọn loại văn bản hành chính để tạo khung chuẩn."/>
         <bt:String id="ItemCongVan.Tooltip" DefaultValue="Tạo văn bản thể thức Công văn chuẩn Nghị định 30."/>
         <bt:String id="ItemQuyetDinh.Tooltip" DefaultValue="Tạo khung văn bản Quyết định ban hành / cá biệt."/>
         <bt:String id="ItemThongBao.Tooltip" DefaultValue="Tạo văn bản Thông báo nội bộ hoặc ngoài đơn vị."/>
@@ -560,22 +569,20 @@
         <bt:String id="ItemGiayMoi.Tooltip" DefaultValue="Tạo Giấy mời / Thư mời họp trang trọng."/>
         <bt:String id="ItemPhieu.Tooltip" DefaultValue="Tạo mẫu Phiếu yêu cầu / đề nghị thử nghiệm."/>
         <bt:String id="ItemStandardA4.Tooltip" DefaultValue="Thiết lập lề trang A4 chuẩn (20-20-30-15 mm) theo NĐ30."/>
-        <bt:String id="ItemToggleOrientation.Tooltip" DefaultValue="Chuyển đổi toàn bộ tài liệu giữa trang dọc và trang ngang."/>
+        <bt:String id="ItemToggleOrientation.Tooltip" DefaultValue="Chuyển hướng trang dọc hoặc ngang."/>
+        <bt:String id="ConvertUnicode.Tooltip" DefaultValue="Đổi vùng chọn từ TCVN3 hoặc VNI sang Unicode."/>
+        <bt:String id="CleanExtraSpaces.Tooltip" DefaultValue="Dọn khoảng trắng, ngắt dòng thủ công và dấu câu trong vùng chọn."/>
 
-        <bt:String id="DeptTemplatesMenu.Tooltip" DefaultValue="Chọn biểu mẫu thử nghiệm, quan trắc và giám định kỹ thuật của Trung tâm."/>
-        <bt:String id="ItemDienDienTu.Tooltip" DefaultValue="Mở biểu mẫu thử nghiệm thiết bị Điện - Điện tử của Trung tâm."/>
-        <bt:String id="ItemHieuSuat.Tooltip" DefaultValue="Mở biểu mẫu thử nghiệm Hiệu suất năng lượng của Trung tâm."/>
-        <bt:String id="ItemVatLieu.Tooltip" DefaultValue="Mở biểu mẫu thử nghiệm cơ lý vật liệu của Trung tâm."/>
-        <bt:String id="ItemMoiTruong.Tooltip" DefaultValue="Mở biên bản quan trắc và lấy mẫu môi trường của Trung tâm."/>
-        <bt:String id="ItemGiamDinh.Tooltip" DefaultValue="Mở chứng thư giám định &amp; kiểm định kỹ thuật an toàn của Trung tâm."/>
-        <bt:String id="ItemAllTemplates.Tooltip" DefaultValue="Mở hộp thoại tìm kiếm và lọc toàn bộ Kho biểu mẫu hệ thống."/>
+        <bt:String id="TemplateLibrary.Tooltip" DefaultValue="Mở Kho biểu mẫu để tìm và chọn mẫu."/>
+        <bt:String id="TemplateWizard.Tooltip" DefaultValue="Tạo và lưu biểu mẫu mới từ tài liệu hiện tại."/>
 
         <bt:String id="DocumentSettings.Tooltip" DefaultValue="Mở hộp thoại cấu hình thể thức, căn lề, cơ quan ban hành và người ký."/>
         <bt:String id="CheckDocument.Tooltip" DefaultValue="Mở hộp thoại kiểm tra và đánh giá thể thức 4 trạng thái theo NĐ30."/>
+        <bt:String id="DocumentToolsMenu.Tooltip" DefaultValue="Kiểm tra thể thức hoặc cấu hình văn bản."/>
         <bt:String id="QuickStandardize.Tooltip" DefaultValue="Tự động căn lề A4 và sửa toàn bộ lỗi thể thức an toàn trong 1-click."/>
-        <bt:String id="Rollback.Tooltip" DefaultValue="Hoàn tác lại lần chuẩn hóa trước đó."/>
+        <bt:String id="Rollback.Tooltip" DefaultValue="Khôi phục thay đổi mới nhất do luồng chuẩn hóa của tiện ích TVCI thực hiện."/>
 
-        <bt:String id="QuickInsertMenu.Tooltip" DefaultValue="Chèn nhanh các thành phần thể thức văn bản chuẩn Nghị định 30."/>
+        <bt:String id="QuickInsertMenu.Tooltip" DefaultValue="Chèn nhanh thành phần thể thức văn bản."/>
         <bt:String id="Addressee.Tooltip" DefaultValue="Chèn nhanh khối Kính gửi chuẩn quy cách hành chính."/>
         <bt:String id="LegalBasis.Tooltip" DefaultValue="Chèn căn cứ pháp lý in nghiêng có dấu chấm phẩy."/>
         <bt:String id="Recipients.Tooltip" DefaultValue="Chèn khối Nơi nhận đúng quy chuẩn thể thức."/>
@@ -583,19 +590,15 @@
         <bt:String id="Appendix.Tooltip" DefaultValue="Chèn phụ lục và bảng danh mục đính kèm."/>
         <bt:String id="Outline.Tooltip" DefaultValue="Chèn cấu trúc đề mục I, 1, a, - chuẩn thể thức."/>
 
-        <bt:String id="StandardA4.Tooltip" DefaultValue="Thiết lập lề trang A4 chuẩn (20-20-30-15 mm) theo NĐ30."/>
-        <bt:String id="ToggleOrientation.Tooltip" DefaultValue="Chuyển toàn bộ tài liệu giữa hướng trang ngang và dọc."/>
-        <bt:String id="PageLayoutMenu.Tooltip" DefaultValue="Các thao tác bố cục trang, số trang và bảng biểu."/>
+        <bt:String id="PageLayoutMenu.Tooltip" DefaultValue="Khổ giấy, hướng trang, số trang và bảng."/>
         <bt:String id="PageNumbers.Tooltip" DefaultValue="Đánh số trang góc trên giữa theo Nghị định 30."/>
-        <bt:String id="FixTableOverflow.Tooltip" DefaultValue="Tự động co giãn chiều rộng bảng vừa khít lề trang Word."/>
+        <bt:String id="FixTableOverflow.Tooltip" DefaultValue="Co bảng vừa khít chiều rộng trang Word."/>
         <bt:String id="DeleteBlankPages.Tooltip" DefaultValue="Xóa các trang trắng và dòng ngắt thừa ở cuối văn bản."/>
 
-        <bt:String id="SmartDrafting.Tooltip" DefaultValue="Trợ lý AI soạn thảo văn bản 5 bước chuẩn thể thức hành chính."/>
-        <bt:String id="AiWorkspace.Tooltip" DefaultValue="Mở bảng quản lý trường dữ liệu và AI sửa văn bản."/>
-        <bt:String id="TemplateLibrary.Tooltip" DefaultValue="Mở kho biểu mẫu chuẩn của Trung tâm và Viện."/>
-        <bt:String id="LearnExperience.Tooltip" DefaultValue="Đúc kết kinh nghiệm, mẫu câu và bài học từ văn kiện Word hoàn thiện vào Kho tri thức."/>
-        <bt:String id="Knowledge.Tooltip" DefaultValue="Mở Kho tri thức, quy chế và kinh nghiệm nghiệp vụ."/>
-        <bt:String id="Settings.Tooltip" DefaultValue="Cấu hình kết nối AI và các tùy chọn nâng cao."/>
+        <bt:String id="SmartDrafting.Tooltip" DefaultValue="Mở hộp thoại soạn thảo với TVCI AI."/>
+        <bt:String id="LearnExperience.Tooltip" DefaultValue="Học kinh nghiệm và mẫu câu từ văn bản hoàn thiện."/>
+        <bt:String id="Knowledge.Tooltip" DefaultValue="Mở Kho tri thức về quy chế, kinh nghiệm và mẫu câu."/>
+        <bt:String id="Settings.Tooltip" DefaultValue="Cấu hình kết nối và tùy chọn AI."/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>

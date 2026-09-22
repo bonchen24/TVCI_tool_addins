@@ -14,13 +14,15 @@ import { applyPageIssueFix, applyPageRules } from "../word/page-formatting.servi
 import { TEMPLATE_CATALOG } from "../templates/catalog";
 import { distinctTemplateValues, searchTemplates, type TemplateOrganization, type TemplateRecord } from "../templates/library";
 import { deleteUserTemplate, getUserTemplateData, listUserTemplates, saveUserTemplate } from "../templates/storage";
-import { makeUserTemplateRecord, updateUserTemplateRecord } from "../templates/user-template";
+import { makeUserTemplateRecord, updateUserTemplateRecord, type UserTemplateUpdateInput } from "../templates/user-template";
 import { insertTemplate } from "../word/template.service";
 import { addContentControlAtSelection, addContentControlAroundFirstMatch, listTaggedContentControls, setContentControlText, setMultipleContentControlTexts } from "../word/content-control.service";
 import { exportCurrentDocumentAsDocx } from "../word/document-export.service";
 import { CONTENT_CONTROL_FIELDS } from "../content-controls/field-map";
 import { requestAiPromptDirect, type AiProviderName } from "../ai/direct-client";
-import { clearAiSettings, defaultModelFor, loadAiSettings, saveAiSettings } from "../ai/settings";
+import { clearAiSettings, defaultModelFor, loadAiSettings, saveAiSettings, type StoredAiSettings } from "../ai/settings";
+import { subscribeToAiSettings } from "../ai/settings-bridge";
+import { subscribeToDocumentSettings } from "../models/document-settings-bridge";
 import { chooseConfiguredModel, discoverAvailableModels, KNOWN_MODELS } from "../ai/model-discovery";
 import { TVCI_TEMPLATE_TABS } from "../templates/tvci-tabs";
 import { PARTY_DOCUMENT_TYPES } from "../templates/party";
@@ -195,7 +197,6 @@ export default function App() {
   const [userTemplates, setUserTemplates] = useState<TemplateRecord[]>([]);
   const [templateOrg, setTemplateOrg] = useState<TemplateOrganization>("TVCI");
   const [templateQuery, setTemplateQuery] = useState("");
-  const [templateDepartment, setTemplateDepartment] = useState("Văn bản chung");
   const [templateType, setTemplateType] = useState("");
   const [showHiddenTemplates, setShowHiddenTemplates] = useState(false);
   const [referenceQuery, setReferenceQuery] = useState("");
@@ -212,7 +213,6 @@ export default function App() {
   const [builderOrg, setBuilderOrg] = useState<TemplateOrganization>("TVCI");
   const [wizardOpen, setWizardOpen] = useState(false);
   const [builderName, setBuilderName] = useState("Biểu mẫu mới");
-  const [builderDepartment, setBuilderDepartment] = useState("Văn bản chung");
   const [builderType, setBuilderType] = useState("Biểu mẫu");
   const [builderKeywords, setBuilderKeywords] = useState("");
   const [builderField, setBuilderField] = useState<string>("TEN_KHACH_HANG");
@@ -252,18 +252,78 @@ export default function App() {
   const [aiModel, setAiModel] = useState(initialAiSettings.model);
   const [aiApiKey, setAiApiKey] = useState(initialAiSettings.apiKey);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [recommendedModel, setRecommendedModel] = useState("");
   const [aiSettingsModalOpen, setAiSettingsModalOpen] = useState(false);
   const [matchedTemplateId, setMatchedTemplateId] = useState<string>("");
   const [attachmentMenuOpen, setAttachmentMenuOpen] = useState(false);
   const [lastDraftInput, setLastDraftInput] = useState<string>("");
 
+  useEffect(() => subscribeToAiSettings((settings) => {
+    setAiProvider(settings.provider);
+    setAiModel(settings.model);
+    setAiApiKey(settings.apiKey);
+    setRecommendedModel("");
+  }), []);
+
+  useEffect(() => subscribeToDocumentSettings((settings) => {
+    setDocumentSettings(settings);
+  }), []);
+
   useEffect(() => {
-    if (aiProvider === "gemini" && aiModel.includes("2.5")) {
-      const fixedModel = defaultModelFor("gemini");
-      setAiModel(fixedModel);
-      saveAiSettings({ provider: aiProvider, model: fixedModel, apiKey: aiApiKey });
-    }
-  }, [aiProvider, aiModel, aiApiKey]);
+    if (!isDialog || typeof Office === "undefined" || !Office.context?.ui?.addHandlerAsync) return;
+    const handleParentMessage = (arg: Office.DialogParentMessageReceivedEventArgs) => {
+      try {
+        const data = JSON.parse(arg.message) as {
+          type?: string;
+          ok?: boolean;
+          error?: string;
+          settings?: { provider?: unknown; model?: unknown; apiKey?: unknown };
+        };
+        const applyMessageSettings = () => {
+          const messageSettings = data.settings;
+          if (
+            messageSettings
+            && (messageSettings.provider === "gemini" || messageSettings.provider === "openai")
+            && typeof messageSettings.model === "string"
+            && typeof messageSettings.apiKey === "string"
+          ) {
+            setAiProvider(messageSettings.provider);
+            setAiModel(messageSettings.model.trim());
+            setAiApiKey(messageSettings.apiKey);
+            return true;
+          }
+          const settings = loadAiSettings();
+          setAiProvider(settings.provider);
+          setAiModel(settings.model);
+          setAiApiKey(settings.apiKey);
+          return false;
+        };
+        if (data.type === "ai_settings_current") {
+          applyMessageSettings();
+          return;
+        }
+        if (data.type === "ai_settings_saved_result") {
+          if (data.ok) {
+            applyMessageSettings();
+            setStatus("✓ Đã lưu cài đặt AI vào Task Pane.");
+          } else {
+            setStatus(`Lỗi lưu cài đặt AI: ${data.error || "Không thể lưu cấu hình."}`);
+          }
+        }
+        if (data.type === "ai_settings_cleared_result") {
+          if (data.ok) {
+            applyMessageSettings();
+            setStatus("✓ Đã xóa cài đặt AI và API key khỏi Task Pane.");
+          } else {
+            setStatus(`Lỗi xóa cài đặt AI: ${data.error || "Không thể xóa cấu hình."}`);
+          }
+        }
+      } catch {
+        setStatus("Lỗi nhận phản hồi lưu cài đặt AI.");
+      }
+    };
+    Office.context.ui.addHandlerAsync(Office.EventType.DialogParentMessageReceived, handleParentMessage);
+  }, [isDialog]);
 
   const recommendedTemplates = useMemo(() => {
     const textToMatch = aiPreview || chatInput;
@@ -442,17 +502,13 @@ export default function App() {
   const allTemplates = useMemo(() => applyTemplatePreferences(rawTemplates, templatePreferences), [rawTemplates, templatePreferences]);
   const filteredTemplates = useMemo(() => searchTemplates(allTemplates, {
     organization: templateOrg,
-    department: templateDepartment || undefined,
     documentType: templateType || undefined,
     query: templateQuery,
     includeHidden: showHiddenTemplates,
-  }), [allTemplates, templateOrg, templateDepartment, templateType, templateQuery, showHiddenTemplates]);
+  }), [allTemplates, templateOrg, templateType, templateQuery, showHiddenTemplates]);
   const templateEmptyMessage = templateQuery.trim()
     ? "Không tìm thấy biểu mẫu phù hợp với từ khóa hoặc bộ lọc."
-    : templateOrg === "TVCI" && templateDepartment !== "Văn bản chung"
-      ? `Chưa có biểu mẫu hệ thống cho ${templateDepartment}. Hãy dùng Import DOCX ở phần Tạo biểu mẫu để thêm mẫu đã được phê duyệt.`
-      : "Không tìm thấy biểu mẫu phù hợp.";
-  const departments = useMemo(() => distinctTemplateValues(allTemplates, "department", templateOrg), [allTemplates, templateOrg]);
+    : "Không tìm thấy biểu mẫu phù hợp.";
   const documentTypes = useMemo(() => distinctTemplateValues(allTemplates, "documentType", templateOrg), [allTemplates, templateOrg]);
   const partyDocumentTypes = useMemo(() => [...new Set([...PARTY_DOCUMENT_TYPES, ...documentTypes])], [documentTypes]);
   const filteredGuidance = useMemo(() => searchQuickGuidance(QUICK_GUIDANCE, referenceQuery), [referenceQuery]);
@@ -754,24 +810,6 @@ export default function App() {
     setChatInput(`Hãy giải thích nguyên nhân và hướng dẫn tôi sửa lỗi thể thức này theo quy định: "${issue.message}". Giá trị hiện tại: "${String(issue.actual)}", quy chuẩn yêu cầu: "${String(issue.expected)}".`);
   };
 
-  const handleSaveAiExperience = async (content: string) => {
-    const title = window.prompt("Tiêu đề kinh nghiệm / mẫu câu", "Kinh nghiệm từ phản hồi AI");
-    if (!title || !title.trim()) return;
-    const newRecord: KnowledgeRecord = {
-      id: `ai-exp-${Date.now()}`,
-      title: title.trim(),
-      content: content.trim(),
-      category: "experience",
-      scope: (activeFormTemplate?.organization as KnowledgeRecord["scope"]) || "COMMON",
-      tags: ["ai", "kinh nghiem"],
-      referenceSource: `Trợ lý AI (${aiProvider === "openai" ? "OpenAI" : "Gemini"})`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    await handleSaveKnowledgeRecord(newRecord);
-    setStatus(`Đã lưu "${title}" vào Kho kiến thức nghiệp vụ.`);
-  };
-
   const loadFormValuesForTemplate = (template: TemplateRecord): TemplateFormValues => {
     if (activeFormTemplate?.id === template.id) return templateFormValues;
     return loadTemplateFormDraft(template.id, template.organization, template.documentType)?.values ?? {};
@@ -999,7 +1037,7 @@ export default function App() {
   const handleImportTemplate = (file: File | undefined) => run(async () => {
     if (!file) return;
     if (!file.name.toLowerCase().endsWith(".docx")) throw new Error("Chỉ hỗ trợ file .docx.");
-    const record = makeUserTemplateRecord({ name: builderName, organization: builderOrg, department: builderDepartment, documentType: builderType, keywords: builderKeywords });
+    const record = makeUserTemplateRecord({ name: builderName, organization: builderOrg, documentType: builderType, keywords: builderKeywords });
     await saveUserTemplate(record, await file.arrayBuffer());
     await refreshUserTemplates();
     setStatus(`Đã thêm ${record.name} vào kho ${record.organization}.`);
@@ -1030,26 +1068,14 @@ export default function App() {
     setStatus(direction === "up" ? "Đã chuyển biểu mẫu lên." : "Đã chuyển biểu mẫu xuống.");
   });
 
-  const handleEditTemplate = (template: TemplateRecord) => run(async () => {
+  const handleSaveTemplateMetadata = async (template: TemplateRecord, input: UserTemplateUpdateInput): Promise<void> => {
     if (template.source.kind !== "user") throw new Error("Mẫu hệ thống chỉ cho phép ẩn, sắp xếp và đặt mặc định. Hãy import một bản cá nhân để sửa nội dung metadata.");
-    const name = window.prompt("Tên biểu mẫu", template.name);
-    if (name === null) return;
-    const department = window.prompt("Phòng / tab", template.department);
-    if (department === null) return;
-    const documentType = window.prompt("Loại văn bản", template.documentType);
-    if (documentType === null) return;
-    const version = window.prompt("Version", template.version);
-    if (version === null) return;
-    const keywords = window.prompt("Từ khóa, cách nhau bằng dấu phẩy", template.keywords.join(", "));
-    if (keywords === null) return;
-    const description = window.prompt("Mô tả", template.description ?? "");
-    if (description === null) return;
-    const updated = updateUserTemplateRecord(template, { name, department, documentType, version, keywords, description });
+    const updated = updateUserTemplateRecord(template, input);
     const data = await getUserTemplateData(template.source.storageId);
     await saveUserTemplate(updated, data);
     await refreshUserTemplates();
     setStatus(`Đã cập nhật ${updated.name} lên version ${updated.version}.`);
-  });
+  };
 
   const handleAddField = () => run(async () => {
     await addContentControlAtSelection(builderField, builderField.split("_").join(" "));
@@ -1088,32 +1114,41 @@ export default function App() {
     setStatus("Đang kết nối tới máy chủ AI để lấy danh sách mô hình...");
     const result = await discoverAvailableModels(aiProvider, aiApiKey);
     setAvailableModels(result.models);
+    setRecommendedModel(result.recommended);
     const selected = chooseConfiguredModel(aiModel, result.models, result.recommended);
     setAiModel(selected);
-    saveAiSettings({ provider: aiProvider, model: selected, apiKey: aiApiKey });
     setStatus(`✓ Kết nối thành công! Đã lấy ${result.models.length} mô hình hợp lệ từ ${aiProvider === "gemini" ? "Google" : "OpenAI"}; đang dùng "${selected}".`);
   });
 
-  const handleSaveAiSettings = () => run(async () => {
-    if (!aiApiKey.trim()) throw new Error("Vui lòng nhập API Key trước khi lưu.");
-    const result = await discoverAvailableModels(aiProvider, aiApiKey);
-    setAvailableModels(result.models);
-    const selectedModel = chooseConfiguredModel(aiModel, result.models, result.recommended);
-    setAiModel(selectedModel);
-    saveAiSettings({ provider: aiProvider, model: selectedModel, apiKey: aiApiKey });
-    setStatus(`✓ Đã xác thực API và lưu cấu hình với mô hình "${selectedModel}".`);
-  });
+  const handleSaveAiSettings = async (): Promise<StoredAiSettings | void> => {
+    setBusy(true);
+    try {
+      if (!aiApiKey.trim()) throw new Error("Vui lòng nhập API Key trước khi lưu.");
+      const result = await discoverAvailableModels(aiProvider, aiApiKey);
+      setAvailableModels(result.models);
+      setRecommendedModel(result.recommended);
+      const selectedModel = chooseConfiguredModel(aiModel, result.models, result.recommended);
+      const settings: StoredAiSettings = { provider: aiProvider, model: selectedModel, apiKey: aiApiKey };
+      setAiModel(selectedModel);
+      if (!isDialog) saveAiSettings(settings);
+      setStatus(`✓ Đã xác thực API và lưu cấu hình với mô hình "${selectedModel}".`);
+      return settings;
+    } catch (error) {
+      setStatus(messageOf(error));
+      return undefined;
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const handleTemplateOrgChange = (organization: TemplateOrganization) => {
     setTemplateOrg(organization);
     setRuleProfileId(resolveRuleProfileForOrganization(organization).id);
-    setTemplateDepartment(organization === "TVCI" ? "Văn bản chung" : organization === "DANG" ? "Văn bản Đảng" : "");
     setTemplateType("");
   };
 
   const handleBuilderOrgChange = (organization: TemplateOrganization) => {
     setBuilderOrg(organization);
-    setBuilderDepartment(organization === "TVCI" ? "Văn bản chung" : organization === "DANG" ? "Văn bản Đảng" : "Dùng chung");
     if (organization === "DANG" && !PARTY_DOCUMENT_TYPES.includes(builderType as (typeof PARTY_DOCUMENT_TYPES)[number])) setBuilderType("Nghị quyết");
   };
 
@@ -1239,16 +1274,18 @@ export default function App() {
     setChatAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
-  const handleSendChat = (overridePrompt?: unknown) => run(async () => {
+  const handleSendChat = (overridePrompt?: unknown, overrideAttachments?: AiAttachment[], overrideStyle?: WritingStyleId) => run(async () => {
+    const attachments = overrideAttachments ?? chatAttachments;
+    const style = overrideStyle ?? writingStyle;
     const input = (typeof overridePrompt === "string" ? overridePrompt : chatInput).trim();
-    if (!input && chatAttachments.length === 0) throw new Error("Nhập yêu cầu soạn thảo hoặc đính kèm tài liệu nguồn cho AI.");
+    if (!input && attachments.length === 0) throw new Error("Nhập yêu cầu soạn thảo hoặc đính kèm tài liệu nguồn cho AI.");
     if (!aiApiKey || !aiApiKey.trim()) {
       setAiSettingsModalOpen(true);
       throw new Error(`Chưa có khóa API Key cho ${aiProvider === "gemini" ? "Google Gemini" : "OpenAI"}. Đã mở hộp thoại Cài đặt, vui lòng dán API Key để AI bắt đầu soạn thảo.`);
     }
     const targetSelection = aiTargetSelection.trim() && aiTargetSelection.trim() === input ? aiTargetSelection : "";
-    const attachmentNote = chatAttachments.length > 0
-      ? ` (Kèm ${chatAttachments.length} tệp nguồn: ${chatAttachments.map((a) => a.name).join(", ")})`
+    const attachmentNote = attachments.length > 0
+      ? ` (Kèm ${attachments.length} tệp nguồn: ${attachments.map((a) => a.name).join(", ")})`
       : "";
     const effectiveInput = input || "Soạn thảo văn bản hành chính hoàn chỉnh dựa trên các tài liệu nguồn đính kèm.";
     const userMessage: ChatMessage = { role: "user", content: input ? `${input}${attachmentNote}` : `Soạn thảo văn bản theo tài liệu đính kèm:${attachmentNote}` };
@@ -1265,12 +1302,12 @@ export default function App() {
       augmentedInstruction,
       documentContext ? `Ngữ cảnh Word đang mở:\n${buildDocumentContextBlock(documentContext)}` : "",
     ].filter(Boolean).join("\n\n");
-    const prompt = buildWritingPrompt({ input: effectiveInput, style: writingStyle, history: chatHistory, instruction: contextInstruction });
+    const prompt = buildWritingPrompt({ input: effectiveInput, style, history: chatHistory, instruction: contextInstruction });
     const output = await requestAiPromptDirect(
       { provider: aiProvider, model: aiModel, apiKey: aiApiKey },
       prompt,
       fetch,
-      chatAttachments
+      attachments
     );
     const nextMessages = [...chatHistory, userMessage, { role: "assistant", content: output } as ChatMessage];
     persistConversation(nextMessages);
@@ -1387,9 +1424,8 @@ export default function App() {
     setStatus("Đã chấp nhận bản AI. Chọn vị trí chèn vào Word.");
   };
   const handleRenameConversation = (conversation: ChatConversation) => run(async () => {
-    const title = window.prompt("Tên cuộc chat", conversation.title);
-    if (title === null || !title.trim()) return;
-    const next = renameChatConversation(chatConversations, conversation.id, title);
+    const next = renameChatConversation(chatConversations, conversation.id, conversation.title);
+    if (next === chatConversations) return;
     saveChatConversations(next);
     setChatConversations(next);
     setStatus("Đã đổi tên cuộc chat.");
@@ -1525,8 +1561,27 @@ export default function App() {
     setStatus("Đã thay đoạn chọn bằng bản đã hiệu chỉnh.");
   });
 
-  const handleClearAiSettings = () => run(async () => { clearAiSettings(); setAiApiKey(""); setStatus("Đã xóa API key đã lưu trên máy này."); });
-  const handleProviderChange = (provider: AiProviderName) => { setAiProvider(provider); setAiModel(defaultModelFor(provider)); setAvailableModels([]); };
+  const handleClearAiSettings = () => run(async () => {
+    clearAiSettings();
+    setAiProvider("gemini");
+    setAiModel(defaultModelFor("gemini"));
+    setAiApiKey("");
+    setAvailableModels([]);
+    setRecommendedModel("");
+    if (isDialog) {
+      if (typeof Office === "undefined" || !Office.context?.ui?.messageParent) {
+        throw new Error("Không thể thông báo xóa cài đặt AI tới Task Pane.");
+      }
+      Office.context.ui.messageParent(JSON.stringify({ type: "ai_settings_cleared" }));
+    }
+    setStatus("✓ Đã xóa cài đặt AI và API key khỏi máy này.");
+  });
+  const handleProviderChange = (provider: AiProviderName) => {
+    setAiProvider(provider);
+    setAiModel(defaultModelFor(provider));
+    setAvailableModels([]);
+    setRecommendedModel("");
+  };
   const handleApplyReplace = () => run(async () => {
     if (!aiPreview) throw new Error("Chưa có nội dung AI để áp dụng.");
     if (!aiDraftAccepted) throw new Error("Hãy chấp nhận bản AI trước khi áp dụng vào Word.");
@@ -1570,15 +1625,23 @@ export default function App() {
             closeDialogContainer();
           }}
           onSaveDefault={(s) => {
+            if (isDialog) {
+              try {
+                Office.context.ui.messageParent(JSON.stringify({ type: "save_settings_default", settings: s }));
+                setDocumentSettings(s);
+                return;
+              } catch (e) {
+                sendDebug(`messageParent save_settings_default error: ${String(e)}`);
+              }
+            }
             saveDefaultSettings(s);
             setDocumentSettings(s);
             closeDialogContainer();
           }}
           onSaveAndApply={async (s) => {
             if (isDialog) {
-              saveDefaultSettings(s);
               try {
-                Office.context.ui.messageParent(JSON.stringify({ type: "apply_settings", settings: s }));
+                Office.context.ui.messageParent(JSON.stringify({ type: "apply_settings", settings: s, persistDefault: true }));
                 setDocumentSettings(s);
                 return;
               } catch (e) {
@@ -1619,6 +1682,7 @@ export default function App() {
             void handleInsertTemplateBlank(tmpl);
           }}
           onOpenWizard={() => setActiveModal("template_wizard")}
+          onSaveTemplateMetadata={handleSaveTemplateMetadata}
         />
 
         {/* MODAL 4: Tạo Biểu Mẫu (Wizard) */}
@@ -1660,9 +1724,11 @@ export default function App() {
           aiApiKey={aiApiKey}
           onApiKeyChange={setAiApiKey}
           availableModels={availableModels}
+          recommendedModel={recommendedModel}
           onDiscoverModels={handleDiscoverModels}
           onSaveAiSettings={handleSaveAiSettings}
           onClearAiSettings={handleClearAiSettings}
+          status={status}
           busy={busy}
         />
 
@@ -1784,25 +1850,13 @@ export default function App() {
         onOpenAiSettings={() => {
           void openOfficeDialog("settings_modal");
         }}
-        onOpenTemplateLibrary={() => {
-          void openOfficeDialog("template");
-        }}
-        onStandardizeQuick={handle1ClickStandardize}
-        onApplyA4Quick={async () => {
-          await run(async () => {
-            await applyA4Margins();
-            setStatus("Đã áp dụng căn lề A4 chuẩn.");
-          });
-        }}
-        onCheckQuick={async () => {
-          await handleCheck("document");
-        }}
         messages={chatHistory}
         busy={busy}
         onSendMessage={async (text, style, att) => {
-          if (att) setChatAttachments([att]);
+          setChatAttachments(att ? [att] : []);
           setWritingStyle(style);
-          await handleSendChat(text);
+          await handleSendChat(text, att ? [att] : [], style);
+          setChatAttachments([]);
         }}
         onRefineMessage={handleRefineMessage}
         onVersionChange={(text) => setAiPreview(text)}
@@ -1814,6 +1868,7 @@ export default function App() {
           const found = chatConversations.find((c) => c.id === id);
           if (found) setChatHistory(found.messages);
         }}
+        onRenameConversation={(conversation) => handleRenameConversation(conversation)}
         onApplyText={async (text) => {
           await run(async () => {
             await applyActivePageRules();

@@ -7,6 +7,7 @@ export interface ModelDiscoveryResult {
 
 export const KNOWN_MODELS: Record<AiProviderName, string[]> = {
   gemini: [
+    "gemini-2.5-flash",
     "gemini-2.0-flash",
     "gemini-1.5-flash",
     "gemini-1.5-pro",
@@ -34,14 +35,6 @@ const OPENAI_PREFERRED = [
   "gpt-3.5-turbo",
 ];
 
-const GEMINI_PREFERRED = [
-  "gemini-2.0-flash",
-  "gemini-1.5-flash",
-  "gemini-1.5-pro",
-  "gemini-2.0-flash-lite",
-  "gemini-1.5-flash-8b",
-];
-
 function isOpenAiTextModel(id: string): boolean {
   const lowered = id.toLowerCase();
   if (!lowered.startsWith("gpt-") && !/^o\d/.test(lowered)) return false;
@@ -55,7 +48,10 @@ function isGeminiTextGenerationModel(model: { name?: string; supportedGeneration
   const name = (model.name || "").replace(/^models\//, "").toLowerCase();
   const actions = [...(model.supportedGenerationMethods || []), ...(model.supportedActions || [])];
   if (!actions.includes("generateContent")) return false;
-  return !["image", "embedding", "embed", "live", "tts", "transcribe", "audio", "lyria"].some((token) => name.includes(token));
+  return ![
+    "image", "embedding", "embed", "live", "tts", "transcribe", "audio", "lyria",
+    "veo", "imagen", "robotics", "computer-use", "aqa",
+  ].some((token) => name.includes(token));
 }
 
 function orderByPreference(models: string[], preferred: string[]): string[] {
@@ -73,8 +69,51 @@ function orderByPreference(models: string[], preferred: string[]): string[] {
 
 export function pickPreferredModel(provider: AiProviderName, models: string[]): string {
   if (!models.length) return "";
-  const preferred = provider === "openai" ? OPENAI_PREFERRED : GEMINI_PREFERRED;
-  return preferred.find((model) => models.includes(model)) || models[0];
+  if (provider === "gemini") return rankGeminiModels(models)[0] || "";
+  return OPENAI_PREFERRED.find((model) => models.includes(model)) || models[0];
+}
+
+function versionParts(model: string): number[] {
+  const versionMatch = model.match(/(?:^|-)gemini-(\d+)(?:\.(\d+))?/i);
+  const version = versionMatch ? [Number(versionMatch[1]), Number(versionMatch[2] || 0)] : [0, 0];
+  const dateMatch = model.match(/(?:preview|exp|experimental)[-_]?(\d{2,4})[-_](\d{1,2})(?:[-_](\d{1,2}))?/i);
+  if (dateMatch) version.push(Number(dateMatch[1]), Number(dateMatch[2]), Number(dateMatch[3] || 0));
+  return version;
+}
+
+function compareVersionDescending(a: string, b: string): number {
+  const aParts = versionParts(a);
+  const bParts = versionParts(b);
+  const length = Math.max(aParts.length, bParts.length);
+  for (let index = 0; index < length; index++) {
+    const difference = (bParts[index] || 0) - (aParts[index] || 0);
+    if (difference !== 0) return difference;
+  }
+  return a.localeCompare(b);
+}
+
+function isPreviewModel(model: string): boolean {
+  return /(?:^|[-_])(preview|exp|experimental)(?:[-_]|$)/i.test(model);
+}
+
+function isStandardFlash(model: string): boolean {
+  return /(?:^|-)flash(?:-|$)/i.test(model)
+    && !/flash-(?:lite|\d+b|thinking|reasoning)(?:-|$)/i.test(model);
+}
+
+function geminiModelRank(model: string): number {
+  if (isStandardFlash(model) && !isPreviewModel(model)) return 0;
+  if (isStandardFlash(model) && isPreviewModel(model)) return 1;
+  if (/(?:^|-)pro(?:-latest)?$/i.test(model) && !isPreviewModel(model)) return 2;
+  return 3;
+}
+
+/** Orders actual API model ids without treating a hard-coded generation as "latest". */
+export function rankGeminiModels(models: string[]): string[] {
+  return [...new Set(models)].sort((a, b) => {
+    const rankDifference = geminiModelRank(a) - geminiModelRank(b);
+    return rankDifference !== 0 ? rankDifference : compareVersionDescending(a, b);
+  });
 }
 
 export function chooseConfiguredModel(requested: string, available: string[], recommended: string): string {
@@ -136,12 +175,11 @@ export async function discoverAvailableModels(
   const data = await response.json() as {
     models?: Array<{ name?: string; supportedGenerationMethods?: string[]; supportedActions?: string[] }>;
   };
-  const models = orderByPreference(
+  const models = rankGeminiModels(
     (data.models || [])
       .filter(isGeminiTextGenerationModel)
       .map((item) => (item.name || "").replace(/^models\//, ""))
       .filter(Boolean),
-    GEMINI_PREFERRED,
   );
   if (!models.length) throw new Error("API key Gemini hợp lệ nhưng không tìm thấy model generateContent phù hợp.");
   return { models, recommended: pickPreferredModel(provider, models) };

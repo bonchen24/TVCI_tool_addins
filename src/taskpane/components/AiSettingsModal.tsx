@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import type { AiProviderName } from "../../ai/direct-client";
-import { defaultModelFor } from "../../ai/settings";
+import { defaultModelFor, type StoredAiSettings } from "../../ai/settings";
 import { KNOWN_MODELS } from "../../ai/model-discovery";
 
 export interface AiSettingsModalProps {
@@ -13,9 +13,11 @@ export interface AiSettingsModalProps {
   aiApiKey: string;
   onApiKeyChange: (key: string) => void;
   availableModels: string[];
+  recommendedModel?: string;
   onDiscoverModels: () => void;
-  onSaveAiSettings: () => void;
+  onSaveAiSettings: () => Promise<StoredAiSettings | void> | void;
   onClearAiSettings: () => void;
+  status?: string;
   busy: boolean;
 }
 
@@ -29,14 +31,39 @@ export function AiSettingsModal({
   aiApiKey,
   onApiKeyChange,
   availableModels,
+  recommendedModel,
   onDiscoverModels,
   onSaveAiSettings,
   onClearAiSettings,
+  status,
   busy,
 }: AiSettingsModalProps): React.ReactElement | null {
+  const [localFeedback, setLocalFeedback] = useState("");
   if (!isOpen) return null;
 
   const isDialog = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dialog") === "1";
+  const modelOptions = availableModels.length > 0 ? availableModels : KNOWN_MODELS[aiProvider];
+  const selectedModelValue = modelOptions.includes(aiModel) ? aiModel : "__custom__";
+  const recommended = recommendedModel || defaultModelFor(aiProvider);
+
+  const handleSave = async () => {
+    setLocalFeedback("");
+    try {
+      const saved = await onSaveAiSettings();
+      if (!saved) return;
+      if (isDialog) {
+        if (typeof Office === "undefined" || !Office.context?.ui?.messageParent) {
+          throw new Error("Không thể gửi cài đặt AI tới Task Pane.");
+        }
+        Office.context.ui.messageParent(JSON.stringify({ type: "ai_settings_saved", settings: saved }));
+        setLocalFeedback("✓ Đã gửi yêu cầu lưu cài đặt tới Task Pane.");
+      } else {
+        setLocalFeedback("✓ Đã lưu cài đặt AI.");
+      }
+    } catch (error) {
+      setLocalFeedback(`Lỗi lưu cài đặt AI: ${error instanceof Error ? error.message : "Không thể lưu cấu hình."}`);
+    }
+  };
 
   const content = (
     <div
@@ -91,24 +118,36 @@ export function AiSettingsModal({
               Mô hình (Model):
             </label>
             <select
-              value={aiModel}
+              value={selectedModelValue}
               onChange={(e) => {
                 if (e.target.value === "__custom__") {
-                  const custom = window.prompt("Nhập tên model tùy chọn (ví dụ: gemini-2.0-flash):", aiModel);
-                  if (custom && custom.trim()) onModelChange(custom.trim());
+                  onModelChange("");
                 } else {
                   onModelChange(e.target.value);
                 }
               }}
               style={{ width: "100%", padding: "6px 8px", fontSize: "12px", borderRadius: 6 }}
             >
-              {(availableModels.length > 0 ? availableModels : KNOWN_MODELS[aiProvider]).map((m) => (
+              {modelOptions.map((m) => (
                 <option key={m} value={m}>
-                  {m} {m === defaultModelFor(aiProvider) ? "★ (Khuyên dùng)" : ""}
+                  {m} {m === recommended ? "★ (Khuyên dùng)" : ""}
                 </option>
               ))}
               <option value="__custom__">-- Nhập tên mô hình khác... --</option>
             </select>
+            {selectedModelValue === "__custom__" && (
+              <input
+                type="text"
+                value={aiModel}
+                onChange={(e) => onModelChange(e.target.value)}
+                placeholder="Nhập chính xác model id"
+                aria-label="Model id tùy chọn"
+                style={{ width: "100%", boxSizing: "border-box", marginTop: 6, padding: "6px 8px", fontSize: "12px", borderRadius: 6 }}
+              />
+            )}
+            <div style={{ marginTop: 4, fontSize: "10.5px", color: "#475569" }}>
+              Khuyến nghị: <code>{recommended}</code> · Model đang chọn: <code>{aiModel || "chưa nhập"}</code>
+            </div>
           </div>
 
           <div style={{ marginBottom: 14 }}>
@@ -161,7 +200,7 @@ export function AiSettingsModal({
             <button
               type="button"
               className="primary"
-              onClick={onSaveAiSettings}
+              onClick={() => { void handleSave(); }}
               disabled={busy}
               style={{ fontSize: "11.5px", padding: "6px 14px", fontWeight: 600 }}
             >
@@ -176,6 +215,12 @@ export function AiSettingsModal({
               🗑️ Xóa key
             </button>
           </div>
+
+          {(localFeedback || status) && (
+            <div role="status" aria-live="polite" style={{ marginTop: 10, fontSize: "11px", color: (localFeedback || status || "").toLowerCase().includes("lỗi") ? "#b91c1c" : "#166534" }}>
+              {localFeedback || status}
+            </div>
+          )}
         </div>
 
         <div className="modalFooter">

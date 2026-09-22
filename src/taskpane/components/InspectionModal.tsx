@@ -26,6 +26,8 @@ export function InspectionModal({
   onLocateIssue,
   onFixIssue,
   onFixAllSafe,
+  on1ClickStandardize,
+  onRollback,
   busy,
 }: InspectionModalProps): React.ReactElement | null {
   const [filter, setFilter] = useState<FilterStatus>("all");
@@ -208,6 +210,28 @@ export function InspectionModal({
         </button>
 
         <div style={{ display: "flex", gap: 8 }}>
+          {on1ClickStandardize && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              style={{ height: 32, fontSize: 11.5, padding: "0 12px" }}
+              onClick={on1ClickStandardize}
+              disabled={busy}
+            >
+              Chuẩn hóa
+            </button>
+          )}
+          {onRollback && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              style={{ height: 32, fontSize: 11.5, padding: "0 12px" }}
+              onClick={onRollback}
+              disabled={busy}
+            >
+              Hoàn tác
+            </button>
+          )}
           {safeIssuesCount > 0 && (
             <button
               type="button"

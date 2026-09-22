@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { WRITING_STYLES, buildWritingPrompt } from "../src/ai/writing-workspace.ts";
 import { buildTemplateFillPrompt, parseTemplateFillResult } from "../src/ai/template-fill.ts";
 import { buildProofreadingPrompt, parseProofreadingResult } from "../src/ai/proofreading.ts";
+
+const manifest = fs.readFileSync(path.join(process.cwd(), "manifest/manifest.xml"), "utf8");
 
 test("writing workspace exposes agreed Vietnamese writing styles", () => {
   const ids = WRITING_STYLES.map((item) => item.id);
@@ -79,8 +83,6 @@ test("proofreading parser ignores issues without an original span", () => {
 });
 
 import { filterTemplateFillFieldsToControls, selectSafeTemplateFills } from "../src/ai/template-fill.ts";
-import fs from "node:fs";
-import path from "node:path";
 
 test("template fill application keeps only non-null values for controls that actually exist", () => {
   const safe = selectSafeTemplateFills(
@@ -109,14 +111,15 @@ test("template fill preview keeps only unique fields that exist in Word", () => 
   assert.deepEqual(fields.map((field) => field.value), ["Công ty ABC"]);
 });
 
-test("taskpane exposes a dedicated AI workspace and proofreading controls", () => {
-  const source = fs.readFileSync(path.join(process.cwd(), "src/taskpane/App.tsx"), "utf8");
-  const aiView = fs.readFileSync(path.join(process.cwd(), "src/taskpane/components/AiTaskpaneView.tsx"), "utf8");
-  assert.match(source, /AiTaskpaneView/);
-  assert.match(source, /handleSendChat/);
-  assert.match(aiView, /QUICK_PROMPTS/);
-  assert.match(aiView, /proofread/);
-  assert.match(aiView, /Soát lỗi chính tả/);
+test("AI uses Ribbon commands and Office Dialogs instead of a user-facing Task Pane", () => {
+  assert.equal(manifest.includes('<Action xsi:type="ShowTaskpane">'), false);
+  assert.match(manifest, /id="SmartDraftingButton"[\s\S]*?<Action xsi:type="ExecuteFunction"><FunctionName>openSmartDraftingDialog<\/FunctionName>/);
+  assert.match(manifest, /id="LearnExperienceButton"[\s\S]*?<Label resid="LearnExperience\.Label"\/>[\s\S]*?<FunctionName>openLearnExperienceDialog<\/FunctionName>/);
+  assert.match(manifest, /id="SettingsButton"[\s\S]*?<Action xsi:type="ExecuteFunction"><FunctionName>openSettingsDialog<\/FunctionName>/);
+  assert.match(manifest, /id="ItemCheckDocument"[\s\S]*?<Action xsi:type="ExecuteFunction"><FunctionName>openInspectorDialog<\/FunctionName>/);
+  assert.match(manifest, /id="TemplateLibraryButton"[\s\S]*?<Action xsi:type="ExecuteFunction"><FunctionName>openTemplateLibraryDialog<\/FunctionName>/);
+  assert.match(manifest, /id="TemplateWizardButton"[\s\S]*?<Action xsi:type="ExecuteFunction"><FunctionName>openTemplateWizardDialog<\/FunctionName>/);
+  assert.match(manifest, /<Group id="GroupAi">[\s\S]*?<Group id="GroupDocument">[\s\S]*?<Group id="GroupQuickInsert">[\s\S]*?<Group id="GroupLayout">/);
 });
 
 test("FINAL prompt keeps every message in the current chat and spells out organizations", () => {

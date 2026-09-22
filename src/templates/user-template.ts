@@ -3,7 +3,8 @@ import type { TemplateOrganization, TemplateRecord } from "./library";
 export interface UserTemplateInput {
   name: string;
   organization: TemplateOrganization;
-  department: string;
+  /** Legacy storage field; new workflows do not ask users for it. */
+  department?: string;
   documentType: string;
   keywords: string;
 }
@@ -20,7 +21,7 @@ export function makeUserTemplateRecord(
     id,
     name,
     organization: input.organization,
-    department: input.department.trim() || "Dùng chung",
+    department: input.department?.trim() || "Dùng chung",
     documentType: input.documentType.trim() || "Biểu mẫu",
     keywords,
     version: "1.0",
@@ -32,7 +33,8 @@ export function makeUserTemplateRecord(
 
 export interface UserTemplateUpdateInput {
   name: string;
-  department: string;
+  /** Omit to preserve a legacy department value unchanged. */
+  department?: string;
   documentType: string;
   version: string;
   keywords: string;
@@ -52,7 +54,7 @@ export function updateUserTemplateRecord(
   return {
     ...record,
     name,
-    department: input.department.trim() || "Dùng chung",
+    department: input.department === undefined ? record.department : input.department.trim() || "Dùng chung",
     documentType: input.documentType.trim() || "Biểu mẫu",
     version,
     keywords: input.keywords.split(",").map((item) => item.trim()).filter(Boolean),

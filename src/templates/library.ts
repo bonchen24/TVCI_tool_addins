@@ -39,7 +39,7 @@ export function normalizeVietnamese(input: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[đĐ]/g, "d")
     .toLowerCase()
-    .replace(/[^a-z0-9\s_-]/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -70,7 +70,8 @@ function fuzzyTokenMatch(queryToken: string, targetToken: string): boolean {
 function searchScore(record: TemplateRecord, query: string): number | null {
   const normalizedQuery = normalizeVietnamese(query);
   if (!normalizedQuery) return 0;
-  const fields = [record.name, record.documentType, record.department, record.description ?? "", ...record.keywords]
+  // Department remains legacy metadata, but is not a searchable user-facing dimension.
+  const fields = [record.name, record.documentType, record.description ?? "", ...record.keywords]
     .map(normalizeVietnamese)
     .filter(Boolean);
   const combined = fields.join(" ");

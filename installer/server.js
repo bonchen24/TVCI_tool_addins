@@ -5,7 +5,7 @@ const path = require('node:path');
 const PORT = 38473;
 const HOST = '127.0.0.1';
 const root = path.resolve(__dirname, '..');
-const data = path.join(process.env.LOCALAPPDATA || root, 'TVCIWordTools');
+const data = root;
 const app = path.join(root, 'app');
 const logs = path.join(data, 'logs');
 fs.mkdirSync(logs, { recursive: true });
@@ -70,8 +70,7 @@ try {
     }
 
     if (url.pathname === '/api/repair') {
-      const restartWord = url.searchParams.get('restart') === '1';
-      log(`Repair requested (restartWord=${restartWord})`);
+      log(`Repair requested (restartWord=${url.searchParams.get('restart') === '1'}; Word is never stopped by TVCI)`);
       const { spawn } = require('node:child_process');
       const candidates = [
         path.join(root, 'scripts', 'repair.ps1'),
@@ -88,8 +87,6 @@ try {
       }
 
       const args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script];
-      if (restartWord) args.push('-RestartWord');
-
       const child = spawn('powershell.exe', args, { windowsHide: true, detached: true });
       child.unref();
 
@@ -141,7 +138,10 @@ try {
 
   try {
     const serverV6 = https.createServer(tlsConfig, handleRequest);
-    serverV6.on('error', () => {});
+    serverV6.on('error', error => {
+      log(error.code === 'EADDRINUSE' ? 'Host failed: EADDRINUSE on [::1]:38473; another process remains untouched.' : `Host IPv6 failed: ${error.code || error.message}`);
+      process.exitCode = 1;
+    });
     serverV6.listen(PORT, '::1', () => log(`Host IPv6 ready on [::1]:${PORT}`));
   } catch {}
 } catch (error) {

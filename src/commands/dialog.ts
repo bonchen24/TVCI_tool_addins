@@ -2,15 +2,18 @@ import { insertTemplate } from "../word/template.service";
 import { getTemplateFormSchema } from "../templates/form-schema";
 import { applyTemplateFormToWord } from "../word/form-content-control.service";
 import { setMultipleContentControlTexts } from "../word/content-control.service";
-import { applySettingsToWord } from "../models/document-settings";
+import { applySettingsToWord, saveDefaultSettings } from "../models/document-settings";
 import { resolveCommandContext } from "./command-context";
 import { applySafeIssues } from "./safe-issues";
 import { applyIssueFix, applyTextIssueFix, applyInversePatches, selectParagraphByTargetId } from "../word/formatting.service";
 import { applyPageIssueFix } from "../word/page-formatting.service";
 import { applyA4Margins } from "../word/page-toolkit.service";
 import { TransactionManager } from "../word/transaction.service";
+import { loadAiSettings } from "../ai/settings";
+import { applyAiSettingsClearedMessage, applyAiSettingsSavedMessage } from "../ai/settings-bridge";
+import { applyDocumentSettingsDefaultMessage } from "../models/document-settings-bridge";
 
-export type DialogView = "settings" | "inspect" | "template" | "template-form" | "knowledge" | "settings_modal" | "smart_draft" | "learn_experience";
+export type DialogView = "settings" | "inspect" | "template" | "template-form" | "builder" | "knowledge" | "settings_modal" | "smart_draft" | "learn_experience";
 
 let activeDialog: Office.Dialog | null = null;
 const txManager = new TransactionManager();
@@ -71,7 +74,7 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
 
     let width = 65;
     let height = 70;
-    if (view === "template" || view === "template-form") {
+    if (view === "template" || view === "template-form" || view === "builder") {
       width = 62;
       height = 68;
     } else if (view === "settings" || view === "settings_modal") {
@@ -124,8 +127,41 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
         dialog.addEventHandler(Office.EventType.DialogMessageReceived, async (arg: any) => {
           try {
             const raw = typeof arg === "object" && arg.message ? arg.message : String(arg);
-            logDialog("DialogMessageReceived", { raw });
             const data = JSON.parse(raw);
+            // Never log the raw dialog payload: AI settings contain an API key.
+            logDialog("DialogMessageReceived", { type: typeof data?.type === "string" ? data.type : "unknown" });
+
+            if (data.type === "ai_settings_saved") {
+              try {
+                const settings = applyAiSettingsSavedMessage(data, localStorage, window);
+                dialog.messageChild(JSON.stringify({ type: "ai_settings_saved_result", ok: true, settings }));
+              } catch (error) {
+                const message = error instanceof Error ? error.message : "Không thể lưu cấu hình AI.";
+                logDialog("AI settings save failed", { error: message });
+                try {
+                  dialog.messageChild(JSON.stringify({ type: "ai_settings_saved_result", ok: false, error: message }));
+                } catch {
+                  // The dialog may have closed before the failure acknowledgement was delivered.
+                }
+              }
+              return;
+            }
+
+            if (data.type === "ai_settings_cleared") {
+              try {
+                const settings = applyAiSettingsClearedMessage(data, localStorage, window);
+                dialog.messageChild(JSON.stringify({ type: "ai_settings_cleared_result", ok: true, settings }));
+              } catch (error) {
+                const message = error instanceof Error ? error.message : "Không thể xóa cấu hình AI.";
+                logDialog("AI settings clear failed", { error: message });
+                try {
+                  dialog.messageChild(JSON.stringify({ type: "ai_settings_cleared_result", ok: false, error: message }));
+                } catch {
+                  // The dialog may have closed before the failure acknowledgement was delivered.
+                }
+              }
+              return;
+            }
 
             if (data.type === "closed") {
               dialog.close();
@@ -191,8 +227,20 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
               return;
             }
 
+            if (data.type === "save_settings_default" && data.settings) {
+              logDialog("Handling save_settings_default in parent");
+              applyDocumentSettingsDefaultMessage(data, saveDefaultSettings, window);
+              dialog.close();
+              activeDialog = null;
+              resolve();
+              return;
+            }
+
             if (data.type === "apply_settings" && data.settings) {
               logDialog("Handling apply_settings in parent");
+              if (data.persistDefault) {
+                applyDocumentSettingsDefaultMessage({ type: "save_settings_default", settings: data.settings }, saveDefaultSettings, window);
+              }
               await applySettingsToWord(data.settings);
               dialog.close();
               activeDialog = null;
@@ -263,6 +311,14 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
             console.error("Dialog message handling error:", e);
           }
         });
+
+        if (view === "settings_modal") {
+          try {
+            dialog.messageChild(JSON.stringify({ type: "ai_settings_current", settings: loadAiSettings() }));
+          } catch {
+            // The child also loads from same-origin storage on startup.
+          }
+        }
       },
     );
   });

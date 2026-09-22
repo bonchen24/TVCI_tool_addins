@@ -11,11 +11,11 @@ echo.
 set "SCRIPT=%~dp0scripts\repair.ps1"
 if not exist "%SCRIPT%" set "SCRIPT=%~dp0repair.ps1"
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%" -RestartWord
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%"
 
 echo.
 echo ========================================================
-echo   HOAN TAT! Hay dong va mo lai Word neu chua mo.
+echo   HOAN TAT! Hay dong va mo lai Word de nap add-in production.
 echo ========================================================
 echo.
 pause

@@ -7,7 +7,15 @@
 AppId={{8D912CC6-37A5-4B7A-8C41-6F661A999B36}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-AppPublisher=TVCI
+AppPublisher=Trung tam Thu nghiem - Kiem dinh Cong nghiep
+AppComments=TVCI Word Tools installer
+AppCopyright=Copyright (C) 2026 Trung tam Thu nghiem - Kiem dinh Cong nghiep
+VersionInfoVersion={#MyAppVersion}.0
+VersionInfoTextVersion={#MyAppVersion}
+VersionInfoCompany=Trung tam Thu nghiem - Kiem dinh Cong nghiep
+VersionInfoDescription=TVCI Word Tools installer
+VersionInfoProductName=TVCI Word Tools
+VersionInfoProductVersion={#MyAppVersion}
 DefaultDirName={localappdata}\TVCIWordTools
 DefaultGroupName={#MyAppName}
 PrivilegesRequired=lowest
@@ -17,6 +25,7 @@ OutputBaseFilename=TVCI-Word-Tools-Setup-{#MyAppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+WizardSmallImageFile=..\assets\icon-80.png
 ArchitecturesInstallIn64BitMode=x64
 ArchitecturesAllowed=x64
 UninstallDisplayIcon={app}\app\assets\logo-tvci.png
@@ -69,6 +78,7 @@ var
   Script: String;
   SourceExe: String;
   RepairExe: String;
+  RepairSize: Int64;
   CacheOk: Boolean;
   Failure: String;
   FailureAnsi: AnsiString;
@@ -79,7 +89,19 @@ begin
     RepairExe := ExpandConstant('{app}\repair-installer.exe');
     CacheOk := CompareText(SourceExe, RepairExe) = 0;
     if not CacheOk then
+    begin
       CacheOk := CopyFile(SourceExe, RepairExe, False);
+      if CacheOk then
+      begin
+        CacheOk := FileExists(RepairExe);
+        if CacheOk then
+        begin
+          CacheOk := FileSize64(RepairExe, RepairSize);
+          if CacheOk then
+            CacheOk := RepairSize > 0;
+        end;
+      end;
+    end;
     Script := ExpandConstant('{app}\scripts\setup.ps1');
     Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'), '-NoProfile -ExecutionPolicy Bypass -File "' + Script + '"', '', SW_HIDE, ewWaitUntilTerminated, Code);
     if not WizardSilent then

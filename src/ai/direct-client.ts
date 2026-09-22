@@ -159,8 +159,7 @@ export async function requestAiPromptDirect(
       return output;
     }
 
-    const cleanModel = rawModel.replace(/^models\//, "");
-    const model = cleanModel.includes("2.5") ? "gemini-2.0-flash" : cleanModel;
+    const model = rawModel.replace(/^models\//, "");
 
     const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [
       { text: finalPrompt },

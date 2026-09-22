@@ -46,7 +46,7 @@ describe("Direct AI Client", () => {
   });
 
   describe("Gemini client", () => {
-    it("normalizes gemini-2.5 model to gemini-2.0-flash and strips models/ prefix", async () => {
+    it("sends the selected Gemini model id unchanged and strips only the models/ prefix", async () => {
       let requestedUrl = "";
 
       const mockFetch = jest.fn().mockImplementation(async (url: string) => {
@@ -73,7 +73,7 @@ describe("Direct AI Client", () => {
 
       const result = await requestAiPromptDirect(settings, "Soạn thảo biên bản", mockFetch as any);
 
-      expect(requestedUrl).toContain("models/gemini-2.0-flash:generateContent");
+      expect(requestedUrl).toContain("models/gemini-2.5-flash:generateContent");
       expect(result).toBe("Bản dự thảo từ Gemini.");
     });
 
@@ -108,7 +108,7 @@ describe("Direct AI Client", () => {
       expect(defaultModelFor("openai")).toBe("gpt-4o-mini");
     });
 
-    it("sanitizes stored gemini-2.5 model in loadAiSettings", () => {
+    it("preserves a stored newer Gemini model in loadAiSettings", () => {
       const store: Record<string, string> = {
         "tvci.wordtools.ai.settings.v1": JSON.stringify({
           provider: "gemini",
@@ -123,7 +123,21 @@ describe("Direct AI Client", () => {
       };
 
       const loaded = loadAiSettings(mockStorage);
-      expect(loaded.model).toBe("gemini-2.0-flash");
+      expect(loaded.model).toBe("gemini-2.5-flash");
+    });
+
+    it("uses Gemini as the fresh settings fallback", () => {
+      const mockStorage: StorageLike = {
+        getItem: () => null,
+        setItem: jest.fn(),
+        removeItem: jest.fn(),
+      };
+
+      expect(loadAiSettings(mockStorage)).toEqual({
+        provider: "gemini",
+        model: defaultModelFor("gemini"),
+        apiKey: "",
+      });
     });
   });
 });

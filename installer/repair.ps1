@@ -1,63 +1,37 @@
 [CmdletBinding()]
-param(
-    [switch]$RestartWord
-)
+param()
+$ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'common.ps1')
 
-Write-Host "TVCI Word Tools: Bắt đầu cấu hình Edge WebView2..." -ForegroundColor Cyan
+$logDir = Join-Path $InstallDir 'logs'
+New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+$failureFile = Join-Path $logDir 'repair-failure.txt'
+Remove-Item -LiteralPath $failureFile -ErrorAction SilentlyContinue
 
-# 1. Đóng Word nếu có yêu cầu
-if ($RestartWord) {
-    Write-Host "Đang đóng Microsoft Word để xóa cache..." -ForegroundColor Yellow
-    Get-Process -Name 'WINWORD' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Milliseconds 500
-}
-
-# 2. Cấu hình Registry Win32WebView2 = 1 cho các phiên bản Office
-$versions = @('16.0', '15.0')
-foreach ($ver in $versions) {
-    $keys = @(
-        "HKCU:\Software\Microsoft\Office\$ver\WEF",
-        "HKCU:\Software\Microsoft\Office\$ver\WEF\Developer",
-        "HKCU:\Software\Microsoft\Office\Common\WEF"
-    )
-    foreach ($k in $keys) {
-        if (-not (Test-Path $k)) {
-            New-Item -Path $k -Force | Out-Null
-        }
-        New-ItemProperty -Path $k -Name 'Win32WebView2' -Value 1 -PropertyType DWord -Force | Out-Null
+try {
+    Write-Host 'TVCI Word Tools: production repair started.'
+    Write-Host 'Repair never stops or restarts Microsoft Word. Close and reopen Word after repair.'
+    $setup = Join-Path $PSScriptRoot 'setup.ps1'
+    if (-not (Test-Path -LiteralPath $setup -PathType Leaf)) {
+        throw 'CHECK FAIL [Repair] Missing setup.ps1 in the install directory.'
     }
-    
-    # Xóa thư mục WEF cache của Office để buộc Word nhận engine mới
-    $cache = Join-Path $env:LOCALAPPDATA "Microsoft\Office\$ver\Wef"
-    if (Test-Path $cache) {
-        Write-Host "Đang dọn dẹp WEF cache: $cache" -ForegroundColor Gray
-        Remove-Item -Path $cache -Recurse -Force -ErrorAction SilentlyContinue
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $setup
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0) {
+        throw "CHECK FAIL [Repair] Setup repair failed with exit code $exitCode. See logs."
     }
-}
-Write-Host "Cấu hình Registry Win32WebView2 thành công!" -ForegroundColor Green
-
-# 3. Kích hoạt Loopback exemption
-& CheckNetIsolation.exe LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy" 2>$null | Out-Null
-
-# 4. Kiểm tra runtime WebView2
-$bootstrapper = Join-Path $PSScriptRoot '..\runtime\MicrosoftEdgeWebview2Setup.exe'
-if (-not (Test-Path $bootstrapper)) {
-    $bootstrapper = Join-Path $PSScriptRoot 'runtime\MicrosoftEdgeWebview2Setup.exe'
-}
-if (Test-Path $bootstrapper) {
-    $installed = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-F501-47EC-9A48-C42B02E8F6DB}' -Name 'pv' -ErrorAction SilentlyContinue) -or (Get-ItemProperty -Path 'HKCU:\Software\Microsoft\EdgeUpdate\Clients\{F3017226-F501-47EC-9A48-C42B02E8F6DB}' -Name 'pv' -ErrorAction SilentlyContinue)
-    if (-not $installed) {
-        Write-Host "Cài đặt bổ sung Edge WebView2 Runtime..." -ForegroundColor Yellow
-        Start-Process -FilePath $bootstrapper -ArgumentList '/silent', '/install' -Wait
+    $wordProcess = @(Get-Process -Name 'WINWORD' -ErrorAction SilentlyContinue)
+    if ($wordProcess.Count -gt 0) {
+        Write-Host 'Repair completed. Close and reopen Word to load the production manifest; Word was not interrupted.'
     }
+    exit 0
 }
-
-# 5. Khởi động lại Word nếu được yêu cầu
-if ($RestartWord) {
-    Start-Sleep -Seconds 1
-    Write-Host "Đang khởi động lại Microsoft Word..." -ForegroundColor Cyan
-    Start-Process -FilePath 'WINWORD.EXE' -ErrorAction SilentlyContinue
+catch {
+    $message = $_.Exception.Message
+    if ($message -notmatch '^CHECK FAIL') {
+        $message = "CHECK FAIL [Repair] $message"
+    }
+    Set-Content -LiteralPath $failureFile -Value $message -Encoding Ascii
+    Write-Error $message
+    exit 1
 }
-
-Write-Host "HOÀN TẤT: Đã kích hoạt Edge WebView2 cho Word thành công!" -ForegroundColor Green
-exit 0

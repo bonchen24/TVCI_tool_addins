@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import type { TemplateRecord, TemplateOrganization } from "../../templates/library";
+import { searchTemplates, type TemplateRecord, type TemplateOrganization } from "../../templates/library";
 import { getTemplateFormSchema, isMainContentField, type TemplateFormSchema, type TemplateFormValues } from "../../templates/form-schema";
 import { decomposeDraftIntoFormFields } from "../../ai/template-matcher";
 import { requestAiPromptDirect, type AiSettings } from "../../ai/direct-client";
@@ -109,13 +109,10 @@ export function SmartDraftingModal({
   if (!isOpen) return null;
 
   // Filter templates
-  const filteredTemplates = templates.filter((t) => {
-    if (orgFilter !== "ALL" && t.organization !== orgFilter) return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return t.name.toLowerCase().includes(q) || t.documentType.toLowerCase().includes(q);
-    }
-    return true;
+  const filteredTemplates = searchTemplates(templates, {
+    query: searchQuery,
+    organization: orgFilter === "ALL" ? undefined : orgFilter,
+    includeHidden: true,
   });
 
   // Step 2: Handle AI Polish

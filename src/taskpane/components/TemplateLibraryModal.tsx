@@ -1,7 +1,9 @@
-import React, { useState, useMemo } from "react";
-import type { TemplateRecord } from "../../templates/library";
+import React, { useState } from "react";
+import { searchTemplates, type TemplateOrganization, type TemplateRecord } from "../../templates/library";
+import type { UserTemplateUpdateInput } from "../../templates/user-template";
 import { getRecentTemplateIds, getFavoriteTemplateIds, toggleFavoriteTemplate } from "../../templates/recent-favorites";
 import { getTemplateFormSchema } from "../../templates/form-schema";
+import { TemplateMetadataEditor } from "./TemplateMetadataEditor";
 
 export interface TemplateLibraryModalProps {
   isOpen: boolean;
@@ -10,6 +12,7 @@ export interface TemplateLibraryModalProps {
   onOpenForm: (template: TemplateRecord) => void;
   onDirectInsert: (template: TemplateRecord) => void;
   onOpenWizard: () => void;
+  onSaveTemplateMetadata?: (template: TemplateRecord, input: UserTemplateUpdateInput) => Promise<void>;
   initialFilter?: "all" | "recent" | "favorite";
 }
 
@@ -20,6 +23,7 @@ export function TemplateLibraryModal({
   onOpenForm,
   onDirectInsert,
   onOpenWizard,
+  onSaveTemplateMetadata,
   initialFilter = "all",
 }: TemplateLibraryModalProps): React.ReactElement | null {
   const [keyword, setKeyword] = useState("");
@@ -28,6 +32,7 @@ export function TemplateLibraryModal({
   const [activeTab, setActiveTab] = useState<"all" | "recent" | "favorite">(initialFilter);
   const [favorites, setFavorites] = useState<string[]>(() => getFavoriteTemplateIds());
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
 
   const isDialog = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("dialog") === "1";
 
@@ -44,26 +49,21 @@ export function TemplateLibraryModal({
     setFavorites(getFavoriteTemplateIds());
   };
 
-  const filtered = templates.filter((t) => {
+  const filtered = searchTemplates(templates, {
+    query: keyword,
+    organization: selectedOrg === "all" ? undefined : selectedOrg as TemplateOrganization,
+    documentType: selectedType === "all" ? undefined : selectedType,
+    includeHidden: true,
+  }).filter((t) => {
     if (activeTab === "recent" && !recentIds.includes(t.id)) return false;
     if (activeTab === "favorite" && !favorites.includes(t.id)) return false;
-    if (selectedOrg !== "all" && t.organization !== selectedOrg) return false;
-    if (selectedType !== "all" && t.documentType !== selectedType) return false;
-
-    if (keyword.trim()) {
-      const q = keyword.toLowerCase();
-      const matchName = t.name.toLowerCase().includes(q);
-      const matchDesc = t.description?.toLowerCase().includes(q);
-      const matchType = t.documentType?.toLowerCase().includes(q);
-      if (!matchName && !matchDesc && !matchType) return false;
-    }
-
     return true;
   });
 
   // Active selected template for detail view
   const selectedTemplate = templates.find((t) => t.id === selectedTemplateId) || filtered[0] || null;
   const activeSchema = selectedTemplate ? getTemplateFormSchema(selectedTemplate) : null;
+  const editingTemplate = editingTemplateId ? templates.find((template) => template.id === editingTemplateId) ?? null : null;
 
   const modalContent = (
     <div
@@ -108,6 +108,19 @@ export function TemplateLibraryModal({
           </button>
         </div>
       </div>
+
+      {editingTemplate && onSaveTemplateMetadata && (
+        <div style={{ padding: "8px 12px", background: "#eff6ff", borderBottom: "1px solid #bfdbfe" }}>
+          <TemplateMetadataEditor
+            template={editingTemplate}
+            onCancel={() => setEditingTemplateId(null)}
+            onSave={async (input) => {
+              await onSaveTemplateMetadata(editingTemplate, input);
+              setEditingTemplateId(null);
+            }}
+          />
+        </div>
+      )}
 
       {/* Top Filter Bar: Search + Tabs + Filters */}
       <div style={{ padding: "6px 12px", background: "#f8fafc", borderBottom: "1px solid #e2e8f0", display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
@@ -343,6 +356,16 @@ export function TemplateLibraryModal({
                     }}
                   >
                     📝 Điền &amp; Chèn form
+                  </button>
+                )}
+                {selectedTemplate.source.kind === "user" && onSaveTemplateMetadata && (
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    style={{ height: 28, fontSize: 11, padding: "0 10px", borderRadius: 4, border: "1px solid #cbd5e1", color: "#475569", background: "#ffffff", cursor: "pointer" }}
+                    onClick={() => setEditingTemplateId(selectedTemplate.id)}
+                  >
+                    ✎ Sửa thông tin
                   </button>
                 )}
                 <button
