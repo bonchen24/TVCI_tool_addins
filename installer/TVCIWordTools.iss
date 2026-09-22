@@ -39,6 +39,9 @@ Source: "..\release\staging\scripts\*"; DestDir: "{app}\scripts"; Excludes: "sto
 Source: "..\release\staging\scripts\stop-host.ps1"; Flags: dontcopy
 Source: "..\release\staging\repair.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
+[InstallDelete]
+Type: filesandordirs; Name: "{app}\app"
+
 [Icons]
 Name: "{userprograms}\{#MyAppName}\Repair"; Filename: "{app}\repair-installer.exe"
 Name: "{userprograms}\{#MyAppName}\Sửa lỗi & Kích hoạt WebView2"; Filename: "{app}\repair.cmd"
@@ -78,6 +81,7 @@ var
   Script: String;
   SourceExe: String;
   RepairExe: String;
+  SourceSize: Int64;
   RepairSize: Int64;
   CacheOk: Boolean;
   Failure: String;
@@ -90,7 +94,9 @@ begin
     CacheOk := CompareText(SourceExe, RepairExe) = 0;
     if not CacheOk then
     begin
-      CacheOk := CopyFile(SourceExe, RepairExe, False);
+      CacheOk := FileSize64(SourceExe, SourceSize);
+      if CacheOk then
+        CacheOk := CopyFile(SourceExe, RepairExe, False);
       if CacheOk then
       begin
         CacheOk := FileExists(RepairExe);
@@ -98,7 +104,7 @@ begin
         begin
           CacheOk := FileSize64(RepairExe, RepairSize);
           if CacheOk then
-            CacheOk := RepairSize > 0;
+            CacheOk := RepairSize = SourceSize;
         end;
       end;
     end;

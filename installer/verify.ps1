@@ -78,7 +78,7 @@ foreach ($relative in @('runtime\node.exe', 'server\server.js', 'manifest\manife
 $ribbon = Test-CanonicalRibbonManifest $manifestPath
 Check 'Ribbon manifest' $ribbon.Ok $ribbon.Detail
 $registered = (Get-ItemProperty -LiteralPath $WefKey -Name $AppId -ErrorAction SilentlyContinue).$AppId
-Check 'Manifest registered' ($registered -eq $manifestPath -and $registered -notmatch '(?i)(^|\\)(node_modules|src|dist)(\\|$)') $registered
+Check 'Manifest registered' ($registered -eq $manifestPath) "expected $manifestPath; actual $registered"
 
 $launcher = Join-Path $InstallDir 'scripts\launcher.vbs'
 $run = (Get-ItemProperty -LiteralPath $RunKey -Name 'TVCIWordTools' -ErrorAction SilentlyContinue).TVCIWordTools
@@ -93,7 +93,8 @@ Write-Host "Port: 38473 $ownerText"
 Check 'Port conflict' ($externalOwners.Count -eq 0) 'unrelated processes are never stopped'
 $own = @(Get-OwnHost)
 Check 'Host running' ($owners.Count -gt 0 -and @($owners | Where-Object { $_.OwningProcess -in @($own | ForEach-Object ProcessId) }).Count -gt 0) 'bundled runtime'
-Check 'HTTPS health' (Get-Health) 'https://localhost:38473/api/health returned TVCIWordTools ready'
+$runtime = Test-TvciCommandRuntime
+Check 'Command runtime' $runtime.Ok $runtime.Detail
 
 if ($failures.Count) {
     $summary = "CHECK FAIL [Verification] $($failures -join '; ')"

@@ -24,9 +24,9 @@ try {
 
     $manifest = Join-Path $InstallDir 'manifest\manifest.xml'
     $registered = (Get-ItemProperty -LiteralPath $WefKey -Name $AppId -ErrorAction SilentlyContinue).$AppId
-    if ($registered -eq $manifest) {
+    if ($null -ne $registered) {
         Remove-ItemProperty -LiteralPath $WefKey -Name $AppId -ErrorAction SilentlyContinue
-        Write-UninstallLog 'Removed the TVCI manifest registration.'
+        Write-UninstallLog 'Removed only the TVCI AppId value from WEF Developer; unrelated Office entries were retained.'
     }
 
     $launcher = Join-Path $InstallDir 'scripts\launcher.vbs'

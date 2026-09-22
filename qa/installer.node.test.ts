@@ -17,7 +17,7 @@ test('one universal per-user installer with no shared certificate payload', () =
   const pkg = JSON.parse(read('package.json'));
   const iss = read('installer/TVCIWordTools.iss');
   const build = read('scripts/package-installer.mjs');
-  assert.equal(pkg.version, '0.1.3');
+  assert.equal(pkg.version, '0.1.8');
   assert.equal(pkg.scripts.installer, 'node scripts/package-installer.mjs');
   assert.equal(pkg.scripts['package:exe'], undefined);
   assert.match(iss, /PrivilegesRequired=lowest/);
@@ -65,7 +65,8 @@ test('installer staging preserves every manifest asset used by the canonical Rib
 test('repair installer cache overwrites existing files and validates the copied payload', () => {
   const iss = read('installer/TVCIWordTools.iss');
   assert.match(iss, /CacheOk := CompareText\(SourceExe, RepairExe\) = 0;/);
-  assert.match(iss, /if not CacheOk then\s+begin\s+CacheOk := CopyFile\(SourceExe, RepairExe, False\);\s+if CacheOk then\s+begin\s+CacheOk := FileExists\(RepairExe\);\s+if CacheOk then\s+begin\s+CacheOk := FileSize64\(RepairExe, RepairSize\);\s+if CacheOk then\s+CacheOk := RepairSize > 0;\s+end;\s+end;\s+end;/);
+  assert.match(iss, /SourceSize: Int64;/);
+  assert.match(iss, /if not CacheOk then\s+begin\s+CacheOk := FileSize64\(SourceExe, SourceSize\);\s+if CacheOk then\s+CacheOk := CopyFile\(SourceExe, RepairExe, False\);\s+if CacheOk then\s+begin\s+CacheOk := FileExists\(RepairExe\);\s+if CacheOk then\s+begin\s+CacheOk := FileSize64\(RepairExe, RepairSize\);\s+if CacheOk then\s+CacheOk := RepairSize = SourceSize;\s+end;\s+end;\s+end;/);
   assert.doesNotMatch(iss, /CopyFile\(SourceExe, RepairExe, True\)/);
 });
 

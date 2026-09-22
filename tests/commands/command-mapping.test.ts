@@ -127,13 +127,13 @@ describe("Ribbon command registration and routing", () => {
     expect(dialogSource).toMatch(/dialog\.html\?view=\$\{view\}&dialog=1/);
     expect(dialogSource).toMatch(/view\s*===\s*"template"\s*\|\|\s*view\s*===\s*"template-form"\s*\|\|\s*view\s*===\s*"builder"/);
     expect(commandsSource).toMatch(/g\.openTemplateWizardDialog\s*=/);
-    expect(commandsSource).toContain('openOfficeDialog("builder")');
+    expect(commandsSource).toMatch(/runDialogCommand\([\s\S]*?"builder"[\s\S]*?"openTemplateWizardDialog"/);
     expect(commandsSource).toMatch(/openTemplateWizardDialog:\s*g\.openTemplateWizardDialog/);
   });
 
   it("routes learning and Knowledge buttons to their existing dialogs", () => {
-    expect(commandsSource).toContain('openOfficeDialog("learn_experience")');
-    expect(commandsSource).toContain('openOfficeDialog("knowledge")');
+    expect(commandsSource).toMatch(/runDialogCommand\([\s\S]*?"learn_experience"[\s\S]*?"openLearnExperienceDialog"/);
+    expect(commandsSource).toMatch(/runDialogCommand\([\s\S]*?"knowledge"[\s\S]*?"openKnowledgeDialog"/);
     expect(dialogSource).toMatch(/DialogView\s*=.*"knowledge"/);
     expect(dialogSource).toMatch(/DialogView\s*=.*"learn_experience"/);
     expect(appSource).toContain('if (v === "knowledge") return "knowledge";');

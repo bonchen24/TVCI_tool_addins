@@ -52,6 +52,11 @@ try {
     try { url = new URL(request.url, `https://localhost:${PORT}`); }
     catch { response.writeHead(400); response.end(); return; }
 
+    // Record only the request method and path so runtime QA can prove that
+    // Word loaded the FunctionFile and its Office.js dependencies without
+    // ever logging document contents or query-string secrets.
+    log(`[HTTP] ${request.method} ${url.pathname}`);
+
     if (url.pathname === '/api/health') {
       response.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
       response.end(JSON.stringify({ app: 'TVCIWordTools', status: 'ready' }));

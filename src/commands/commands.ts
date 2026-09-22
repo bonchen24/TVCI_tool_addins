@@ -41,6 +41,15 @@ function logCommand(commandName: string, status: "start" | "success" | "error", 
   } catch {}
 }
 
+function sanitizeBootstrapError(error: unknown): string {
+  const message = error instanceof Error ? error.message : typeof error === "string" ? error : "unknown registration error";
+  return message
+    .replace(/https?:\/\/[^\s"'<>]+/gi, "[url]")
+    .replace(/\b(?:api[-_ ]?key|token|secret|password)\s*[:=]\s*[^\s,;]+/gi, "[redacted]")
+    .replace(/\s+/g, " ")
+    .slice(0, 240);
+}
+
 async function runCommand(
   event: CommandEvent,
   action: () => Promise<void>,
@@ -51,6 +60,31 @@ async function runCommand(
   try {
     await action();
     logCommand(commandName, "success");
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.stack || error.message : String(error);
+    logCommand(commandName, "error", { error: errorMsg, errorLabel });
+    console.error(errorLabel, error);
+  } finally {
+    try {
+      event.completed();
+    } catch {}
+  }
+}
+
+function runDialogCommand(
+  event: CommandEvent,
+  view: Parameters<typeof openOfficeDialog>[0],
+  errorLabel: string,
+  commandName: string,
+): void {
+  logCommand(commandName, "start");
+  try {
+    void openOfficeDialog(view).catch((error) => {
+      const errorMsg = error instanceof Error ? error.stack || error.message : String(error);
+      logCommand(commandName, "error", { error: errorMsg, errorLabel });
+      console.error(errorLabel, error);
+    });
+    logCommand(commandName, "success", { event: "dialog-dispatched" });
   } catch (error) {
     const errorMsg = error instanceof Error ? error.stack || error.message : String(error);
     logCommand(commandName, "error", { error: errorMsg, errorLabel });
@@ -75,7 +109,12 @@ async function tryReadSelection(): Promise<string> {
 }
 
 async function requestConfiguration(): Promise<void> {
-  await openOfficeDialog("settings");
+  void openOfficeDialog("settings").catch((error) => {
+    logCommand("openDocumentSettingsDialog", "error", {
+      error: sanitizeBootstrapError(error),
+      errorLabel: "Không thể mở thiết lập văn bản",
+    });
+  });
 }
 
 function addresseeLines(context: CommandContext): string[] {
@@ -110,17 +149,26 @@ g.cleanBlankPagesSafe = (event: CommandEvent) => runCommand(event, async () => {
   await cleanBlankPagesSafe();
 }, "Không thể dọn trang trắng");
 
-g.openSmartDraftingDialog = (event: CommandEvent) => runCommand(event, async () => {
-  await openOfficeDialog("smart_draft");
-}, "Không thể mở Soạn thảo AI");
+g.openSmartDraftingDialog = (event: CommandEvent) => runDialogCommand(
+  event,
+  "smart_draft",
+  "Không thể mở Soạn thảo AI",
+  "openSmartDraftingDialog",
+);
 
-g.openDocumentSettingsDialog = (event: CommandEvent) => runCommand(event, async () => {
-  await requestConfiguration();
-}, "Không thể mở thiết lập văn bản");
+g.openDocumentSettingsDialog = (event: CommandEvent) => runDialogCommand(
+  event,
+  "settings",
+  "Không thể mở thiết lập văn bản",
+  "openDocumentSettingsDialog",
+);
 
-g.openInspectorDialog = (event: CommandEvent) => runCommand(event, async () => {
-  await openOfficeDialog("inspect");
-}, "Không thể mở Inspector");
+g.openInspectorDialog = (event: CommandEvent) => runDialogCommand(
+  event,
+  "inspect",
+  "Không thể mở Inspector",
+  "openInspectorDialog",
+);
 
 g.togglePageNumbers = (event: CommandEvent) => runCommand(event, async () => {
   const context = await resolveCommandContext();
@@ -284,25 +332,40 @@ export function setSharedActiveContext(ctx: Omit<ActiveDocumentContextData, "tim
   } catch {}
 }
 
-g.openTemplateLibraryDialog = (event: CommandEvent) => runCommand(event, async () => {
-  await openOfficeDialog("template");
-}, "Không thể mở Kho biểu mẫu");
+g.openTemplateLibraryDialog = (event: CommandEvent) => runDialogCommand(
+  event,
+  "template",
+  "Không thể mở Kho biểu mẫu",
+  "openTemplateLibraryDialog",
+);
 
-g.openTemplateWizardDialog = (event: CommandEvent) => runCommand(event, async () => {
-  await openOfficeDialog("builder");
-}, "Không thể mở Tạo biểu mẫu");
+g.openTemplateWizardDialog = (event: CommandEvent) => runDialogCommand(
+  event,
+  "builder",
+  "Không thể mở Tạo biểu mẫu",
+  "openTemplateWizardDialog",
+);
 
-g.openKnowledgeDialog = (event: CommandEvent) => runCommand(event, async () => {
-  await openOfficeDialog("knowledge");
-}, "Không thể mở Kho tri thức");
+g.openKnowledgeDialog = (event: CommandEvent) => runDialogCommand(
+  event,
+  "knowledge",
+  "Không thể mở Kho tri thức",
+  "openKnowledgeDialog",
+);
 
-g.openSettingsDialog = (event: CommandEvent) => runCommand(event, async () => {
-  await openOfficeDialog("settings_modal");
-}, "Không thể mở Cài đặt");
+g.openSettingsDialog = (event: CommandEvent) => runDialogCommand(
+  event,
+  "settings_modal",
+  "Không thể mở Cài đặt",
+  "openSettingsDialog",
+);
 
-g.openLearnExperienceDialog = (event: CommandEvent) => runCommand(event, async () => {
-  await openOfficeDialog("learn_experience");
-}, "Không thể mở Tạo kinh nghiệm");
+g.openLearnExperienceDialog = (event: CommandEvent) => runDialogCommand(
+  event,
+  "learn_experience",
+  "Không thể mở Tạo kinh nghiệm",
+  "openLearnExperienceDialog",
+);
 
 g.createCongVan = (event: CommandEvent) => runCommand(event, async () => {
   const context = await resolveCommandContext();
@@ -533,23 +596,55 @@ const functionMap: Record<string, (event: CommandEvent) => Promise<void> | void>
   insertTemplateGiamDinh: g.insertTemplateGiamDinh,
 };
 
-function registerAllRibbonActions(): void {
+function registerGlobalRibbonActions(): void {
   for (const [name, handler] of Object.entries(functionMap)) {
     g[name] = handler;
-    if (typeof Office !== "undefined" && (Office as any).actions?.associate) {
-      try {
-        (Office as any).actions.associate(name, handler);
-      } catch (err) {
-        console.warn(`Could not associate action ${name}:`, err);
-      }
-    }
   }
 }
 
-registerAllRibbonActions();
+registerGlobalRibbonActions();
 
-if (typeof Office !== "undefined") {
-  Office.onReady(() => {
-    registerAllRibbonActions();
-  });
+if (typeof Office !== "undefined" && typeof Office.onReady === "function") {
+  Office.onReady().then(() => {
+      try {
+        associateRibbonActions();
+      } catch (error) {
+        logCommand("bootstrap", "error", {
+          event: "registration-error",
+          error: sanitizeBootstrapError(error),
+        });
+      }
+    })
+    .catch((error) => {
+      logCommand("bootstrap", "error", {
+        event: "office-ready-error",
+        error: sanitizeBootstrapError(error),
+      });
+    });
+}
+
+function associateRibbonActions(): void {
+  if (typeof (Office as any).actions?.associate !== "function") throw new Error("Office actions API unavailable");
+
+  let failures = 0;
+  for (const [name, handler] of Object.entries(functionMap)) {
+    try {
+      (Office as any).actions.associate(name, handler);
+    } catch (error) {
+      failures += 1;
+      logCommand("bootstrap", "error", {
+        event: "registration-error",
+        action: name,
+        error: sanitizeBootstrapError(error),
+      });
+      console.warn(`Could not associate action ${name}:`, error);
+    }
+  }
+
+  if (failures === 0) {
+    logCommand("bootstrap", "success", {
+      event: "office-ready-actions-registered",
+      count: Object.keys(functionMap).length,
+    });
+  }
 }

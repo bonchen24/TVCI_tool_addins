@@ -100,6 +100,44 @@ describe("Direct AI Client", () => {
         requestAiPromptDirect(settings, "Soạn thảo tài liệu", mockFetch as any)
       ).rejects.toThrow("SAFETY");
     });
+
+    it("retries a transient 503 and succeeds when Gemini recovers", async () => {
+      let attempts = 0;
+      const mockFetch = jest.fn().mockImplementation(async () => {
+        attempts += 1;
+        if (attempts === 1) return { ok: false, status: 503, json: async () => ({}) };
+        return {
+          ok: true,
+          json: async () => ({ candidates: [{ content: { parts: [{ text: "Đã thử lại thành công." }] } }] }),
+        };
+      });
+
+      const result = await requestAiPromptDirect(
+        { provider: "gemini", model: "gemini-flash-latest", apiKey: "gm-test-key" },
+        "Soạn thảo tài liệu",
+        mockFetch as any,
+      );
+
+      expect(attempts).toBe(2);
+      expect(result).toBe("Đã thử lại thành công.");
+    });
+
+    it("returns a safe Vietnamese message when Gemini remains unavailable", async () => {
+      const mockFetch = jest.fn().mockImplementation(async () => ({
+        ok: false,
+        status: 503,
+        json: async () => ({ error: { message: "high demand" } }),
+      }));
+
+      await expect(
+        requestAiPromptDirect(
+          { provider: "gemini", model: "gemini-flash-latest", apiKey: "gm-test-key" },
+          "Soạn thảo tài liệu",
+          mockFetch as any,
+        ),
+      ).rejects.toThrow("đang quá tải tạm thời");
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
   });
 
   describe("AI Settings & Default Models", () => {

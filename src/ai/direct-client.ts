@@ -39,6 +39,12 @@ async function readError(response: Response, provider: string): Promise<Error> {
     message?: string;
   };
   const nested = typeof data.error === "object" ? data.error?.message : data.error;
+  if (response.status === 429) {
+    return new Error(`${provider} đang giới hạn tần suất yêu cầu (HTTP 429). Hãy thử lại sau ít giây.`);
+  }
+  if (response.status === 503) {
+    return new Error(`${provider} đang quá tải tạm thời (HTTP 503). Hãy thử lại sau vài giây hoặc chọn model khác trong Cài đặt AI.`);
+  }
   const detail = nested || data.message || `${provider} HTTP ${response.status}`;
   return new Error(detail);
 }
@@ -62,6 +68,23 @@ async function fetchWithTimeout(
   } finally {
     if (timeoutId !== undefined) clearTimeout(timeoutId);
   }
+}
+
+const TRANSIENT_AI_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+const TRANSIENT_RETRY_DELAYS_MS = [600, 1500];
+
+async function fetchWithTransientRetry(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  fetchImpl: typeof fetch,
+): Promise<Response> {
+  let response = await fetchWithTimeout(input, init, fetchImpl);
+  for (const delay of TRANSIENT_RETRY_DELAYS_MS) {
+    if (!TRANSIENT_AI_STATUSES.has(response.status)) break;
+    await new Promise<void>((resolve) => setTimeout(resolve, delay));
+    response = await fetchWithTimeout(input, init, fetchImpl);
+  }
+  return response;
 }
 
 function extractOpenAiText(data: unknown): string {
@@ -137,7 +160,7 @@ export async function requestAiPromptDirect(
           ]
         : finalPrompt;
 
-      response = await fetchWithTimeout("https://api.openai.com/v1/chat/completions", {
+      response = await fetchWithTransientRetry("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -177,7 +200,7 @@ export async function requestAiPromptDirect(
       }
     }
 
-    response = await fetchWithTimeout(
+    response = await fetchWithTransientRetry(
       `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
       {
         method: "POST",

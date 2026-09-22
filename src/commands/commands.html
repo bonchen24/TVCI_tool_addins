@@ -2,11 +2,47 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <script>
-    window.Office = window.Office || {};
-    window.Office.initialize = function (reason) {};
-  </script>
   <script src="/assets/office-js/office.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      function sanitizeMessage(value) {
+        var message = typeof value === "string" ? value : "non-string runtime error";
+        return message
+          .replace(/https?:\/\/[^\s"'<>]+/gi, "[url]")
+          .replace(/\b(?:api[-_ ]?key|token|secret|password)\s*[:=]\s*[^\s,;]+/gi, "[redacted]")
+          .replace(/\s+/g, " ")
+          .slice(0, 240);
+      }
+
+      function report(eventName, value) {
+        try {
+          fetch("/api/log", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              source: "commands.html",
+              event: eventName,
+              message: sanitizeMessage(value),
+            }),
+          }).catch(function () {});
+        } catch (ignore) {}
+      }
+
+      window.onerror = function (message) {
+        report("window-error", message);
+        return false;
+      };
+
+      window.addEventListener("unhandledrejection", function (event) {
+        report(
+          "unhandled-rejection",
+          event && event.reason instanceof Error ? event.reason.message : event && typeof event.reason === "string" ? event.reason : "non-error rejection",
+        );
+      });
+    })();
+  </script>
 </head>
 <body></body>
 </html>

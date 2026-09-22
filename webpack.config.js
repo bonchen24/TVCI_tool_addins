@@ -65,7 +65,7 @@ module.exports = async (_env, argv) => {
     plugins: [
       new HtmlWebpackPlugin({ template: "./src/taskpane/index.html", filename: "taskpane.html", chunks: ["taskpane"] }),
       new HtmlWebpackPlugin({ template: "./src/dialog/index.html", filename: "dialog.html", chunks: ["dialog"] }),
-      new HtmlWebpackPlugin({ template: "./src/commands/commands.html", filename: "commands.html", chunks: ["commands"] }),
+      new HtmlWebpackPlugin({ template: "./src/commands/commands.html", filename: "commands.html", chunks: ["commands"], inject: "body" }),
       new CopyWebpackPlugin({ patterns: [
         { from: "assets", to: "assets" },
         { from: "templates", to: "templates" },

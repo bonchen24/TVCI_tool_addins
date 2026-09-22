@@ -159,13 +159,45 @@ function Test-TvciCertificate {
         $thumb = (Get-Content -LiteralPath $stateFile -Raw).Trim().Replace(' ', '')
         if ($thumb -notmatch '^[A-Fa-f0-9]{40}$') { return $false }
         $password = Get-Content -LiteralPath $passwordFile -Raw
+        $now = Get-Date
         $loaded = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new(
             $pfxFile,
             $password,
             [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::EphemeralKeySet)
         try {
-            if ($loaded.Thumbprint -ne $thumb -or -not $loaded.HasPrivateKey -or $loaded.Subject -ne 'CN=TVCI Word Tools localhost') { return $false }
+            if ($loaded.Thumbprint -ne $thumb -or
+                -not $loaded.HasPrivateKey -or
+                $loaded.Subject -ne 'CN=TVCI Word Tools localhost' -or
+                $loaded.NotBefore -gt $now -or
+                $loaded.NotAfter -le $now) { return $false }
+
+            $dnsNames = @($loaded.DnsNameList | ForEach-Object { $_.Unicode })
+            if ('localhost' -notin $dnsNames) { return $false }
+
+            $eku = $loaded.Extensions |
+                Where-Object { $_.Oid.Value -eq '2.5.29.37' } |
+                Select-Object -First 1
+            $hasServerAuthentication = $false
+            if ($eku) {
+                foreach ($usage in $eku.EnhancedKeyUsages) {
+                    if ($usage.Value -eq '1.3.6.1.5.5.7.3.1') {
+                        $hasServerAuthentication = $true
+                        break
+                    }
+                }
+            }
+            if (-not $hasServerAuthentication) { return $false }
         } finally { $loaded.Dispose() }
+
+        $privateKeyCert = Get-ChildItem Cert:\CurrentUser\My -ErrorAction SilentlyContinue |
+            Where-Object {
+                $_.Thumbprint -eq $thumb -and
+                $_.Subject -eq 'CN=TVCI Word Tools localhost' -and
+                $_.HasPrivateKey
+            } |
+            Select-Object -First 1
+        if (-not $privateKeyCert) { return $false }
+
         $trusted = Get-ChildItem Cert:\CurrentUser\Root -ErrorAction SilentlyContinue |
             Where-Object { $_.Thumbprint -eq $thumb -and $_.Subject -eq 'CN=TVCI Word Tools localhost' } |
             Select-Object -First 1
@@ -173,9 +205,78 @@ function Test-TvciCertificate {
     } catch { return $false }
 }
 
-function Get-Health {
+function Get-TvciHttpsText {
+    param([string]$Path, [int]$TimeoutMilliseconds = 500)
+
+    $uri = "https://localhost:$($script:HostPort)$Path"
+    $request = [System.Net.HttpWebRequest]::Create($uri)
+    $request.Method = 'GET'
+    $request.Timeout = $TimeoutMilliseconds
+    $request.ReadWriteTimeout = $TimeoutMilliseconds
+    $request.AllowAutoRedirect = $false
+    $response = $null
+    $reader = $null
     try {
-        $response = Invoke-RestMethod -Uri 'https://localhost:38473/api/health' -TimeoutSec 4 -ErrorAction Stop
-        return ($response.app -eq 'TVCIWordTools' -and $response.status -eq 'ready')
-    } catch { return $false }
+        $response = $request.GetResponse()
+        if ([int]$response.StatusCode -ne 200) { throw "HTTP $([int]$response.StatusCode)" }
+        $reader = New-Object System.IO.StreamReader($response.GetResponseStream())
+        return [pscustomobject]@{
+            StatusCode = [int]$response.StatusCode
+            Body = $reader.ReadToEnd()
+        }
+    } finally {
+        if ($reader) { $reader.Dispose() }
+        if ($response) { $response.Dispose() }
+    }
+}
+
+function Test-TvciCommandRuntime {
+    $requiredPaths = @(
+        '/api/health',
+        '/commands.html',
+        '/commands.js',
+        '/assets/office-js/office.js',
+        '/dialog.html',
+        '/dialog.js'
+    )
+    $deadline = [DateTime]::UtcNow.AddSeconds(3)
+    $lastError = 'runtime probe did not complete'
+
+    while ([DateTime]::UtcNow -lt $deadline) {
+        $responses = @{}
+        $allEndpointsOk = $true
+        foreach ($path in $requiredPaths) {
+            $remaining = [int](([TimeSpan]($deadline - [DateTime]::UtcNow)).TotalMilliseconds)
+            if ($remaining -le 0) { $allEndpointsOk = $false; break }
+            try {
+                $responses[$path] = Get-TvciHttpsText $path ([Math]::Min(500, $remaining))
+            } catch {
+                $allEndpointsOk = $false
+                $lastError = "${path}: $($_.Exception.Message)"
+                break
+            }
+        }
+
+        if ($allEndpointsOk) {
+            try {
+                $health = $responses['/api/health'].Body | ConvertFrom-Json
+                $commandsHtml = $responses['/commands.html'].Body
+                $healthOk = $health.app -eq 'TVCIWordTools' -and $health.status -eq 'ready'
+                $htmlOk = $commandsHtml -match '(?i)office\.js' -and
+                    $commandsHtml -match '(?i)commands\.js' -and
+                    $commandsHtml -match '(?is)office\.js[\s\S]*commands\.js'
+                if ($healthOk -and $htmlOk) {
+                    return [pscustomobject]@{ Ok = $true; Detail = 'TLS command runtime endpoints and bootstrap references are ready' }
+                }
+                $lastError = 'health payload or commands.html bootstrap references are invalid'
+            } catch {
+                $lastError = "invalid /api/health or /commands.html response: $($_.Exception.Message)"
+            }
+        }
+
+        $remaining = [int](([TimeSpan]($deadline - [DateTime]::UtcNow)).TotalMilliseconds)
+        if ($remaining -gt 0) { Start-Sleep -Milliseconds ([Math]::Min(100, $remaining)) }
+    }
+
+    return [pscustomobject]@{ Ok = $false; Detail = "TLS command runtime unavailable within 3 seconds: $lastError" }
 }

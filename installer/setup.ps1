@@ -79,7 +79,7 @@ try {
         [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
         $password = [Convert]::ToBase64String($bytes)
         $secure = ConvertTo-SecureString $password -AsPlainText -Force
-        $cert = New-SelfSignedCertificate -Subject 'CN=TVCI Word Tools localhost' -DnsName 'localhost' -CertStoreLocation 'Cert:\CurrentUser\My' -KeyExportPolicy Exportable -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -NotAfter (Get-Date).AddYears(3)
+        $cert = New-SelfSignedCertificate -Subject 'CN=TVCI Word Tools localhost' -DnsName 'localhost' -CertStoreLocation 'Cert:\CurrentUser\My' -KeyExportPolicy Exportable -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256 -NotBefore (Get-Date).AddMinutes(-5) -NotAfter (Get-Date).AddYears(3) -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.1')
         Export-PfxCertificate -Cert $cert -FilePath $pfxFile -Password $secure -Force | Out-Null
         Set-Content -LiteralPath $passwordFile -Value $password -NoNewline -Encoding Ascii
         Set-Content -LiteralPath $stateFile -Value $cert.Thumbprint -NoNewline -Encoding Ascii
@@ -115,6 +115,10 @@ try {
     $manifest = Join-Path $InstallDir 'manifest\manifest.xml'
     New-Item -Path $WefKey -Force | Out-Null
     New-ItemProperty -Path $WefKey -Name $AppId -Value $manifest -PropertyType String -Force | Out-Null
+    $registered = (Get-ItemProperty -LiteralPath $WefKey -Name $AppId -ErrorAction SilentlyContinue).$AppId
+    if ($registered -ne $manifest) {
+        Fail-Check 'WEF registration' "Developer AppId value is not the installed manifest: $registered"
+    }
     $launcher = Join-Path $InstallDir 'scripts\launcher.vbs'
     $command = 'wscript.exe //B //Nologo "' + $launcher + '" "' + $HostExe + '" "' + $HostScript + '"'
     New-ItemProperty -Path $RunKey -Name 'TVCIWordTools' -Value $command -PropertyType String -Force | Out-Null
@@ -122,13 +126,9 @@ try {
     $stopMarker = Join-Path $InstallDir '.tvci-stop'
     Remove-Item -LiteralPath $stopMarker -Force -ErrorAction SilentlyContinue
     Start-Process -FilePath 'wscript.exe' -ArgumentList @('//B', '//Nologo', $launcher, $HostExe, $HostScript) -WindowStyle Hidden | Out-Null
-    $healthy = $false
-    for ($i = 0; $i -lt 30; $i++) {
-        Start-Sleep -Milliseconds 500
-        if (Get-Health) { $healthy = $true; break }
-    }
-    if (-not $healthy) {
-        Fail-Check 'HTTPS health' 'https://localhost:38473/api/health did not return TVCIWordTools ready.'
+    $runtime = Test-TvciCommandRuntime
+    if (-not $runtime.Ok) {
+        Fail-Check 'Command runtime' $runtime.Detail
     }
 
     $verification = @(& powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'verify.ps1') 2>&1)
@@ -139,7 +139,8 @@ try {
         Fail-Check 'Post-install verification' ($failedChecks -join '; ')
     }
     if (Get-Process WINWORD -ErrorAction SilentlyContinue) {
-        Write-Host 'Word is open. Close and reopen Word after installation to load the production add-in; no Word process was interrupted.'
+        $wordInstruction = 'IMPORTANT: ALL Microsoft Word windows must be closed and reopened now to load the production TVCI add-in. TVCI did not interrupt Word.'
+        Write-Warning $wordInstruction
     }
 } catch {
     $message = $_.Exception.Message

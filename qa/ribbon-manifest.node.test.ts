@@ -15,6 +15,10 @@ const manifestUpdater = fs.readFileSync(path.join(root, "update-manifest.js"), "
 const brandAssetGenerator = fs.readFileSync(path.join(root, "scripts/generate-ribbon-brand-assets.ps1"), "utf8");
 const brandingSource = fs.readFileSync(path.join(root, "src/branding.ts"), "utf8");
 
+test("manifest version advances without changing Ribbon controls", () => {
+  assert.match(manifest, /<Version>1\.0\.0\.22<\/Version>/);
+});
+
 test("Ribbon exposes the compact labels for the main user actions", () => {
   const controlCount = (manifest.match(/<Control xsi:type="(?:Button|Menu)"/g) ?? []).length;
   assert.equal(controlCount, 12);
@@ -213,7 +217,7 @@ test("DialogView supports the builder route and commands registers its handler",
   assert.match(dialogSource, /view\s*===\s*"builder"/);
   assert.match(dialogSource, /dialog\.html\?view=\$\{view\}&dialog=1/);
   assert.match(commandsSource, /g\.openTemplateWizardDialog\s*=/);
-  assert.match(commandsSource, /openOfficeDialog\("builder"\)/);
+  assert.match(commandsSource, /runDialogCommand\([\s\S]*?"builder"[\s\S]*?"openTemplateWizardDialog"/);
   assert.match(commandsSource, /openTemplateWizardDialog:\s*g\.openTemplateWizardDialog/);
 });
 
