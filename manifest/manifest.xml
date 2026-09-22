@@ -5,7 +5,7 @@
            xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
            xsi:type="TaskPaneApp">
   <Id>8d912cc6-37a5-4b7a-8c41-6f661a999b36</Id>
-  <Version>1.0.0.22</Version>
+  <Version>1.0.0.23</Version>
   <ProviderName>TVCI</ProviderName>
   <DefaultLocale>vi-VN</DefaultLocale>
   <DisplayName DefaultValue="TVCI Word Tools"/>

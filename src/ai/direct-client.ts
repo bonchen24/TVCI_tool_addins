@@ -33,20 +33,110 @@ export function buildAiPrompt(request: AiRequest): string {
   ].filter(Boolean).join("\n\n");
 }
 
-async function readError(response: Response, provider: string): Promise<Error> {
-  const data = await response.json().catch(() => ({})) as {
-    error?: { message?: string } | string;
-    message?: string;
+interface ProviderErrorInfo {
+  message: string;
+  status?: string;
+  reason?: string;
+  quotaMetric?: string;
+  retryDelayMs?: number;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function parseDurationMs(value: unknown): number | undefined {
+  if (typeof value === "string") {
+    const match = value.trim().match(/^(\d+(?:\.\d+)?)s$/i);
+    return match ? Math.max(0, Math.round(Number(match[1]) * 1000)) : undefined;
+  }
+  if (!isRecord(value)) return undefined;
+  const seconds = Number(value.seconds ?? 0);
+  const nanos = Number(value.nanos ?? 0);
+  if (!Number.isFinite(seconds) || !Number.isFinite(nanos)) return undefined;
+  return Math.max(0, Math.round(seconds * 1000 + nanos / 1_000_000));
+}
+
+function parseRetryAfterHeader(response: Response): number | undefined {
+  const value = response.headers?.get("retry-after")?.trim();
+  if (!value) return undefined;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, Math.round(seconds * 1000));
+  const date = Date.parse(value);
+  return Number.isFinite(date) ? Math.max(0, date - Date.now()) : undefined;
+}
+
+async function readProviderErrorInfo(response: Response): Promise<ProviderErrorInfo> {
+  let data: unknown = {};
+  try {
+    // Peeking through clone() keeps the original response body available to the
+    // caller. Tests may provide a minimal Response-like object, so fall back to
+    // reading it directly when clone() is not available.
+    const source = typeof response.clone === "function" ? response.clone() : response;
+    data = await source.json();
+  } catch {
+    data = {};
+  }
+
+  const root = isRecord(data) ? data : {};
+  const error = isRecord(root.error) ? root.error : {};
+  const details = Array.isArray(error.details) ? error.details.filter(isRecord) : [];
+  const errorInfo = details.find((item) => String(item["@type"] || "").endsWith("ErrorInfo"));
+  const quotaFailure = details.find((item) => String(item["@type"] || "").endsWith("QuotaFailure"));
+  const retryInfo = details.find((item) => String(item["@type"] || "").endsWith("RetryInfo"));
+  const metadata = isRecord(errorInfo?.metadata) ? errorInfo.metadata : {};
+  const violations = Array.isArray(quotaFailure?.violations) ? quotaFailure.violations.filter(isRecord) : [];
+  const firstViolation = violations[0];
+  const nestedMessage = typeof error.message === "string" ? error.message : undefined;
+  const topMessage = typeof root.message === "string" ? root.message : undefined;
+  const retryDelayMs = parseRetryAfterHeader(response)
+    ?? parseDurationMs(retryInfo?.retryDelay);
+
+  return {
+    message: nestedMessage || topMessage || `${response.status}`,
+    status: typeof error.status === "string" ? error.status : undefined,
+    reason: typeof metadata.reason === "string" ? metadata.reason : undefined,
+    quotaMetric: typeof firstViolation?.quotaMetric === "string" ? firstViolation.quotaMetric : undefined,
+    retryDelayMs,
   };
-  const nested = typeof data.error === "object" ? data.error?.message : data.error;
+}
+
+function isQuotaError(info: ProviderErrorInfo): boolean {
+  const text = [info.status, info.reason, info.message, info.quotaMetric].filter(Boolean).join(" ").toLowerCase();
+  return /resource_exhausted|quota|rate[_ -]?limit|too many requests/.test(text);
+}
+
+function formatRetryDelay(delayMs: number): string {
+  const seconds = Math.max(1, Math.ceil(delayMs / 1000));
+  return ` Hệ thống yêu cầu chờ khoảng ${seconds} giây trước khi thử lại.`;
+}
+
+async function readError(response: Response, provider: string): Promise<Error> {
+  const info = await readProviderErrorInfo(response);
+  try {
+    console.warn("[TVCI AI] provider request failed", {
+      provider,
+      httpStatus: response.status,
+      apiStatus: info.status,
+      reason: info.reason,
+      quotaMetric: info.quotaMetric,
+      retryDelayMs: info.retryDelayMs,
+    });
+  } catch {
+    // Console diagnostics must never mask the provider error.
+  }
+
   if (response.status === 429) {
-    return new Error(`${provider} đang giới hạn tần suất yêu cầu (HTTP 429). Hãy thử lại sau ít giây.`);
+    if (isQuotaError(info)) {
+      const metric = info.quotaMetric ? ` (quota: ${info.quotaMetric})` : "";
+      return new Error(`${provider} đã chạm hạn mức quota của project/model${metric} (HTTP 429). Retry thêm ngay lúc này sẽ không giải quyết được; hãy chờ quota reset, giảm tần suất/kích thước yêu cầu, đổi model hoặc kiểm tra AI Studio > Usage & billing.${info.retryDelayMs !== undefined ? formatRetryDelay(info.retryDelayMs) : ""}`);
+    }
+    return new Error(`${provider} đang giới hạn tần suất yêu cầu (HTTP 429).${info.retryDelayMs !== undefined ? formatRetryDelay(info.retryDelayMs) : " Hãy chờ rồi thử lại."}`);
   }
   if (response.status === 503) {
-    return new Error(`${provider} đang quá tải tạm thời (HTTP 503). Hãy thử lại sau vài giây hoặc chọn model khác trong Cài đặt AI.`);
+    return new Error(`${provider} đang quá tải tạm thời (HTTP 503). Đã thử lại với backoff; hãy chờ vài giây hoặc chọn model khác trong Cài đặt AI.`);
   }
-  const detail = nested || data.message || `${provider} HTTP ${response.status}`;
-  return new Error(detail);
+  return new Error(info.message || `${provider} HTTP ${response.status}`);
 }
 
 export const AI_REQUEST_TIMEOUT_MS = 45_000;
@@ -70,8 +160,9 @@ async function fetchWithTimeout(
   }
 }
 
-const TRANSIENT_AI_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
-const TRANSIENT_RETRY_DELAYS_MS = [600, 1500];
+const TRANSIENT_AI_STATUSES = new Set([408, 500, 502, 503, 504]);
+const TRANSIENT_RETRY_DELAYS_MS = [2_000, 5_000, 10_000];
+const MAX_SERVER_RETRY_DELAY_MS = 60_000;
 
 async function fetchWithTransientRetry(
   input: RequestInfo | URL,
@@ -79,9 +170,22 @@ async function fetchWithTransientRetry(
   fetchImpl: typeof fetch,
 ): Promise<Response> {
   let response = await fetchWithTimeout(input, init, fetchImpl);
-  for (const delay of TRANSIENT_RETRY_DELAYS_MS) {
-    if (!TRANSIENT_AI_STATUSES.has(response.status)) break;
+  let retryCount = 0;
+  while (true) {
+    const info = response.status === 429 || TRANSIENT_AI_STATUSES.has(response.status)
+      ? await readProviderErrorInfo(response)
+      : undefined;
+    const retryable429 = response.status === 429
+      && info?.retryDelayMs !== undefined
+      && info.retryDelayMs <= MAX_SERVER_RETRY_DELAY_MS;
+    const retryable5xx = TRANSIENT_AI_STATUSES.has(response.status);
+    if ((!retryable429 && !retryable5xx) || retryCount >= (retryable429 ? 1 : TRANSIENT_RETRY_DELAYS_MS.length)) break;
+    const delay = Math.min(
+      info?.retryDelayMs ?? TRANSIENT_RETRY_DELAYS_MS[Math.min(retryCount, TRANSIENT_RETRY_DELAYS_MS.length - 1)],
+      MAX_SERVER_RETRY_DELAY_MS,
+    );
     await new Promise<void>((resolve) => setTimeout(resolve, delay));
+    retryCount += 1;
     response = await fetchWithTimeout(input, init, fetchImpl);
   }
   return response;

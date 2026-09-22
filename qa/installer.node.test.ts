@@ -17,7 +17,7 @@ test('one universal per-user installer with no shared certificate payload', () =
   const pkg = JSON.parse(read('package.json'));
   const iss = read('installer/TVCIWordTools.iss');
   const build = read('scripts/package-installer.mjs');
-  assert.equal(pkg.version, '0.1.8');
+  assert.equal(pkg.version, '0.1.9');
   assert.equal(pkg.scripts.installer, 'node scripts/package-installer.mjs');
   assert.equal(pkg.scripts['package:exe'], undefined);
   assert.match(iss, /PrivilegesRequired=lowest/);

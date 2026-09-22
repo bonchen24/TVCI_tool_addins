@@ -16,7 +16,7 @@ const brandAssetGenerator = fs.readFileSync(path.join(root, "scripts/generate-ri
 const brandingSource = fs.readFileSync(path.join(root, "src/branding.ts"), "utf8");
 
 test("manifest version advances without changing Ribbon controls", () => {
-  assert.match(manifest, /<Version>1\.0\.0\.22<\/Version>/);
+  assert.match(manifest, /<Version>1\.0\.0\.23<\/Version>/);
 });
 
 test("Ribbon exposes the compact labels for the main user actions", () => {

@@ -127,6 +127,8 @@ describe("Direct AI Client", () => {
         ok: false,
         status: 503,
         json: async () => ({ error: { message: "high demand" } }),
+        clone: undefined,
+        headers: new Headers({ "retry-after": "0" }),
       }));
 
       await expect(
@@ -136,7 +138,54 @@ describe("Direct AI Client", () => {
           mockFetch as any,
         ),
       ).rejects.toThrow("đang quá tải tạm thời");
-      expect(mockFetch).toHaveBeenCalledTimes(3);
+      expect(mockFetch).toHaveBeenCalledTimes(4);
+    });
+
+    it("does not hammer Gemini again when 429 has no retry delay", async () => {
+      const mockFetch = jest.fn().mockResolvedValue(new Response(JSON.stringify({
+        error: {
+          code: 429,
+          status: "RESOURCE_EXHAUSTED",
+          message: "Resource has been exhausted (e.g. check quota).",
+          details: [{
+            "@type": "type.googleapis.com/google.rpc.QuotaFailure",
+            violations: [{ quotaMetric: "generativelanguage.googleapis.com/generate_content_free_tier_requests" }],
+          }],
+        },
+      }), { status: 429, headers: { "Content-Type": "application/json" } }));
+
+      await expect(
+        requestAiPromptDirect(
+          { provider: "gemini", model: "gemini-flash-latest", apiKey: "gm-test-key" },
+          "Soạn thảo tài liệu",
+          mockFetch as any,
+        ),
+      ).rejects.toThrow("đã chạm hạn mức quota");
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it("honors an explicit Gemini RetryInfo once for a rate limit", async () => {
+      let attempts = 0;
+      const mockFetch = jest.fn().mockImplementation(async () => {
+        attempts += 1;
+        if (attempts === 1) return new Response(JSON.stringify({
+          error: {
+            status: "RESOURCE_EXHAUSTED",
+            details: [{
+              "@type": "type.googleapis.com/google.rpc.RetryInfo",
+              retryDelay: "0s",
+            }],
+          },
+        }), { status: 429 });
+        return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "Đã thử lại." }] } }] }), { status: 200 });
+      });
+
+      await expect(requestAiPromptDirect(
+        { provider: "gemini", model: "gemini-flash-latest", apiKey: "gm-test-key" },
+        "Soạn thảo tài liệu",
+        mockFetch as any,
+      )).resolves.toBe("Đã thử lại.");
+      expect(attempts).toBe(2);
     });
   });
 
