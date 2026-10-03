@@ -27,6 +27,13 @@ test("core DOCX packages expose schema Content Controls and preserve layout cont
       if (template.documentType === "Thông báo" && field.tag === "TRICH_YEU") continue;
       assert.ok(tags.filter((tag) => tag === field.tag).length >= 1, `${template.id} missing ${field.tag}`);
     }
+    if (template.id === "iemm-bb-001") {
+      const conclusionTag = xml.indexOf('<w:tag w:val="KET_LUAN"');
+      const recipientsBlock = xml.indexOf("Nơi nhận:");
+      assert.match(xml, /<w:t(?:\s[^>]*)?>KẾT LUẬN<\/w:t>/, "Biên bản needs a visible conclusion heading");
+      assert.ok(conclusionTag >= 0 && recipientsBlock > conclusionTag, "KET_LUAN must appear before the recipient/signature block");
+      assert.match(xml, /<w:tag w:val="KET_LUAN"[\s\S]*?<w:t(?:\s[^>]*)?>\[Tiếp tục nội dung, căn cứ, thời hạn hoặc trách nhiệm thực hiện\]<\/w:t>/);
+    }
     assert.match(xml, /<w:body>/, `${template.id} must retain a valid document body`);
   }
 });

@@ -81,7 +81,7 @@ export function buildHeaderTableOoxml(settings: DocumentSettings): string {
       <w:tcPr><w:tcW w:w="4800" w:type="dxa"/></w:tcPr>
       <w:p>
         <w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/></w:pPr>
-        <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:b/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr><w:t>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</w:t></w:r>
+        <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:b/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr><w:t>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</w:t></w:r>
       </w:p>
       <w:p>
         <w:pPr><w:jc w:val="center"/><w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/></w:pPr>
@@ -172,10 +172,12 @@ export async function createDocumentSkeleton(type: SkeletonDocumentType, setting
     await context.sync();
     const section = sections.items[0];
     if (section) {
+      section.pageSetup.paperSize = "A4" as Word.PaperSize;
+      section.pageSetup.orientation = "Portrait" as Word.PageOrientation;
       section.pageSetup.topMargin = 56.7; // 20 mm (72 pt / 25.4 * 20)
       section.pageSetup.bottomMargin = 56.7; // 20 mm
       section.pageSetup.leftMargin = 85.05; // 30 mm
-      section.pageSetup.rightMargin = 42.5; // 15 mm
+      section.pageSetup.rightMargin = 56.7; // 20 mm
     }
 
     // Insert Header Table

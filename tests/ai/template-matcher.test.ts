@@ -84,6 +84,92 @@ describe("Template Matcher", () => {
   });
 
   describe("decomposeDraftIntoFormFields", () => {
+    it("routes Kính gửi, Căn cứ, Nội dung and Nơi nhận without copying headings into the body", () => {
+      const base = FORM_SCHEMA_REGISTRY["Tờ trình"];
+      const schema = {
+        ...base,
+        fields: [
+          ...base.fields,
+          { tag: "NOI_DUNG", label: "Nội dung", type: "textarea" as const, wordTarget: "content-control" as const },
+        ],
+      };
+      const result = mapDraftToFormValues(schema, [
+        "Kính gửi: Viện trưởng Viện Cơ khí Năng lượng và Mỏ - VINACOMIN",
+        "",
+        "Căn cứ Nghị định số 30/2020/NĐ-CP;",
+        "Căn cứ Quy chế làm việc của Viện;",
+        "",
+        "Nội dung:",
+        "Thiết bị hiện có đã hỏng và không đáp ứng yêu cầu thử nghiệm.",
+        "",
+        "Nơi nhận:",
+        "- Như trên;",
+        "- Lưu: VT.",
+      ].join("\n"));
+
+      expect(result.KINH_GUI).toBe("Viện trưởng Viện Cơ khí Năng lượng và Mỏ - VINACOMIN");
+      expect(result.CAN_CU).toEqual(["Nghị định số 30/2020/NĐ-CP;", "Quy chế làm việc của Viện;"]);
+      expect(result.NOI_DUNG).toBe("Thiết bị hiện có đã hỏng và không đáp ứng yêu cầu thử nghiệm.");
+      expect(result.NOI_NHAN).toBe("Như trên;\nLưu: VT.");
+      expect(result.NOI_DUNG).not.toContain("Kính gửi");
+      expect(result.NOI_DUNG).not.toContain("Căn cứ");
+      expect(result.NOI_DUNG).not.toContain("Nơi nhận");
+    });
+
+    it("maps a Thông báo Kính gửi section to its DOI_TUONG_NHAN template field", () => {
+      const result = mapDraftToFormValues(FORM_SCHEMA_REGISTRY["Thông báo"], [
+        "THÔNG BÁO",
+        "V/v: Thông báo thời gian trả kết quả thử nghiệm hiệu suất năng lượng",
+        "",
+        "Kính gửi:",
+        "- Công ty TNHH Neway Group;",
+        "- Các cơ quan hữu quan.",
+        "",
+        "Trung tâm thông báo thời gian dự kiến trả kết quả.",
+        "",
+        "Nơi nhận:",
+        "- Như trên;",
+        "- Lưu: VT, VP.",
+      ].join("\n"));
+
+      expect(result.DOI_TUONG_NHAN).toBe("Công ty TNHH Neway Group;\nCác cơ quan hữu quan.");
+      expect(result.NOI_DUNG).toBe("Trung tâm thông báo thời gian dự kiến trả kết quả.");
+    });
+
+    it("keeps a direct signer title and name out of the Thông báo body", () => {
+      const result = mapDraftToFormValues(FORM_SCHEMA_REGISTRY["Thông báo"], [
+        "THÔNG BÁO",
+        "",
+        "Kính gửi: Công ty TNHH Neway Group",
+        "",
+        "Trung tâm thông báo thời gian dự kiến trả kết quả.",
+        "",
+        "Nơi nhận:",
+        "Như trên",
+        "Lưu: VT, VP.",
+        "",
+        "VIỆN TRƯỞNG",
+        "Nguyễn Thu Hiền",
+      ].join("\n"));
+
+      expect(result.NGUOI_KY).toBe("Nguyễn Thu Hiền");
+      expect(result.NOI_DUNG).toBe("Trung tâm thông báo thời gian dự kiến trả kết quả.");
+    });
+
+    it("keeps a decision's legal bases and articles out of the primary body fallback", () => {
+      const result = mapDraftToFormValues(FORM_SCHEMA_REGISTRY["Quyết định"], [
+        "Căn cứ Nghị định số 30/2020/NĐ-CP;",
+        "Căn cứ Quy chế làm việc của Viện;",
+        "",
+        "Điều 1. Phê duyệt phương án thử nghiệm.",
+        "Điều 2. Giao đơn vị liên quan tổ chức thực hiện.",
+      ].join("\n"));
+
+      expect(result.CAN_CU).toEqual(["Nghị định số 30/2020/NĐ-CP;", "Quy chế làm việc của Viện;"]);
+      expect(result.DIEU_KHOAN).toEqual(["Phê duyệt phương án thử nghiệm.", "Giao đơn vị liên quan tổ chức thực hiện."]);
+      expect(result.NOI_DUNG).toBeUndefined();
+    });
+
     it("decomposes a full Tờ trình into all corresponding form fields", () => {
       const schema = FORM_SCHEMA_REGISTRY["Tờ trình"];
       const draft = `

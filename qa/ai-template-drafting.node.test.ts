@@ -1,8 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildTemplateNarrativePrompt } from "../src/ai/template-drafting.ts";
+import { loadTypeScriptModule } from "./test-support/load-typescript-module.mjs";
 
-test("template narrative prompt uses mapped fields and asks only for missing free-form prose", () => {
+const { buildTemplateNarrativePrompt } = loadTypeScriptModule(
+  new URL("../src/ai/template-drafting.ts", import.meta.url),
+) as typeof import("../src/ai/template-drafting");
+
+test("template narrative prompt asks for a complete substantive body while excluding fixed template blocks", () => {
   const prompt = buildTemplateNarrativePrompt({
     templateName: "Công văn hành chính TVCI",
     controls: [{ id: 1, tag: "TEN_KHACH_HANG", title: "Tên khách hàng" }],
@@ -11,6 +15,8 @@ test("template narrative prompt uses mapped fields and asks only for missing fre
   });
   assert.match(prompt, /Công văn hành chính TVCI/);
   assert.match(prompt, /Công ty ABC/);
-  assert.match(prompt, /phần nội dung tự do/i);
+  assert.match(prompt, /toàn bộ phần nội dung hành chính thực chất/i);
+  assert.match(prompt, /giữ lại mọi dữ kiện nguồn có ý nghĩa/i);
+  assert.match(prompt, /không đưa vào nội dung các khối cố định/i);
   assert.match(prompt, /không tự bịa/i);
 });

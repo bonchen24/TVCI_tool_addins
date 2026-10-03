@@ -13,7 +13,7 @@ const exe = path.join(release, exeName);
 const required = [
   'app/taskpane.html', 'app/commands.html', 'app/assets/logo-tvci.png',
   'app/templates/tvci-sample.docx', 'manifest/manifest.xml', 'server/server.js',
-  'runtime/node.exe', 'runtime/MicrosoftEdgeWebview2Setup.exe',
+  'runtime/node.exe', 'runtime/MicrosoftEdgeWebView2RuntimeInstallerX64.exe',
   'scripts/setup.ps1', 'scripts/verify.ps1', 'scripts/uninstall.ps1',
   'scripts/common.ps1', 'scripts/stop-host.ps1', 'scripts/launcher.vbs',
   'scripts/repair.ps1', 'repair.cmd'

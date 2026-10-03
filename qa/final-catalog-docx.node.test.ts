@@ -27,7 +27,11 @@ for (const [source, organization] of paths) {
       assert.match(cleanTexts, /TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP/);
     }
     if (organization !== "DANG" && !source.includes("sample") && !source.includes("don-xin-nghi-phep")) {
-      assert.match(xml, /<v:line\b[^>]*strokeweight="0\.(5|75)pt"/, `${source} needs a front-of-text line shape`);
+      const anchoredShapes = [...xml.matchAll(/<wp:anchor\b[\s\S]*?<\/wp:anchor>/g)].map(([anchor]) => anchor);
+      assert.ok(anchoredShapes.some((anchor) =>
+        (/<a:prstGeom\s+prst="line"/.test(anchor) && /<a:ln\b[^>]*w="(?:6350|9525)"/.test(anchor)) ||
+        /<(?:[A-Za-z_][\w.-]*:)?line\b[^>]*strokeweight="0\.(?:5|75)pt"/.test(anchor)),
+      `${source} needs a front-of-text line shape`);
       assert.doesNotMatch(xml, /<w:pBdr\b/, `${source} has a paragraph border`);
     }
     assert.doesNotMatch(cleanTexts, /\(Ký và ghi rõ họ tên\)/);

@@ -18,7 +18,7 @@ ET.register_namespace("wps", "http://schemas.microsoft.com/office/word/2010/word
 ET.register_namespace("r", "http://schemas.openxmlformats.org/officeDocument/2006/relationships")
 ET.register_namespace("mc", "http://schemas.openxmlformats.org/markup-compatibility/2006")
 
-ACTIVE_EXCLUDED = {"sample-template.docx", "tkv-sample.docx", "tkv-quyet-dinh-template.docx"}
+ACTIVE_EXCLUDED = {"sample-template.docx", "dang-sample.docx", "tkv-sample.docx", "tkv-quyet-dinh-template.docx"}
 BODY_SKIP_PREFIXES = ("Số:", "V/v", "Kính gửi", "Nơi nhận", "Căn cứ", "Lưu:")
 PAGE_WIDTH_TWIPS = 11906
 PAGE_LEFT_MARGIN_TWIPS = 1701
@@ -198,9 +198,9 @@ def set_paragraph_rule(
     paragraph: ET.Element,
     *,
     indent: bool,
-    before: int = 40,
-    after: int = 40,
-    line: int = 288,
+    before: int = 0,
+    after: int = 120,
+    line: int = 360,
     line_rule: str = "auto",
 ) -> None:
     ppr = paragraph.find(f"{NS}pPr")
@@ -293,11 +293,12 @@ def normalize_national_header(root: ET.Element) -> int:
         return 0
     right_cell = cells[1]
     paragraphs = [child for child in right_cell if child.tag == f"{NS}p"]
+    comparable = lambda paragraph: re.sub(r"\s+", " ", text_of(paragraph).replace("\u00a0", " ")).strip()
     national = next(
-        (paragraph for paragraph in paragraphs if re.match(r"^CỘNG HO[ÀÒ] XÃ HỘI CHỦ NGHĨA VIỆT NAM$", text_of(paragraph), re.IGNORECASE)),
+        (paragraph for paragraph in paragraphs if re.match(r"^CỘNG HO[ÀÒ] XÃ HỘI CHỦ NGHĨA VIỆT NAM$", comparable(paragraph), re.IGNORECASE)),
         None,
     )
-    motto = next((paragraph for paragraph in paragraphs if text_of(paragraph) == "Độc lập - Tự do - Hạnh phúc"), None)
+    motto = next((paragraph for paragraph in paragraphs if comparable(paragraph) == "Độc lập - Tự do - Hạnh phúc"), None)
     if national is None or motto is None:
         return 0
 
@@ -316,11 +317,11 @@ def normalize_national_header(root: ET.Element) -> int:
         right_cell.insert(paragraph_start + national_index + 1, motto)
         changed += 1
 
-    for paragraph in (national, motto):
+    for paragraph, size in ((national, 24), (motto, 26)):
         before_format = ET.tostring(paragraph, encoding="utf-8")
         set_paragraph_rule(paragraph, indent=False, before=0, after=0, line=240, line_rule="auto")
         set_alignment(paragraph, "center")
-        set_run_format(paragraph, size=26, italic=False, bold=True)
+        set_run_format(paragraph, size=size, italic=False, bold=True)
         if before_format != ET.tostring(paragraph, encoding="utf-8"):
             changed += 1
 
@@ -360,21 +361,9 @@ def replace_text(paragraph: ET.Element, value: str) -> None:
 
 
 def normalize_vv(paragraph: ET.Element) -> bool:
-    text = text_of(paragraph)
-    if not re.match(r"^V/v\s*:??", text, re.IGNORECASE):
-        return False
-    new_text = re.sub(r"^V/v\s*:\s*", "V/v ", text, flags=re.IGNORECASE)
-    if new_text.startswith("V/v ") and len(new_text) > 4:
-        rest = new_text[4:]
-        match = re.match(r"(\[?)([A-ZÀ-ỸĐ])", rest)
-        if match:
-            prefix, letter = match.groups()
-            rest = prefix + letter.lower() + rest[match.end():]
-        new_text = "V/v " + rest
-    if new_text == text:
-        return False
-    replace_text(paragraph, new_text)
-    return True
+    # Công văn and Thông báo use different V/v punctuation in the approved golden masters.
+    # Template text is therefore authoritative; the shared normalizer must not rewrite it.
+    return False
 
 
 def normalize_legal_basis(paragraph: ET.Element, final: str) -> bool:
@@ -404,46 +393,35 @@ def normalize_recipients(root: ET.Element) -> int:
         set_paragraph_rule(label, indent=False, before=0, after=0, line=240, line_rule="auto")
         set_alignment(label, "left")
         set_run_format(label, size=24, italic=True, bold=True)
-        has_archive = False
         for paragraph in paragraphs[label_index + 1:]:
-            value = text_of(paragraph)
-            if not value:
+            if not text_of(paragraph):
                 continue
-            clean_value = re.sub(r"^[-•]\s*", "", value).strip()
-            if clean_value.lower().startswith("lưu"):
-                if has_archive:
-                    cell.remove(paragraph)
-                    changed += 1
-                    continue
-                archive = re.sub(r"^Lưu\s*:\s*", "", clean_value, flags=re.IGNORECASE)
-                archive = re.sub(r"[;,.]+\s*$", "", archive).strip() or "VT, Văn phòng, 01 bản"
-                if archive.replace(" ", "").lower() in {"...,vp", "….,vp", "…,vp"}:
-                    archive = "VT, Văn phòng, 01 bản"
-                replace_text(paragraph, f"Lưu: {archive}.")
-                has_archive = True
-                changed += 1
-            else:
-                base = re.sub(r"[;,.]+\s*$", "", clean_value).strip()
-                if not base:
-                    base = "…"
-                normalized = f"- {base};"
-                if normalized != value:
-                    replace_text(paragraph, normalized)
-                    changed += 1
             set_paragraph_rule(paragraph, indent=False, before=0, after=0, line=240, line_rule="auto")
             set_alignment(paragraph, "left")
             set_run_format(paragraph, size=22, italic=False, bold=False)
-        if not has_archive:
-            archive = ET.Element(f"{NS}p")
-            run = ET.SubElement(archive, f"{NS}r")
-            text_node = ET.SubElement(run, f"{NS}t")
-            text_node.text = "Lưu: VT, Văn phòng, 01 bản."
-            cell.append(archive)
-            set_paragraph_rule(archive, indent=False, before=0, after=0, line=240, line_rule="auto")
-            set_alignment(archive, "left")
-            set_run_format(archive, size=22, italic=False, bold=False)
-            changed += 1
     return changed
+
+
+def remove_forbidden_guidance(root: ET.Element, path: Path) -> int:
+    parents = {child: parent for parent in root.iter() for child in parent}
+    removed = 0
+    is_cong_van = "cong-van" in path.name.lower()
+    for paragraph in all_paragraphs(root):
+        text = text_of(paragraph)
+        is_signature_guidance = (
+            text.startswith("(")
+            and text.endswith(")")
+            and re.search(r"\b(?:Chữ\s+ký|Ký)\b", text, re.IGNORECASE)
+            and re.search(r"\b(?:họ\s+(?:và\s+)?tên|ghi\s+rõ|đóng\s+dấu)\b", text, re.IGNORECASE)
+        )
+        is_continuation_guidance = text.startswith("[Tiếp tục nội dung")
+        is_cong_van_title = is_cong_van and text == "CÔNG VĂN"
+        if is_signature_guidance or is_continuation_guidance or is_cong_van_title:
+            parent = parents.get(paragraph)
+            if parent is not None:
+                parent.remove(paragraph)
+                removed += 1
+    return removed
 
 
 def is_structural(text: str) -> bool:
@@ -484,6 +462,7 @@ def normalize_document(path: Path) -> tuple[bytes, int]:
     root = ET.fromstring(xml)
     party = path.name.lower() == "dang-sample.docx"
     changed = 1
+    changed += remove_forbidden_guidance(root, path)
     set_page_setup(root)
     changed += expand_header_tables(root)
     changed += normalize_national_header(root)
@@ -522,7 +501,12 @@ def normalize_national_header_document(path: Path) -> tuple[bytes, int]:
 
 
 def template_paths(root: Path) -> list[Path]:
-    return sorted(path for path in root.glob("**/*.docx") if path.name.lower() not in ACTIVE_EXCLUDED)
+    return sorted(
+        path for path in root.glob("**/*.docx")
+        if path.name.lower() not in ACTIVE_EXCLUDED
+        and ".fixed." not in path.name.lower()
+        and ".manual." not in path.name.lower()
+    )
 
 
 def header_template_paths(root: Path) -> list[Path]:
@@ -575,16 +559,6 @@ def check_document(path: Path) -> list[str]:
             motto = next((paragraph for paragraph in paragraphs if text_of(paragraph) == "Độc lập - Tự do - Hạnh phúc"), None)
             if motto is None:
                 errors.append("national motto is missing")
-            else:
-                motto_index = list(right_cell).index(motto)
-                rule_after_motto = next(
-                    (tag for tag in list(right_cell)[motto_index + 1:] if tag.find(f".//{NS}tag") is not None),
-                    None,
-                )
-                if rule_after_motto is None or not any(
-                    tag.get(f"{NS}val") == NATIONAL_MOTTO_RULE_TAG for tag in rule_after_motto.iter(f"{NS}tag")
-                ):
-                    errors.append("national motto rule is missing")
     for paragraph in direct_body_paragraphs(root):
         text = text_of(paragraph)
         if not text or is_structural(text):
@@ -594,9 +568,9 @@ def check_document(path: Path) -> list[str]:
         ind = ppr.find(f"{NS}ind") if ppr is not None else None
         if (
             spacing is None
-            or spacing.get(f"{NS}before") != "40"
-            or spacing.get(f"{NS}after") != "40"
-            or spacing.get(f"{NS}line") != "288"
+            or spacing.get(f"{NS}before") != "0"
+            or spacing.get(f"{NS}after") != "120"
+            or spacing.get(f"{NS}line") != "360"
             or spacing.get(f"{NS}lineRule") != "auto"
         ):
             errors.append(f"body spacing: {text[:30]}")

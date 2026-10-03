@@ -16,6 +16,14 @@ test("commands bootstrap loads the vendored Office.js before the injected comman
   assert.match(webpack, /filename:\s*["']commands\.html["'][\s\S]*?chunks:\s*\[["']commands["']\][\s\S]*?inject:\s*["']body["']/);
 });
 
+test("all Office entry documents rely on the vendored Office.js and never fake Office", () => {
+  for (const name of ["src/commands/commands.html", "src/dialog/index.html", "src/taskpane/index.html"]) {
+    const html = read(name);
+    assert.doesNotMatch(html, /window\.Office\s*=|Office\.initialize/);
+    assert.match(html, /<script\s+src=["']\/assets\/office-js\/office\.js["']/i);
+  }
+});
+
 test("command bootstrap telemetry posts only bounded sanitized runtime messages", () => {
   const html = read("src/commands/commands.html");
 
@@ -117,8 +125,8 @@ test("source and manifest versions are current", () => {
   const lock = JSON.parse(read("package-lock.json"));
   const manifest = read("manifest/manifest.xml");
 
-  assert.equal(pkg.version, "0.1.9");
-  assert.equal(lock.version, "0.1.9");
-  assert.equal(lock.packages[""].version, "0.1.9");
-  assert.match(manifest, /<Version>1\.0\.0\.23<\/Version>/);
+  assert.equal(pkg.version, "0.1.11");
+  assert.equal(lock.version, "0.1.11");
+  assert.equal(lock.packages[""].version, "0.1.11");
+  assert.match(manifest, /<Version>1\.0\.0\.25<\/Version>/);
 });

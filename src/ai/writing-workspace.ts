@@ -1,3 +1,5 @@
+import { ADMINISTRATIVE_AI_RULES } from "./administrative-rules";
+
 export type WritingStyleId = "administrative" | "formal" | "concise" | "clear" | "persuasive" | "neutral" | "preserve";
 
 export interface ChatMessage {
@@ -35,7 +37,8 @@ export function buildWritingPrompt(input: {
   const style = getWritingStyle(input.style);
   return [
     "Bạn là AI trợ lý soạn thảo văn bản của VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN / TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP.",
-    "Không tự bịa số hiệu, ngày tháng, tên người, tên cơ quan, model, tiêu chuẩn, mã hồ sơ, số liệu hoặc dữ kiện không có trong nội dung người dùng cung cấp.",
+    ADMINISTRATIVE_AI_RULES,
+    "Chỉ trả văn bản thuần để chèn vào Word: không dùng Markdown hoặc các dấu **, *, ###, _, backtick, code fence. Không lặp lại dữ kiện hay câu đã có.",
     `Phong cách yêu cầu: ${style.instruction}`,
     input.instruction?.trim() ? `Yêu cầu bổ sung: ${input.instruction.trim()}` : "",
     history ? `Toàn bộ ngữ cảnh hội thoại hiện tại:\n${history}` : "",

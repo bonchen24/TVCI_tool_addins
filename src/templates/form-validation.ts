@@ -1,6 +1,6 @@
 import type { TemplateOrganization } from "./library";
 import type { TemplateFormField, TemplateFormSchema, TemplateFormValue, TemplateFormValues } from "./form-schema";
-import { formatTvciSubject } from "../utils/tvci-formatter";
+import { sanitizeAiTextOutput } from "../ai/text-cleanup";
 
 export interface TemplateFormValidationError {
   tag: string;
@@ -19,22 +19,33 @@ function stringValue(value: TemplateFormValue): string {
 }
 
 function isValidDate(value: string): boolean {
-  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  const local = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value);
-  const year = Number(iso?.[1] ?? local?.[3]);
-  const month = Number(iso?.[2] ?? local?.[2]);
-  const day = Number(iso?.[3] ?? local?.[1]);
-  if (!year || !month || !day) return false;
+  const parts = parseDateParts(value);
+  if (!parts) return false;
+  const { year, month, day } = parts;
   const candidate = new Date(Date.UTC(year, month - 1, day));
   return candidate.getUTCFullYear() === year && candidate.getUTCMonth() === month - 1 && candidate.getUTCDate() === day;
 }
 
 function dateNumber(value: string): number {
-  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (iso) return Date.UTC(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
-  const local = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value);
-  if (local) return Date.UTC(Number(local[3]), Number(local[2]) - 1, Number(local[1]));
-  return Number.NaN;
+  const parts = parseDateParts(value);
+  return parts ? Date.UTC(parts.year, parts.month - 1, parts.day) : Number.NaN;
+}
+
+interface DateParts {
+  year: number;
+  month: number;
+  day: number;
+}
+
+function parseDateParts(value: string): DateParts | null {
+  const raw = value.trim();
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+  const local = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(raw);
+  const administrative = /ngày\s+(\d{1,2})\s+tháng\s+(\d{1,2})\s+năm\s+(\d{4})/iu.exec(raw);
+  if (iso) return { year: Number(iso[1]), month: Number(iso[2]), day: Number(iso[3]) };
+  if (local) return { year: Number(local[3]), month: Number(local[2]), day: Number(local[1]) };
+  if (administrative) return { year: Number(administrative[3]), month: Number(administrative[2]), day: Number(administrative[1]) };
+  return null;
 }
 
 function error(field: TemplateFormField, code: TemplateFormValidationError["code"], message: string): TemplateFormValidationError {
@@ -67,72 +78,69 @@ export function validateTemplateForm(schema: TemplateFormSchema, values: Templat
 function normalizeVv(value: TemplateFormValue): TemplateFormValue {
   const text = stringValue(value);
   if (!text) return value;
-  return formatTvciSubject(text);
+  const duplicated = /^((?:v\/v|về việc)(?:\s*:\s*|\s+))(?:v\/v|về việc)(?:\s*:\s*|\s+)([\s\S]+)$/iu.exec(text);
+  return duplicated ? `${duplicated[1]}${duplicated[2]}` : text;
 }
 
-function cleanRecipient(item: string): string {
-  return item.replace(/^[-–—]\s*/, "").replace(/^[Kk]ính gửi\s*:\s*/, "").replace(/[;；,.\s]+$/g, "").trim();
-}
-
-function normalizeRecipients(value: TemplateFormValue, multipleAsBullets: boolean): string {
-  const items = valuesOf(value).map(cleanRecipient).filter(Boolean);
-  if (!multipleAsBullets || items.length <= 1) return items.join("\n");
-  return items.map((item, index) => `- ${item}${index === items.length - 1 ? "." : ";"}`).join("\n");
+function normalizeRecipients(value: TemplateFormValue): string {
+  return stringValue(value);
 }
 
 export function formatAdministrativeDate(value: string): string {
-  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
-  const local = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value.trim());
-  if (!iso && !local) return value;
-  const day = Number(iso?.[3] ?? local?.[1]);
-  const month = Number(iso?.[2] ?? local?.[2]);
-  const year = Number(iso?.[1] ?? local?.[3]);
+  const parts = parseDateParts(value);
+  if (!parts) return value;
+  const { day, month, year } = parts;
   if (!isValidDate(value.trim())) return value;
   const displayedMonth = month <= 2 ? String(month).padStart(2, "0") : String(month);
   return `Hà Nội, ngày ${String(day).padStart(2, "0")} tháng ${displayedMonth} năm ${year}`;
 }
 
+/** Value shown in date fields. The UI contract is always dd/mm/yyyy. */
+export function formatDateForUi(value: string): string {
+  const parts = parseDateParts(value);
+  if (!parts || !isValidDate(value)) return value;
+  return `${String(parts.day).padStart(2, "0")}/${String(parts.month).padStart(2, "0")}/${parts.year}`;
+}
+
+/** Normalizes both pasted and typed date values without changing other text fields. */
+export function normalizeDateInputValue(value: string): string {
+  const raw = value.trim();
+  if (!raw) return "";
+  if (parseDateParts(raw) && isValidDate(raw)) return formatDateForUi(raw);
+
+  const digits = raw.replace(/\D/g, "").slice(0, 8);
+  if (!digits) return "";
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
+
 export function normalizeAdministrativeBody(value: string): string {
-  const lines = value.replace(/;\s*([a-zà-ỹđ])/giu, (_match, letter: string) => `; ${letter.toLocaleUpperCase("vi-VN")}`).split(/\r?\n/);
-  const normalized = lines.map((line) => {
-    const trimmed = line.trim();
-    if (/^Trân trọng(?: cảm ơn)?$/i.test(trimmed)) return `${trimmed}./.`;
-    return line;
-  });
-  return normalized.join("\n");
+  return value;
 }
 
 export function normalizeTemplateFormValues(schema: TemplateFormSchema, values: TemplateFormValues, organization?: TemplateOrganization): TemplateFormValues {
-  const normalized: TemplateFormValues = { ...values };
+  const cleanedValues = Object.fromEntries(Object.entries(values).map(([tag, value]) => [
+    tag,
+    Array.isArray(value)
+      ? value.map((item) => sanitizeAiTextOutput(item)).filter(Boolean)
+      : typeof value === "string" ? sanitizeAiTextOutput(value) : value,
+  ])) as TemplateFormValues;
+  const normalized: TemplateFormValues = { ...cleanedValues };
   for (const field of schema.fields) {
-    const value = values[field.tag];
+    const value = cleanedValues[field.tag];
     if (field.tag === "TRICH_YEU") normalized[field.tag] = normalizeVv(value);
-    else if (field.tag === "KINH_GUI" || field.tag === "NOI_NHAN_TRUC_TIEP" || field.tag === "DOI_TUONG_MOI") normalized[field.tag] = normalizeRecipients(value, true);
+    else if (field.tag === "KINH_GUI" || field.tag === "NOI_NHAN_TRUC_TIEP" || field.tag === "DOI_TUONG_MOI") normalized[field.tag] = normalizeRecipients(value);
     else if (field.tag === "NOI_NHAN") {
       const recipients = valuesOf(value);
       if (!recipients.length) continue;
-      const hasAddressee = Boolean(stringValue(values.KINH_GUI) || stringValue(values.NOI_NHAN_TRUC_TIEP) || stringValue(values.KINH_TRINH));
-      const archiveInput = recipients.find((item) => /^Lưu\s*:/i.test(item));
-      const other = recipients.filter((item) => !/^Lưu\s*:/i.test(item))
-        .map(cleanRecipient).filter((item) => item && !/^Như trên$/i.test(item));
-      const lines = [
-        ...(hasAddressee ? ["- Như trên;"] : []),
-        ...other.map((item) => `- ${item};`),
-      ];
-      const archive = archiveInput?.replace(/^Lưu\s*:\s*/i, "").replace(/[;；,.\s]+$/g, "").trim();
-      const defaultArchive = organization === "TVCI"
-        ? "Lưu: VT, T2."
-        : organization === "DANG"
-        ? "Lưu: VP, ĐẢNG BỘ VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN."
-        : organization === "IEMM"
-        ? "Lưu: VT, VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN."
-        : "Lưu:";
-      lines.push(archive ? `Lưu: ${archive}.` : defaultArchive);
-      normalized[field.tag] = lines.join("\n");
+      normalized[field.tag] = recipients.map((item) =>
+        /^[-–—]\s*Như trên[;. ]*$/iu.test(item) ? "Như trên" : item
+      ).join("\n");
     } else if (field.type === "repeatable") normalized[field.tag] = valuesOf(value);
   }
-  for (const tag of ["NOI_DUNG", "NOI_DUNG_CHUNG"]) if (values[tag]) normalized[tag] = normalizeAdministrativeBody(stringValue(values[tag]));
-  if (values.NGAY_BAN_HANH) normalized.NGAY_BAN_HANH = formatAdministrativeDate(stringValue(values.NGAY_BAN_HANH));
-  if (values.KINH_GUI && !schema.fields.some((field) => field.tag === "KINH_GUI")) normalized.KINH_GUI = normalizeRecipients(values.KINH_GUI, true);
+  for (const tag of ["NOI_DUNG", "NOI_DUNG_CHUNG"]) if (cleanedValues[tag]) normalized[tag] = normalizeAdministrativeBody(stringValue(cleanedValues[tag]));
+  if (cleanedValues.NGAY_BAN_HANH) normalized.NGAY_BAN_HANH = formatAdministrativeDate(stringValue(cleanedValues.NGAY_BAN_HANH));
+  if (cleanedValues.KINH_GUI && !schema.fields.some((field) => field.tag === "KINH_GUI")) normalized.KINH_GUI = normalizeRecipients(cleanedValues.KINH_GUI);
   return normalized;
 }

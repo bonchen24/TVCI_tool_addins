@@ -7,6 +7,7 @@ export interface UserTemplateInput {
   department?: string;
   documentType: string;
   keywords: string;
+  description?: string;
 }
 
 export function makeUserTemplateRecord(
@@ -24,6 +25,7 @@ export function makeUserTemplateRecord(
     department: input.department?.trim() || "Dùng chung",
     documentType: input.documentType.trim() || "Biểu mẫu",
     keywords,
+    description: input.description?.trim() || undefined,
     version: "1.0",
     status: "active",
     updatedAt,

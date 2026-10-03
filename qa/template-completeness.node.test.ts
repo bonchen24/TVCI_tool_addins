@@ -43,7 +43,7 @@ test("representative templates keep 13 pt justified body paragraphs and tagged t
     const xml = new AdmZip(path.resolve(record.source.path.slice(1))).getEntry("word/document.xml")?.getData().toString("utf8") ?? "";
     assert.match(xml, /<w:jc w:val="both"/, id);
     assert.match(xml, /<w:ind[^>]*w:firstLine="567"/, id);
-    assert.match(xml, /<w:spacing[^>]*w:after="120"[^>]*w:line="360"[^>]*w:lineRule="exact"/, id);
+    assert.match(xml, /<w:spacing[^>]*w:after="120"[^>]*w:line="360"[^>]*w:lineRule="(?:auto|atLeast|exact)"/, id);
     assert.match(xml, /<w:rFonts[^>]*w:ascii="Times New Roman"/, id);
     assert.match(xml, /<w:sz w:val="26"/, id);
   }

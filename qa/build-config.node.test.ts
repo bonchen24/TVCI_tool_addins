@@ -28,6 +28,27 @@ test("production webpack config does not initialize localhost dev certificates",
   assert.equal(productionConfig.devServer, undefined);
 });
 
+test("production build uses the canonical webpack config and excludes fixed template copies", async () => {
+  const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
+  assert.equal(packageJson.scripts?.build, "webpack --mode production");
+
+  const webpackConfigFactory = require("../webpack.config.js") as (
+    env: unknown,
+    argv: { mode: string },
+  ) => Promise<{ entry: Record<string, string>; plugins: Array<{ constructor: { name: string }; patterns?: Array<Record<string, unknown>> }> }>;
+  const config = await webpackConfigFactory({}, { mode: "production" });
+  assert.deepEqual(config.entry, {
+    taskpane: "./src/taskpane/index.tsx",
+    dialog: "./src/dialog/index.tsx",
+    commands: "./src/commands/commands.ts",
+  });
+
+  const copyPlugin = config.plugins.find((plugin) => plugin.constructor.name === "CopyPlugin");
+  assert.ok(copyPlugin?.patterns?.some((pattern) => pattern.from === "templates" &&
+    JSON.stringify(pattern.globOptions).includes("**/*.fixed.*")));
+  assert.doesNotMatch(fs.readFileSync("scripts/package-installer.mjs", "utf8"), /webpack\.codex-fix\.config\.js/);
+});
+
 test("development server does not inject a websocket client into the Word task pane", () => {
   const webpackConfig = fs.readFileSync("webpack.config.js", "utf8");
   assert.match(webpackConfig, /hot:\s*false/);

@@ -1,6 +1,7 @@
 import type { KnowledgeCategory, KnowledgeRecord, KnowledgeScope } from "../knowledge/models";
 import { removeVietnameseTones } from "../knowledge/search";
 import type { TemplateRecord } from "../templates/library";
+import { ADMINISTRATIVE_AI_RULES } from "./administrative-rules";
 
 export interface QuickPromptSuggestion {
   label: string;
@@ -216,6 +217,7 @@ export function buildAugmentedAiPrompt(options: ContextualPromptOptions): string
   }
 
   parts.push("=== CHỈ DẪN SOẠN THẢO ===");
+  parts.push(ADMINISTRATIVE_AI_RULES);
   parts.push("- Trả lời chuẩn xác, văn phong hành chính nhà nước trang trọng theo Nghị định 30/2020/NĐ-CP.");
   parts.push("- Tuyệt đối tuân thủ các quy tắc bắt buộc về xưng danh và tiêu đề cấp Viện/Trung tâm nếu có.");
   parts.push("- Cung cấp câu trả lời có thể áp dụng trực tiếp vào tài liệu Word.");

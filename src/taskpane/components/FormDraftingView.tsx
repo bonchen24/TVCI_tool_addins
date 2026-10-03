@@ -10,7 +10,9 @@ import {
 } from "../../templates/form-schema";
 import { MIN_TEMPLATE_FORM_AI_CONFIDENCE } from "../../ai/template-form";
 import { templateFormInputToValue, templateFormInputValue } from "../template-form.service";
+import { formatDateForUi, normalizeDateInputValue } from "../../templates/form-validation";
 import { A4DocumentPreview } from "./A4DocumentPreview";
+import { FORM_WORKFLOW_STEPS, getFormWorkflowStatus } from "../form-workflow";
 
 const PRESET_OPTIONS: Record<string, string[]> = {
   CO_QUAN_BAN_HANH: [
@@ -62,6 +64,7 @@ export interface FormDraftingViewProps {
   syncMessage?: string;
   relatedKnowledgeCount?: number;
   onOpenRelatedKnowledge?: () => void;
+  onOpenLearnExperience?: () => void;
   onChange: (tag: string, value: TemplateFormValue) => void;
   onClose: () => void;
   onInsertBlank: () => void;
@@ -99,12 +102,18 @@ function fieldControl(field: TemplateFormField, value: string, onChange: (value:
       />
     );
   }
+  const isDate = field.type === "date";
   return (
     <input
-      type={field.type === "date" ? "date" : "text"}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder={field.placeholder}
+      type="text"
+      inputMode={isDate ? "numeric" : undefined}
+      maxLength={isDate ? 10 : undefined}
+      value={isDate ? formatDateForUi(value) : value}
+      onChange={(event) => onChange(isDate ? normalizeDateInputValue(event.target.value) : event.target.value)}
+      onBlur={(event) => {
+        if (isDate) onChange(normalizeDateInputValue(event.target.value));
+      }}
+      placeholder={isDate ? "dd/mm/yyyy" : field.placeholder}
     />
   );
 }
@@ -119,6 +128,7 @@ export function FormDraftingView({
   syncMessage,
   relatedKnowledgeCount = 0,
   onOpenRelatedKnowledge,
+  onOpenLearnExperience,
   onChange,
   onClose,
   onInsertBlank,
@@ -135,6 +145,9 @@ export function FormDraftingView({
   const requiresReview = suggestions.some(
     (suggestion) => suggestion.confidence < MIN_TEMPLATE_FORM_AI_CONFIDENCE && suggestion.reviewed !== true
   );
+  const workflowStatus = getFormWorkflowStatus(schema, values, suggestions.length);
+  const activeWorkflowIndex = FORM_WORKFLOW_STEPS.findIndex((step) => step.id === workflowStatus.activeStep);
+  const syncIsError = Boolean(syncMessage && /lỗi|không thể|thất bại/i.test(syncMessage));
 
   const breadcrumbOrg = template.organization === "TVCI"
     ? "Trung tâm Thử nghiệm - Kiểm định Công nghiệp"
@@ -146,7 +159,6 @@ export function FormDraftingView({
 
   return (
     <section className="formDraftingView" aria-label={`Soạn thảo biểu mẫu: ${schema.label}`}>
-      {/* 1. Header & Breadcrumb */}
       <div className="formDraftingHeader">
         <div className="formDraftingNavTop">
           <button type="button" className="formDraftingBackBtn" onClick={onClose} disabled={busy}>
@@ -163,151 +175,160 @@ export function FormDraftingView({
         </div>
 
         <div className="formDraftingBreadcrumb" aria-label="Đường dẫn biểu mẫu">
-          <span>{breadcrumbOrg}</span>
-          <span className="bcSep">&gt;</span>
-          <span>{breadcrumbDept}</span>
-          <span className="bcSep">&gt;</span>
-          <span>{breadcrumbType}</span>
+          <span>{breadcrumbOrg}</span><span className="bcSep">&gt;</span><span>{breadcrumbDept}</span><span className="bcSep">&gt;</span><span>{breadcrumbType}</span>
         </div>
 
         <div className="formDraftingTitleRow">
-          <h3>{template.name}</h3>
-          {schema.compatibility && <span className="badgeNeutral">Tương thích</span>}
+          <div>
+            <span className="formEyebrow">TẠO BIỂU MẪU · {schema.label}</span>
+            <h3>{template.name}</h3>
+          </div>
+          {schema.compatibility && <span className="badgeNeutral">Mẫu tương thích</span>}
+        </div>
+
+        <div className="formWorkflow" aria-label="Luồng tạo biểu mẫu">
+          {FORM_WORKFLOW_STEPS.map((step, index) => {
+            const isActive = index === activeWorkflowIndex;
+            const isDone = index < activeWorkflowIndex;
+            return (
+              <div key={step.id} className={`formWorkflowStep ${isActive ? "active" : ""} ${isDone ? "done" : ""}`} aria-current={isActive ? "step" : undefined}>
+                <span className="formWorkflowNumber">{isDone ? "✓" : index + 1}</span>
+                <span className="formWorkflowLabel"><span>{step.label}</span><small>{step.shortLabel}</small></span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="formTemplateBoundary" aria-label="Phân biệt nội dung mẫu và trường cần nhập">
+          <div className="formBoundaryFixed">
+            <strong>Phần cố định của mẫu</strong>
+            <span>Quốc hiệu, tiêu đề, nhãn và bố cục có sẵn được giữ nguyên; không chép lại nhãn, Kính gửi, nơi nhận hay chữ ký.</span>
+          </div>
+          <div className="formBoundaryEditable">
+            <strong>Phần cần nhập</strong>
+            <span>Chỉ điền giá trị thay đổi vào {workflowStatus.totalFieldCount} trường bên dưới; không tự tạo thêm heading hoặc khối bố cục.</span>
+          </div>
         </div>
 
         {relatedKnowledgeCount > 0 && (
-          <div className="formRelatedKnowledgeBanner" onClick={onOpenRelatedKnowledge} role="button" tabIndex={0}>
+          <button type="button" className="formRelatedKnowledgeBanner" onClick={onOpenRelatedKnowledge} disabled={!onOpenRelatedKnowledge}>
             <span className="bannerIcon">💡</span>
-            <span>
-              Có <strong>{relatedKnowledgeCount} lưu ý nghiệp vụ</strong> liên quan đến biểu mẫu này.
-            </span>
+            <span>Có <strong>{relatedKnowledgeCount} lưu ý nghiệp vụ</strong> phù hợp với phạm vi mẫu.</span>
             <span className="bannerLink">Xem lưu ý →</span>
-          </div>
+          </button>
         )}
+        {busy && <div className="formStatus formStatusLoading" role="status" aria-live="polite">⏳ Đang xử lý, vui lòng chờ...</div>}
       </div>
 
-      {/* 2. Unified Workspace: Form Fields (Left) + Live A4 Preview (Right) on 1 Single Tab */}
       <div className="formDraftingWorkspace splitView">
-          <div className="formFieldsContainer">
-            <div className="formFieldsList">
-              {schema.fields.map((field) => {
-                const value = templateFormInputValue(values[field.tag]);
-                const isMain = isMainContentField(field);
-                return (
-                  <div
-                    key={field.tag}
-                    className={`templateFormField ${isMain ? "templateFormFieldFull" : "templateFormFieldHalf"}`}
-                  >
-                    <div className="fieldLabelRow">
-                      <label className="fieldLabel">
-                        {field.label}
-                        {field.required ? <span className="reqStar"> *</span> : ""}
-                        <span className="fieldTagBadge">({field.tag})</span>
-                      </label>
-                      {PRESET_OPTIONS[field.tag] && (
-                        <select
-                          className="fieldQuickPreset"
-                          value=""
-                          title={`Chọn nhanh mẫu cho ${field.label}`}
-                          onChange={(e) => {
-                            const selected = e.target.value;
-                            if (!selected) return;
-                            if (field.type === "repeatable" || field.type === "multi-line" || field.tag === "CAN_CU" || field.tag === "NOI_NHAN") {
-                              const next = value.trim() ? `${value.trim()}\n${selected}` : selected;
-                              onChange(field.tag, templateFormInputToValue(field, next));
-                            } else {
-                              onChange(field.tag, templateFormInputToValue(field, selected));
-                            }
-                          }}
-                        >
-                          <option value="">⚡ Chọn mẫu...</option>
-                          {PRESET_OPTIONS[field.tag].map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt.length > 32 ? `${opt.slice(0, 32)}...` : opt}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    </div>
-                    {fieldControl(field, value, (input) => onChange(field.tag, templateFormInputToValue(field, input)))}
-                    {field.helpText && <small className="fieldHelp">{field.helpText}</small>}
-                  </div>
-                );
-              })}
+        <div className="formFieldsContainer">
+          <div className="formSectionHeading">
+            <div>
+              <span className="formStepKicker">BƯỚC 3 · 4</span>
+              <h4>Xác định trường và soạn nội dung</h4>
+              <p>Nhập phần thay đổi. Không chép lại các thành phần đã có trong mẫu.</p>
             </div>
+            <span className={`formCompletionCount ${workflowStatus.isReadyToApply ? "complete" : ""}`}>
+              {workflowStatus.completedRequiredCount}/{workflowStatus.requiredCount} bắt buộc
+            </span>
+          </div>
 
-            {/* AI Assistant Drawer inline */}
-            <details className="templateFormAi">
-              <summary>🤖 Gợi ý điền nhanh bằng AI</summary>
-              <span className="aiHint">Dán email, tờ trình hoặc ghi chú nghiệp vụ để AI tự động điền các trường:</span>
-              <textarea
-                value={sourceText}
-                rows={3}
-                onChange={(e) => onSourceTextChange(e.target.value)}
-                placeholder="Dán nội dung văn bản nguồn tại đây..."
-              />
-              <div className="templateFormAiActions">
-                <button type="button" className="btnSecondary btnSmall" onClick={onSuggestAi} disabled={busy || !sourceText.trim()}>
-                  ⚡ AI phân tích dữ liệu
-                </button>
-                {suggestions.length > 0 && (
-                  <button type="button" className="btnPrimary btnSmall" onClick={onAcceptAi} disabled={busy || requiresReview}>
-                    Áp dụng tất cả ({suggestions.length})
-                  </button>
-                )}
-              </div>
-              {suggestions.length > 0 && (
-                <div className="templateFormSuggestions">
-                  {suggestions.map((suggestion) => {
-                    const field = schema.fields.find((f) => f.tag === suggestion.tag);
-                    return (
-                      <div key={suggestion.tag} className="templateFormSuggestion">
-                        <div>
-                          <strong>{field?.label || suggestion.tag}:</strong> {suggestion.value}
-                        </div>
-                        <div className="suggestionActions">
-                          <button type="button" className="btnTextSmall" onClick={() => onReviewAi(suggestion.tag)}>
-                            {suggestion.reviewed ? "✓ Đã duyệt" : "Xem xét"}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+          {!workflowStatus.isReadyToApply && (
+            <div className="formStatus formStatusHint" role="status">
+              Còn {workflowStatus.requiredCount - workflowStatus.completedRequiredCount} trường bắt buộc cần nhập trước khi áp dụng.
+            </div>
+          )}
+
+          <div className="formFieldsList">
+            {schema.fields.map((field) => {
+              const value = templateFormInputValue(values[field.tag]);
+              const isMain = isMainContentField(field);
+              return (
+                <div key={field.tag} className={`templateFormField ${isMain ? "templateFormFieldFull" : "templateFormFieldHalf"}`}>
+                  <div className="fieldLabelRow">
+                    <label className="fieldLabel">
+                      {field.label}{field.required ? <span className="reqStar"> *</span> : ""}
+                      <span className="fieldTagBadge">({field.tag})</span>
+                    </label>
+                    {PRESET_OPTIONS[field.tag] && (
+                      <select
+                        className="fieldQuickPreset"
+                        value=""
+                        title={`Chọn nhanh mẫu cho ${field.label}`}
+                        onChange={(e) => {
+                          const selected = e.target.value;
+                          if (!selected) return;
+                          if (field.type === "repeatable" || field.type === "multi-line" || field.tag === "CAN_CU" || field.tag === "NOI_NHAN") {
+                            const next = value.trim() ? `${value.trim()}\n${selected}` : selected;
+                            onChange(field.tag, templateFormInputToValue(field, next));
+                          } else {
+                            onChange(field.tag, templateFormInputToValue(field, selected));
+                          }
+                        }}
+                      >
+                        <option value="">⚡ Chọn nhanh</option>
+                        {PRESET_OPTIONS[field.tag].map((opt) => <option key={opt} value={opt}>{opt.length > 32 ? `${opt.slice(0, 32)}...` : opt}</option>)}
+                      </select>
+                    )}
+                  </div>
+                  {fieldControl(field, value, (input) => onChange(field.tag, templateFormInputToValue(field, input)))}
+                  {field.helpText && <small className="fieldHelp">{field.helpText}</small>}
                 </div>
-              )}
-            </details>
+              );
+            })}
           </div>
 
-          {/* Live A4 Document Preview on the same screen (Single View) */}
-          <div className="formPreviewContainer">
-            <A4DocumentPreview template={template} schema={schema} values={values} />
-          </div>
+          <details className="templateFormAi">
+            <summary>Gợi ý điền nhanh từ văn bản nguồn (tùy chọn)</summary>
+            <span className="aiHint">Dán email, tờ trình hoặc ghi chú. Hãy rà soát đề xuất trước khi đưa vào form.</span>
+            <textarea value={sourceText} rows={3} onChange={(e) => onSourceTextChange(e.target.value)} placeholder="Dán nội dung văn bản nguồn tại đây..." />
+            <div className="templateFormAiActions">
+              <button type="button" className="btnSecondary btnSmall" onClick={onSuggestAi} disabled={busy || !sourceText.trim()}>Phân tích văn bản</button>
+              {suggestions.length > 0 && <button type="button" className="btnPrimary btnSmall" onClick={onAcceptAi} disabled={busy || requiresReview}>Dùng đề xuất ({suggestions.length})</button>}
+            </div>
+            {suggestions.length > 0 && (
+              <div className="templateFormSuggestions" aria-label="Đề xuất cần rà soát">
+                <div className="formSuggestionNotice">Đề xuất chưa được chấp nhận. Kiểm tra từng giá trị trước khi dùng.</div>
+                {suggestions.map((suggestion) => {
+                  const field = schema.fields.find((f) => f.tag === suggestion.tag);
+                  return (
+                    <div key={suggestion.tag} className="templateFormSuggestion">
+                      <label><strong>{field?.label || suggestion.tag}</strong><input value={suggestion.value || ""} onChange={(e) => onAiValueChange(suggestion.tag, e.target.value)} /></label>
+                      <button type="button" className="btnTextSmall" onClick={() => onReviewAi(suggestion.tag)}>{suggestion.reviewed ? "✓ Đã rà soát" : "Rà soát"}</button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </details>
         </div>
 
-      {/* 4. Sync Message Alert */}
-      {syncMessage && <div className="alert syncAlert">{syncMessage}</div>}
+        <div className="formPreviewContainer">
+          <div className="formPreviewHeading"><span className="formStepKicker">BƯỚC 5 · XEM TRƯỚC</span><span>{workflowStatus.filledCount}/{workflowStatus.totalFieldCount} trường đã có dữ liệu</span></div>
+          <A4DocumentPreview template={template} schema={schema} values={values} />
+        </div>
+      </div>
 
-      {/* 5. Sticky Bottom Actions */}
+      {syncMessage && (
+        <div className={`formStatus ${syncIsError ? "formStatusError" : "formStatusSuccess"}`} role={syncIsError ? "alert" : "status"} aria-live="polite">
+          <span>{syncIsError ? "!" : "✓"} {syncMessage}</span>
+          {!syncIsError && onOpenLearnExperience && <button type="button" className="btnTextSmall" onClick={onOpenLearnExperience}>Ghi nhớ một kinh nghiệm</button>}
+        </div>
+      )}
+
       <div className="formDraftingBottomActions">
         <div className="primaryActionsRow">
-          <button
-            type="button"
-            className="btnPrimary mainFillBtn"
-            onClick={onInsertAndFill}
-            disabled={busy}
-            title="Chèn biểu mẫu vào văn bản và tự động điền các nội dung đã nhập"
-          >
-            ⚡ Chèn vào Word và điền form
+          <button type="button" className="btnPrimary mainFillBtn" onClick={onInsertAndFill} disabled={busy} title="Chèn biểu mẫu vào văn bản và điền phần dữ liệu đã nhập">
+            {busy ? "Đang chuẩn bị..." : "Áp dụng biểu mẫu vào Word"}
           </button>
         </div>
-        <div className="secondaryActionsRow">
-          <button type="button" className="btnSecondary" onClick={onApplyToWord} disabled={busy} title="Cập nhật vào các ô đã có">
-            Áp dụng vào Word hiện tại
-          </button>
-          <button type="button" className="btnSecondary" onClick={onInsertBlank} disabled={busy} title="Chèn file mẫu sạch">
-            Chèn mẫu trống
-          </button>
-        </div>
+        <details className="formMoreActions">
+          <summary>Tùy chọn khác</summary>
+          <div className="secondaryActionsRow">
+            <button type="button" className="btnSecondary" onClick={onApplyToWord} disabled={busy} title="Cập nhật vào các ô đã có">Cập nhật trường trong Word hiện tại</button>
+            <button type="button" className="btnSecondary" onClick={onInsertBlank} disabled={busy} title="Chèn file mẫu sạch">Chèn mẫu trống</button>
+          </div>
+        </details>
       </div>
     </section>
   );

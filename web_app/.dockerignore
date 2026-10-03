@@ -1,0 +1,45 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local database and persistent application data
+data/*
+!data/spellcheck/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+
+# Dependencies and build output
+node_modules
+.next
+coverage
+dist
+build
+out
+
+# Package manager and tool caches
+.pnpm-store
+.pnpm-home*
+.npm
+.yarn/cache
+.cache
+.turbo
+.vercel
+*.tsbuildinfo
+.eslintcache
+
+# Repository metadata and local logs
+.git
+.gitignore
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db

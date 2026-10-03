@@ -1,6 +1,21 @@
 # Dependencies
 node_modules/
 .pnpm-store/
+.pnpm-home*
+.pnpm-local-data/
+%SystemDrive%/
+$out/
+
+# Web app local secrets; retain the safe placeholder template.
+/web_app/.env*
+!/web_app/.env.example
+/web_app/.next/
+/web_app/data/*
+!/web_app/data/spellcheck/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
 
 # Build & Release
 dist/

@@ -2,9 +2,17 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { WRITING_STYLES, buildWritingPrompt } from "../src/ai/writing-workspace.ts";
-import { buildTemplateFillPrompt, parseTemplateFillResult } from "../src/ai/template-fill.ts";
-import { buildProofreadingPrompt, parseProofreadingResult } from "../src/ai/proofreading.ts";
+import { loadTypeScriptModule } from "./test-support/load-typescript-module.mjs";
+
+const { WRITING_STYLES, buildWritingPrompt } = loadTypeScriptModule(
+  new URL("../src/ai/writing-workspace.ts", import.meta.url),
+) as typeof import("../src/ai/writing-workspace");
+const { buildTemplateFillPrompt, parseTemplateFillResult, selectSafeTemplateFills, filterTemplateFillFieldsToControls } = loadTypeScriptModule(
+  new URL("../src/ai/template-fill.ts", import.meta.url),
+) as typeof import("../src/ai/template-fill");
+const { buildProofreadingPrompt, parseProofreadingResult } = loadTypeScriptModule(
+  new URL("../src/ai/proofreading.ts", import.meta.url),
+) as typeof import("../src/ai/proofreading");
 
 const manifest = fs.readFileSync(path.join(process.cwd(), "manifest/manifest.xml"), "utf8");
 
@@ -24,7 +32,7 @@ test("writing prompt includes prior chat context and protects factual identifier
   });
   assert.match(prompt, /Công ty ABC cần bổ sung hồ sơ/);
   assert.match(prompt, /văn phong hành chính/i);
-  assert.match(prompt, /không tự bịa/i);
+  assert.match(prompt, /không (?:được )?bịa/i);
   assert.match(prompt, /Dự thảo lần 1/);
 });
 
@@ -81,8 +89,6 @@ test("proofreading parser ignores issues without an original span", () => {
   }));
   assert.deepEqual(parsed.issues, []);
 });
-
-import { filterTemplateFillFieldsToControls, selectSafeTemplateFills } from "../src/ai/template-fill.ts";
 
 test("template fill application keeps only non-null values for controls that actually exist", () => {
   const safe = selectSafeTemplateFills(

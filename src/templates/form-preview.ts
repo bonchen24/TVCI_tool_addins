@@ -1,12 +1,6 @@
 import type { TemplateRecord } from "./library";
 import type { TemplateFormSchema, TemplateFormValue, TemplateFormValues } from "./form-schema";
 import { normalizeTemplateFormValues } from "./form-validation";
-import {
-  formatTvciSubject,
-  parseAndFormatTvciDate,
-  formatTvciAddressee,
-  formatSemicolonCapitalization,
-} from "../utils/tvci-formatter";
 
 const INSTITUTE = "VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN";
 const CENTER = "TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP";
@@ -59,10 +53,10 @@ export function buildTemplateFormPreview(
   values: TemplateFormValues
 ): TemplateFormPreview {
   const normalized = normalizeTemplateFormValues(schema, values);
-  const rawAddressee = text(normalized.KINH_GUI || normalized.NOI_NHAN_TRUC_TIEP || values.KINH_GUI || values.NOI_NHAN_TRUC_TIEP).trim();
-  const rawSubject = text(normalized.TRICH_YEU || values.TRICH_YEU).trim();
-  const rawDate = text(normalized.NGAY_BAN_HANH || values.NGAY_BAN_HANH).trim();
-  const rawBody = text(normalized.NOI_DUNG || normalized.NOI_DUNG_CHUNG || values.NOI_DUNG).trim();
+  const rawAddressee = text(normalized.KINH_GUI || normalized.NOI_NHAN_TRUC_TIEP).trim();
+  const rawSubject = text(normalized.TRICH_YEU).trim();
+  const rawDate = text(normalized.NGAY_BAN_HANH).trim();
+  const rawBody = text(normalized.NOI_DUNG || normalized.NOI_DUNG_CHUNG).trim();
 
   const rawSymbol = text(normalized.SO_KY_HIEU || values.SO_KY_HIEU || normalized.SO_VAN_BAN || values.SO_VAN_BAN).trim();
   let formattedSymbol = "";
@@ -91,11 +85,15 @@ export function buildTemplateFormPreview(
           ? [GROUP, INSTITUTE]
           : ["ĐẢNG BỘ " + INSTITUTE, "ĐẢNG CỘNG SẢN VIỆT NAM"],
     docSymbol: formattedSymbol,
-    subject: rawSubject ? formatTvciSubject(rawSubject) : "",
-    date: rawDate ? parseAndFormatTvciDate(rawDate) : "",
-    addressee: rawAddressee ? formatTvciAddressee(rawAddressee).fullFormattedText : "",
-    recipients: text(normalized.NOI_NHAN || values.NOI_NHAN).trim(),
-    body: rawBody ? formatSemicolonCapitalization(rawBody) : "",
+    subject: rawSubject,
+    date: rawDate,
+    addressee: rawAddressee
+      ? rawAddressee.includes("\n")
+        ? `Kính gửi:\n${rawAddressee}`
+        : `Kính gửi: ${rawAddressee}`
+      : "",
+    recipients: text(normalized.NOI_NHAN).trim(),
+    body: rawBody,
     documentType: template.documentType || schema.documentType || "Văn bản",
     signerTitle: rawSignerTitle || defaultSignerTitle,
     signerName: text(normalized.NGUOI_KY || normalized.NGUOI_DUYET || values.NGUOI_KY || values.NGUOI_DUYET).trim(),

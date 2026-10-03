@@ -43,6 +43,21 @@ describe("Direct AI Client", () => {
       ]);
       expect(result).toBe("Dự thảo công văn hoàn chỉnh.");
     });
+
+    it("sanitizes Markdown markers from model output before returning it", async () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ choices: [{ message: { content: "### **Tiêu đề**\n\n**Nội dung**" } }] }),
+      });
+
+      const result = await requestAiPromptDirect(
+        { provider: "openai", model: "gpt-4o-mini", apiKey: "sk-test-key" },
+        "Soạn thảo công văn",
+        mockFetch as any,
+      );
+
+      expect(result).toBe("Tiêu đề\n\nNội dung");
+    });
   });
 
   describe("Gemini client", () => {

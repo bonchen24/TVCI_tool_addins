@@ -33,6 +33,11 @@ describe("TVCI Formatter Specification Tests", () => {
       expect(parseAndFormatTvciDate("2026-01-05")).toBe("Hà Nội, ngày 05 tháng 01 năm 2026");
       expect(parseAndFormatTvciDate("09/09/2026")).toBe("Hà Nội, ngày 09 tháng 9 năm 2026");
     });
+
+    test("keeps the template locality when replacing only its date value", () => {
+      expect(parseAndFormatTvciDate("2021-01-19", "Đà Nẵng")).toBe("Đà Nẵng, ngày 19 tháng 01 năm 2021");
+      expect(parseAndFormatTvciDate("ngày 19 tháng 01 năm 2021", "Huế")).toBe("Huế, ngày 19 tháng 01 năm 2021");
+    });
   });
 
   describe("V. Phần V/v hoặc Về việc (Trích yếu)", () => {
@@ -106,6 +111,11 @@ describe("TVCI Formatter Specification Tests", () => {
       expect(result.fullFormattedText).toBe(
         "Kính gửi:\n- Chi cục Hải quan CK cảng Hải Phòng khu vực I;\n- Công ty TNHH ĐT Xuất nhập khẩu Đại Dương."
       );
+    });
+
+    test("does not duplicate a fixed label or existing recipient markers", () => {
+      expect(formatTvciAddressee("Kính gửi:\n- Đơn vị A;\n- Đơn vị B.").fullFormattedText)
+        .toBe("Kính gửi:\n- Đơn vị A;\n- Đơn vị B.");
     });
   });
 

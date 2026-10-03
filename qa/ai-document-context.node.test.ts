@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildDocumentContextBlock, buildQuickDraftPrompt, inferDocumentType, QUICK_DRAFT_ACTIONS } from "../src/ai/document-context.ts";
+import { loadTypeScriptModule } from "./test-support/load-typescript-module.mjs";
+
+const { buildDocumentContextBlock, buildQuickDraftPrompt, inferDocumentType, QUICK_DRAFT_ACTIONS } = loadTypeScriptModule(
+  new URL("../src/ai/document-context.ts", import.meta.url),
+) as typeof import("../src/ai/document-context");
 
 const context = {
   documentText: "CÔNG VĂN\nV/v đề nghị bổ sung hồ sơ\nKính gửi: Công ty ABC",
@@ -39,7 +43,7 @@ test("quick drafting actions expose the agreed Word-writing helpers", () => {
 test("quick drafting prompt is grounded in document context and forbids invented facts", () => {
   const prompt = buildQuickDraftPrompt({ action: "basis", context, userInstruction: "Giữ nguyên số hồ sơ" });
   assert.match(prompt, /Căn cứ/);
-  assert.match(prompt, /không tự bịa/i);
+  assert.match(prompt, /không (?:được )?bịa/i);
   assert.match(prompt, /Công văn hành chính TVCI/);
   assert.match(prompt, /Giữ nguyên số hồ sơ/);
 });

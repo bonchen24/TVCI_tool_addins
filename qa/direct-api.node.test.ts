@@ -1,7 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { requestAiDirect } from "../src/ai/direct-client.ts";
-import { defaultModelFor, loadAiSettings, saveAiSettings } from "../src/ai/settings.ts";
+import { loadTypeScriptModule } from "./test-support/load-typescript-module.mjs";
+
+const { requestAiDirect, requestAiPromptDirect } = loadTypeScriptModule(
+  new URL("../src/ai/direct-client.ts", import.meta.url),
+) as typeof import("../src/ai/direct-client");
+const { defaultModelFor, loadAiSettings, saveAiSettings } = loadTypeScriptModule(
+  new URL("../src/ai/settings.ts", import.meta.url),
+) as typeof import("../src/ai/settings");
 
 const request = { action: "formal" as const, text: "Đề nghị bổ sung hồ sơ." };
 
@@ -57,8 +63,6 @@ test("AI settings round-trip in local storage compatible storage", () => {
   assert.deepEqual(loadAiSettings(storage), { provider: "gemini", model: "gemini-3.5-flash", apiKey: "secret" });
   assert.equal(defaultModelFor("openai"), "gpt-4o-mini");
 });
-
-import { requestAiPromptDirect } from "../src/ai/direct-client.ts";
 
 test("generic direct prompt reuses provider transport for template analysis", async () => {
   let body = "";

@@ -1,0 +1,11 @@
+# Vietnamese spell-check dictionary
+
+The browser checker uses the supplied `web_app/data/spellcheck/Vietnamese.dic` as its base word list and retains `nspell` with the Vietnamese Hunspell data from [`dictionary-vi`](https://github.com/wooorm/dictionaries/tree/main/dictionaries/vi) for compatibility and suggestions. The original `.dic` bytes are UTF-16LE. `scripts/prepare-vietnamese-dictionary.mjs` verifies the supplied SHA-256 (`1417975f8479f3a4009cf6af120e16ccea190f89b392fb16889d67ed66b6e769`), decodes it without relying on a fixed header count, normalizes accepted entries to NFC, and generates the UTF-8 `/spellcheck/vi-base.txt` asset plus `/spellcheck/vi-base.review.json`.
+
+The preprocessor drops malformed, non-word, duplicate-after-normalization, and otherwise suspicious entries from runtime lookup. It records every rejected source line and reason in the review report so the word list can be audited instead of silently trusted. Hunspell remains a compatibility layer because no single dictionary is an absolute authority. TVCI/domain exceptions and user-added terms are maintained separately by the spell-check engine.
+
+URLs, email addresses, numbers, dates, document and standard identifiers, common abbreviations, and distinctive acronyms are excluded by local rules. Context-sensitive rules flag “sử lý” with “xử lý” as a suggestion and “xát nhận” with “xác nhận” as a suggestion. The app never auto-corrects; document text changes only after an explicit user action.
+
+The upstream `dictionary-vi@3.0.0` package metadata declares `GPL-2.0`, while its bundled `license` notice says the spellchecker is released under GPLv3. The notice is preserved at [`public/spellcheck/dictionary-license-notice.txt`](../../public/spellcheck/dictionary-license-notice.txt). Treat the bundled dictionary data as GPLv3 pending upstream clarification; confirm the applicable terms before distributing this app under a license that is incompatible with GPLv3.
+
+The spell-check runtime stores the generated base set and Hunspell checker in memory after loading them and sends no document text to a network service. The only spell-check API calls retrieve or modify a user's explicitly added dictionary terms. The license terms of the user-supplied source file have not been established here; keep its provenance and any distribution terms with the original file.

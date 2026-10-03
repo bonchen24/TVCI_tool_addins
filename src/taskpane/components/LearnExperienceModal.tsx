@@ -11,6 +11,7 @@ export interface LearnExperienceModalProps {
   onClose: () => void;
   existingRecords: KnowledgeRecord[];
   onSaveRecord: (record: KnowledgeRecord) => Promise<void>;
+  onDeleteRecord?: (id: string) => Promise<void>;
   onNotify: (msg: string) => void;
   aiSettings?: AiSettings;
 }
@@ -25,11 +26,16 @@ const SCOPES: Array<{ id: KnowledgeScope; label: string }> = [
   { id: "COMMON", label: "Dùng chung" },
 ];
 
+function scopeLabel(scope: KnowledgeScope): string {
+  return SCOPES.find((item) => item.id === scope)?.label ?? scope;
+}
+
 export function LearnExperienceModal({
   isOpen,
   onClose,
   existingRecords,
   onSaveRecord,
+  onDeleteRecord,
   onNotify,
   aiSettings,
 }: LearnExperienceModalProps): React.ReactElement | null {
@@ -38,6 +44,7 @@ export function LearnExperienceModal({
   const [isSelectionOnly, setIsSelectionOnly] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [sourceError, setSourceError] = useState("");
 
   // File dropzone states
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -65,6 +72,11 @@ export function LearnExperienceModal({
     );
   }, [title, content, targetId, existingRecords]);
 
+  const applicableRecords = useMemo(
+    () => existingRecords.filter((record) => record.scope === scope || record.scope === "COMMON").slice(0, 5),
+    [existingRecords, scope]
+  );
+
   // Reset when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
@@ -78,12 +90,16 @@ export function LearnExperienceModal({
       setTargetId(null);
       setForceNew(false);
       setSourceMode("upload_file");
+      setCategory("experience");
+      setScope("TVCI");
+      setSourceError("");
     }
   }, [isOpen]);
 
   // Read active Word doc if user switches to "current_word"
   const loadWordDocument = async () => {
     setIsAnalyzing(true);
+    setSourceError("");
     try {
       let text = "";
       let isSel = false;
@@ -113,6 +129,7 @@ export function LearnExperienceModal({
       }
     } catch (err) {
       console.warn("Lỗi đọc văn bản Word:", err);
+      setSourceError(`Không thể đọc tài liệu Word: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -121,6 +138,7 @@ export function LearnExperienceModal({
   const handleFileSelect = async (file: File) => {
     setUploadedFile(file);
     setIsAnalyzing(true);
+    setSourceError("");
     try {
       let text = "";
       const lowerName = file.name.toLowerCase();
@@ -151,6 +169,7 @@ export function LearnExperienceModal({
       }
     } catch (err) {
       console.error("Lỗi đọc tệp:", err);
+      setSourceError(`Không thể đọc tệp: ${err instanceof Error ? err.message : String(err)}`);
       onNotify(`Lỗi khi đọc tệp: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsAnalyzing(false);
@@ -246,6 +265,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
         referenceSource: referenceSource.trim() || undefined,
         exampleSnippet: exampleSnippet.trim() || undefined,
         updatedAt: new Date().toISOString(),
+        createdAt: targetId ? existingRecords.find((record) => record.id === targetId)?.createdAt : undefined,
       };
 
       await onSaveRecord(recordToSave);
@@ -255,6 +275,34 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
       onNotify(`Không thể lưu tri thức: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const useExistingRecord = (record: KnowledgeRecord) => {
+    setTargetId(record.id);
+    setForceNew(false);
+    setTitle(record.title);
+    setContent(record.content);
+    setCategory(record.category);
+    setScope(record.scope);
+    setTagsInput(record.tags.join(", "));
+    setExampleSnippet(record.exampleSnippet || "");
+    setReferenceSource(record.referenceSource || "");
+    onNotify(`Đã chọn tri thức "${record.title}" để rà soát và cập nhật.`);
+  };
+
+  const deleteRecord = async (record: KnowledgeRecord) => {
+    if (!onDeleteRecord || !record.id.startsWith("kb-custom-")) return;
+    if (typeof window !== "undefined" && !window.confirm(`Xóa kinh nghiệm "${record.title}"?`)) return;
+    try {
+      await onDeleteRecord(record.id);
+      if (targetId === record.id) {
+        setTargetId(null);
+        setForceNew(true);
+      }
+      onNotify(`Đã xóa kinh nghiệm "${record.title}".`);
+    } catch (err) {
+      onNotify(`Không thể xóa kinh nghiệm: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -272,6 +320,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
 
   const modalContent = (
     <div
+      className="learnExperienceModalContent"
       style={{
         width: "100%",
         height: isDialog ? "100vh" : "640px",
@@ -284,6 +333,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
     >
       {/* Header */}
       <div
+        className="learnExperienceHeader"
         style={{
           display: "flex",
           alignItems: "center",
@@ -312,10 +362,10 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
           </div>
           <div>
             <div style={{ fontSize: 14.5, fontWeight: 700, color: "#0f172a" }}>
-              Đúc Kết Tri Thức &amp; Nhận Kinh Nghiệm
+              Ghi nhớ kinh nghiệm
             </div>
             <div style={{ fontSize: 11.5, color: "#64748b" }}>
-              Tải tệp văn kiện lên Dropzone hoặc lấy từ tài liệu Word để AI trích xuất trường tương ứng
+              Chọn nguồn, rà soát nội dung và lưu một ghi nhớ có ích.
             </div>
           </div>
         </div>
@@ -341,8 +391,20 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
         </button>
       </div>
 
+      <div className="learnWorkflow" aria-label="Luồng ghi nhớ kinh nghiệm">
+        <div className="learnWorkflowStep active"><span>1</span><strong>Chọn nguồn</strong><small>Tệp hoặc Word</small></div>
+        <div className="learnWorkflowStep"><span>2</span><strong>Rà soát</strong><small>Nội dung, loại, phạm vi</small></div>
+        <div className="learnWorkflowStep"><span>3</span><strong>Ghi nhớ</strong><small>Cập nhật hoặc lưu mới</small></div>
+      </div>
+
+      <div className="learnScopeSummary" role="status">
+        <span>Đang áp dụng cho: <strong>{scopeLabel(scope)}</strong></span>
+        <span>{applicableRecords.length} tri thức phù hợp trong kho</span>
+      </div>
+
       {/* Source Selector Tabs */}
       <div
+        className="learnSourceTabs"
         style={{
           display: "flex",
           borderBottom: "1px solid #e2e8f0",
@@ -371,7 +433,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
             gap: 6,
           }}
         >
-          <span>📁</span> Tải tệp văn kiện lên (Dropzone)
+          <span>📁</span> Từ tệp
         </button>
 
         <button
@@ -397,12 +459,12 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
             gap: 6,
           }}
         >
-          <span>📄</span> Đọc từ tài liệu Word hiện tại
+          <span>📄</span> Từ Word hiện tại
         </button>
       </div>
 
       {/* Main Body Form */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px 18px" }}>
+      <div className="learnExperienceBody" style={{ flex: 1, overflowY: "auto", padding: "16px 18px" }}>
         {/* Source Mode: Upload File Dropzone */}
         {sourceMode === "upload_file" && (
           <div style={{ marginBottom: 16 }}>
@@ -456,6 +518,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
               </div>
             ) : (
               <div
+                className="learnUploadedFile"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -502,6 +565,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
         {/* Source Mode: Current Word Notice */}
         {sourceMode === "current_word" && (
           <div
+            className="learnCurrentWordNotice"
             style={{
               padding: "10px 14px",
               background: "#f8fafc",
@@ -556,6 +620,40 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
           </div>
         )}
 
+        {sourceError && <div className="learnSourceStatus learnSourceError" role="alert">{sourceError}</div>}
+        {!isAnalyzing && !sourceError && sourceDocText.trim() && (
+          <div className="learnSourceStatus learnSourceSuccess" role="status">
+            ✓ Đã đọc {sourceDocText.trim().length.toLocaleString("vi-VN")} ký tự. Hãy rà soát nội dung trước khi ghi nhớ.
+          </div>
+        )}
+
+        <details className="learnAppliedRecords">
+          <summary>Tri thức đang áp dụng cho phạm vi này ({applicableRecords.length})</summary>
+          {applicableRecords.length === 0 ? (
+            <p className="learnEmptyState">Chưa có ghi nhớ phù hợp. Bạn có thể tạo một bản ghi mới sau khi rà soát.</p>
+          ) : (
+            <div className="learnAppliedRecordsList">
+              {applicableRecords.map((record) => {
+                const meta = KNOWLEDGE_CATEGORY_META[record.category];
+                return (
+                  <div key={record.id} className="learnAppliedRecord">
+                    <div className="learnAppliedRecordCopy">
+                      <strong>{record.title}</strong>
+                      <span>{meta.icon} {meta.label} · {scopeLabel(record.scope)}</span>
+                    </div>
+                    <div className="learnAppliedRecordActions">
+                      <button type="button" className="btnTextSmall" onClick={() => useExistingRecord(record)}>Sửa / gộp</button>
+                      {record.id.startsWith("kb-custom-") && onDeleteRecord && (
+                        <button type="button" className="btnTextSmall danger" onClick={() => void deleteRecord(record)}>Xóa</button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </details>
+
         {/* Duplicate Warning Guard */}
         {!forceNew && primaryDuplicate && (
           <div
@@ -571,7 +669,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
               <span style={{ fontSize: 16 }}>⚠️</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#92400e" }}>
-                  Phát hiện tri thức tương tự trong kho: &ldquo;{primaryDuplicate.record.title}&rdquo;
+                  Có tri thức gần trùng trong kho: &ldquo;{primaryDuplicate.record.title}&rdquo;
                 </div>
                 <div style={{ fontSize: 12, color: "#b45309", marginTop: 2 }}>
                   Mức độ tương đồng: <strong>{Math.round(primaryDuplicate.score * 100)}%</strong> (trùng khớp{" "}
@@ -585,12 +683,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
                 <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
                   <button
                     type="button"
-                    onClick={() => {
-                      setTargetId(primaryDuplicate.record.id);
-                      setTitle(primaryDuplicate.record.title);
-                      setCategory(primaryDuplicate.record.category);
-                      setScope(primaryDuplicate.record.scope);
-                    }}
+                    onClick={() => useExistingRecord(primaryDuplicate.record)}
                     style={{
                       padding: "4px 10px",
                       fontSize: 12,
@@ -602,7 +695,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
                       cursor: "pointer",
                     }}
                   >
-                    Cập nhật vào tri thức này
+                    Cập nhật / gộp vào bản ghi này
                   </button>
                   <button
                     type="button"
@@ -618,12 +711,23 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
                       cursor: "pointer",
                     }}
                   >
-                    Vẫn lưu bản ghi mới
+                    Tạo bản ghi mới
                   </button>
                 </div>
               </div>
             </div>
           </div>
+        )}
+
+        {duplicateMatches.length > 1 && !forceNew && (
+          <details className="learnSimilarRecords">
+            <summary>Xem {duplicateMatches.length - 1} tri thức tương tự khác</summary>
+            {duplicateMatches.slice(1, 4).map((match) => (
+              <button key={match.record.id} type="button" className="learnSimilarRecord" onClick={() => useExistingRecord(match.record)}>
+                <span>{match.record.title}</span><small>{Math.round(match.score * 100)}%</small>
+              </button>
+            ))}
+          </details>
         )}
 
         {targetId && (
@@ -667,7 +771,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
         {/* 1. Tên tri thức */}
         <div style={{ marginBottom: 14 }}>
           <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
-            Tên kinh nghiệm / Tiêu đề tri thức <span style={{ color: "#ef4444" }}>*</span>
+            Tên kinh nghiệm <span style={{ color: "#ef4444" }}>*</span>
           </label>
           <input
             type="text"
@@ -691,7 +795,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
-              Phân loại tri thức
+              Loại ghi nhớ
             </label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
               {CATEGORIES.map((cat) => {
@@ -757,7 +861,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
         {/* 3. Nội dung mô tả ngắn gọn */}
         <div style={{ marginBottom: 14 }}>
           <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
-            Nội dung mô tả ngắn gọn (2-4 câu đúc kết) <span style={{ color: "#ef4444" }}>*</span>
+            Điều cần nhớ (2-4 câu) <span style={{ color: "#ef4444" }}>*</span>
           </label>
           <textarea
             rows={3}
@@ -777,6 +881,9 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
             }}
           />
         </div>
+
+        <details className="learnAdvancedFields">
+          <summary>Thông tin bổ sung (tùy chọn)</summary>
 
         {/* 4. Đoạn trích mẫu */}
         <div style={{ marginBottom: 14 }}>
@@ -846,10 +953,12 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
             />
           </div>
         </div>
+        </details>
       </div>
 
       {/* Footer Actions */}
       <div
+        className="learnExperienceFooter"
         style={{
           padding: "12px 18px",
           borderTop: "1px solid #e2e8f0",
@@ -873,7 +982,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
             cursor: "pointer",
           }}
         >
-          Hủy bỏ
+          Đóng
         </button>
 
         <div style={{ display: "flex", gap: 10 }}>
@@ -897,7 +1006,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
             }}
           >
             <span>💾</span>
-            {isSaving ? "Đang lưu..." : targetId ? "Lưu cập nhật tri thức" : "Lưu vào Kho tri thức"}
+            {isSaving ? "Đang lưu..." : targetId ? "Lưu cập nhật" : "Ghi nhớ kinh nghiệm"}
           </button>
         </div>
       </div>
@@ -910,6 +1019,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
 
   return (
     <div
+      className="learnExperienceBackdrop"
       style={{
         position: "fixed",
         top: 0,
@@ -926,6 +1036,7 @@ Yêu cầu trả về DUY NHẤT một JSON hợp lệ dạng:
       onClick={onClose}
     >
       <div
+        className="learnExperienceModalShell"
         style={{
           width: "100%",
           maxWidth: 620,

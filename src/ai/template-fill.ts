@@ -1,3 +1,5 @@
+import { ADMINISTRATIVE_AI_RULES } from "./administrative-rules";
+
 export interface TemplateFillControl {
   id: number;
   tag: string;
@@ -29,11 +31,12 @@ export function buildTemplateFillPrompt(controls: TemplateFillControl[], rawText
   const fields = controls.map((item) => `- ${item.tag}: ${item.title || item.tag}`).join("\n");
   return [
     "Bạn đang trích dữ liệu để điền vào biểu mẫu Word của VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN / TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP.",
-    "QUY TẮC ĐỊNH DẠNG BẮT BUỘC THEO QUY CÁCH TVCI:",
-    "1. Ngày tháng: 'Hà Nội, ngày DD tháng MM năm YYYY' (Ngày < 10 có số 0: ngày 01..09; Tháng 1, 2 có số 0: tháng 01, 02; Tháng 3-12 không có số 0: tháng 3..tháng 12).",
-    "2. Trích yếu: 'V/v [nội dung viết thường chữ cái đầu]' hoặc 'Về việc [nội dung viết thường chữ cái đầu]', TUYỆT ĐỐI không có dấu hai chấm sau V/v hoặc Về việc, không viết hoa chữ cái đầu sau V/v hoặc Về việc, không lặp 'V/v V/v'.",
-    "3. Kính gửi: 1 nơi nhận không để dấu câu ở cuối. Nhiều nơi nhận dùng danh sách gạch đầu dòng '-', kết thúc bằng ';' và dòng cuối kết thúc bằng '.'.",
-    "4. Tuyệt đối giữ đúng tiếng Việt có dấu đầy đủ.",
+    ADMINISTRATIVE_AI_RULES,
+    "Mẫu Word quyết định toàn bộ bố cục cố định. Chỉ trích xuất giá trị động cho đúng các tag được liệt kê; không tạo hoặc viết lại nhãn, tiêu đề, Kính gửi, Nơi nhận, đầu trang, chân trang, chức danh hay chữ ký.",
+    "Với NOI_DUNG/NOI_DUNG_CHUNG, chỉ trả nội dung nghiệp vụ; không đưa quốc hiệu, tiêu ngữ, tên cơ quan, số/ký hiệu, địa danh-ngày tháng, tiêu đề văn bản, Kính gửi, Nơi nhận, chức danh ký, tên người ký hoặc placeholder chữ ký vào field.",
+    "Giữ đủ mọi dữ kiện nghiệp vụ có trong nguồn và giữ ranh giới đoạn; không rút gọn làm mất ý, không tự thêm bullet, dấu câu, placeholder, lời dẫn hoặc nội dung không có trong nguồn.",
+    "Giá trị Kính gửi/Nơi nhận chỉ gồm dữ liệu người nhận có trong nguồn; không tự thêm tiền tố, bullet hoặc dấu câu và không lặp nhãn cố định của mẫu.",
+    "Giữ nguyên nội dung trích yếu và dấu câu nguồn; không áp đặt một kiểu V/v hoặc Về việc.",
     "Chỉ được sử dụng các tag trong danh sách dưới đây, không được tạo tag mới.",
     "Không tự suy đoán hoặc bịa dữ liệu. Nếu không xác định được thì value phải là null và confidence = 0.",
     "Trả về DUY NHẤT JSON dạng: {\"fields\":[{\"tag\":\"TAG\",\"value\":\"...\"|null,\"confidence\":0.0,\"source\":\"đoạn nguồn\"}]}",

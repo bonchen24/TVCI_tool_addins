@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const release = path.join(PROJECT_ROOT, 'release');
 const staging = path.join(release, 'staging');
+const webview2OfflineInstaller = path.join(PROJECT_ROOT, 'installer', 'prerequisites', 'MicrosoftEdgeWebView2RuntimeInstallerX64.exe');
 const version = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package.json'), 'utf8')).version;
 const exeName = `TVCI-Word-Tools-Setup-${version}.exe`;
 const npmCli = process.env.npm_execpath;
@@ -57,6 +58,9 @@ function findIscc() {
 if (process.platform !== 'win32' || process.arch !== 'x64') fail('Build requires Windows x64 and an x64 Node runtime. Windows x86 is not supported.');
 if (!npmCli || !fs.existsSync(npmCli)) fail('npm CLI path not available; invoke this script with npm run installer.');
 if (!/^\d+\.\d+\.\d+$/.test(version)) fail(`Invalid package version: ${version}`);
+if (!fs.existsSync(webview2OfflineInstaller)) {
+  fail(`Missing required offline prerequisite: ${webview2OfflineInstaller}. Download the official Microsoft Edge WebView2 Evergreen Standalone Installer (x64) from https://developer.microsoft.com/microsoft-edge/webview2/ and save it at this exact path.`);
+}
 fs.mkdirSync(release, { recursive: true });
 fs.rmSync(staging, { recursive: true, force: true });
 fs.mkdirSync(staging, { recursive: true });
@@ -75,8 +79,7 @@ for (const name of ['common.ps1', 'setup.ps1', 'verify.ps1', 'uninstall.ps1', 's
   copy(path.join(PROJECT_ROOT, 'installer', name), path.join(staging, 'scripts', name));
 }
 copy(process.execPath, path.join(staging, 'runtime', 'node.exe'));
-const bootstrapper = path.join(PROJECT_ROOT, 'installer', 'MicrosoftEdgeWebview2Setup.exe');
-copy(bootstrapper, path.join(staging, 'runtime', 'MicrosoftEdgeWebview2Setup.exe'));
+copy(webview2OfflineInstaller, path.join(staging, 'runtime', 'MicrosoftEdgeWebView2RuntimeInstallerX64.exe'));
 
 const iscc = findIscc();
 if (!iscc) fail('Inno Setup 6 (ISCC.exe) is not installed. Install it on the build PC or set ISCC_PATH.');

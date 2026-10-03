@@ -1,4 +1,54 @@
 import type { AiAttachment } from "./attachment.service";
+import { ADMINISTRATIVE_AI_RULES } from "./administrative-rules";
+
+/**
+ * Converts model output to plain text before it is shown or inserted into Word.
+ * Kept in this module so the Node direct-client QA can load the .ts entrypoint
+ * without relying on extensionless ESM resolution for a second runtime module.
+ */
+export function sanitizeAiTextOutput(input: string): string {
+  let text = String(input ?? "").replace(/\r\n?/g, "\n").trim();
+  if (!text) return "";
+
+  text = text
+    .replace(/```(?:[A-Za-z0-9_-]+)?\s*/g, "")
+    .replace(/```/g, "")
+    .replace(/^\s*#{1,6}\s+/gm, "")
+    .replace(/^\s*(?:\*{3,}|_{3,}|-{3,})\s*$/gm, "")
+    .replace(/(\*{3}|_{3}|~~)([\s\S]*?)\1/g, "$2")
+    .replace(/(\*{2}|_{2})([\s\S]*?)\1/g, "$2")
+    .replace(/~~([\s\S]*?)~~/g, "$1")
+    .replace(/`+/g, "")
+    .replace(/^\s*\*\s+/gm, "- ")
+    .replace(/^\s*#+\s*/gm, "")
+    .replace(/\*{2,}|_{2,}|~{2,}/g, "")
+    .replace(/\*/g, "")
+    .replace(/[\u{1F1E6}-\u{1F1FF}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, "");
+
+  const output: string[] = [];
+  let previousNonEmpty = "";
+  for (const rawLine of text.split("\n")) {
+    const line = rawLine.trim();
+    const comparable = line.trim().replace(/\s+/g, " ");
+    if (/^(?:dưới đây là|sau đây là|ai đề xuất|theo yêu cầu của bạn|tôi đã|tôi sẽ|tôi xin|hy vọng|lưu ý rằng|bản chỉnh sửa|phiên bản đề xuất|nội dung sau khi viết lại|tvci ai)\s*:?[\s.]*$/iu.test(comparable)) continue;
+    if (/^(?:dưới đây là|sau đây là|bản chỉnh sửa|phiên bản đề xuất|nội dung sau khi viết lại).*[:：]\s*$/iu.test(comparable)) continue;
+    const withoutPreamble = line.replace(/^(?:dưới đây là|sau đây là|ai đề xuất|theo yêu cầu của bạn|bản chỉnh sửa|phiên bản đề xuất|nội dung sau khi viết lại)[^:：]*[:：-]\s*/iu, "");
+    if (withoutPreamble !== line) {
+      const trimmed = withoutPreamble.trim();
+      if (!trimmed) continue;
+      const normalized = trimmed.replace(/\s+/g, " ");
+      if (normalized === previousNonEmpty) continue;
+      output.push(trimmed);
+      previousNonEmpty = normalized;
+      continue;
+    }
+    if (comparable && comparable === previousNonEmpty) continue;
+    output.push(line);
+    if (comparable) previousNonEmpty = comparable;
+  }
+
+  return output.join("\n").replace(/[ \t]+\n/g, "\n").trim();
+}
 
 export type AiAction = "rewrite" | "shorten" | "expand" | "formal" | "check";
 export type AiProviderName = "openai" | "gemini";
@@ -26,7 +76,9 @@ const ACTION_INSTRUCTION: Record<AiAction, string> = {
 export function buildAiPrompt(request: AiRequest): string {
   return [
     "Bạn là trợ lý soạn thảo văn bản của TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP. Không tự bịa số hiệu, ngày tháng, tên tổ chức, tiêu chuẩn hoặc dữ kiện.",
+    ADMINISTRATIVE_AI_RULES,
     ACTION_INSTRUCTION[request.action],
+    "Chỉ trả văn bản thuần để chèn vào Microsoft Word: không dùng Markdown, không dùng **, *, ###, _, dấu backtick hoặc code fence. Mỗi dữ kiện chỉ xuất hiện một lần.",
     request.instruction?.trim() ? `Yêu cầu thêm: ${request.instruction.trim()}` : "",
     "Văn bản:",
     request.text.trim(),
@@ -281,7 +333,7 @@ export async function requestAiPromptDirect(
         }),
       }, fetchImpl);
       if (!response.ok) throw await readError(response, "OpenAI");
-      const output = extractOpenAiText(await response.json());
+      const output = sanitizeAiTextOutput(extractOpenAiText(await response.json()));
       if (!output) throw new Error("OpenAI không trả về nội dung văn bản.");
       return output;
     }
@@ -317,7 +369,7 @@ export async function requestAiPromptDirect(
       fetchImpl,
     );
     if (!response.ok) throw await readError(response, "Gemini");
-    const output = extractGeminiText(await response.json());
+    const output = sanitizeAiTextOutput(extractGeminiText(await response.json()));
     if (!output) throw new Error("Gemini không trả về nội dung văn bản.");
     return output;
   } catch (error) {

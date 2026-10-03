@@ -94,7 +94,7 @@ export function validateTemplateCandidate(candidate: TemplateCandidateInput): Te
 
       const label = (field.label || "").trim();
       if (!label) {
-        warnings.push({ field: tag, severity: "warning", message: `Trường "${tag}" chưa có nhãn hiển thị tiếng Việt.` });
+        errors.push({ field: tag, severity: "error", message: `Trường "${tag}" phải có nhãn hiển thị tiếng Việt.` });
       }
 
       if (field.type === "select") {

@@ -57,6 +57,18 @@ describe("P1-A template and text-entry cleanup", () => {
     }).valid).toBe(true);
   });
 
+  test("new user templates preserve optional descriptions", () => {
+    const record = makeUserTemplateRecord({
+      name: "Mẫu có mô tả",
+      organization: "TVCI",
+      documentType: "Công văn",
+      keywords: "kiểm định",
+      description: "Mẫu dùng cho hồ sơ kiểm định.",
+    });
+
+    expect(record.description).toBe("Mẫu dùng cho hồ sơ kiểm định.");
+  });
+
   test("legacy department data remains intact when metadata is edited", () => {
     const legacy = template();
     const updated = updateUserTemplateRecord(legacy, {

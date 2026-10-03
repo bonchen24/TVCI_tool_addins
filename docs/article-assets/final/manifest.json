@@ -1,0 +1,78 @@
+{
+  "captureSource": "Ảnh chụp trực tiếp từ giao diện production tại http://127.0.0.1:2350 bằng Chrome CDP; viewport 1600×1200; không tạo ghép hoặc chỉnh sửa ảnh.",
+  "generatedAt": "2026-10-02T22:39:24.934Z",
+  "images": [
+    {
+      "filename": "01-login.png",
+      "width": 1600,
+      "height": 1200,
+      "route": "/login",
+      "tab": "Đăng nhập",
+      "captionVi": "Màn hình đăng nhập TVCI và các lối vào đăng ký, khôi phục tài khoản.",
+      "proves": "Giao diện production tách đăng nhập TVCI khỏi kết nối Google Drive, vốn chỉ được bật theo lựa chọn của người dùng."
+    },
+    {
+      "filename": "02-editor-a4-overview.png",
+      "width": 1600,
+      "height": 1200,
+      "route": "/",
+      "tab": "Trình soạn thảo; bảng công cụ thu gọn",
+      "captionVi": "Trình soạn thảo production hiển thị văn bản mẫu tổng quát trên trang A4.",
+      "proves": "Trình soạn thảo và khung trang A4 đang hiển thị nội dung tổng quát do phiên QA tạo."
+    },
+    {
+      "filename": "03-format-check.png",
+      "width": 1600,
+      "height": 1200,
+      "route": "/",
+      "tab": "Chuẩn hóa",
+      "captionVi": "Bảng chuẩn hóa thể thức đang rà soát văn bản mẫu và liệt kê các phát hiện.",
+      "proves": "Giao diện production trình bày điểm kiểm tra, phân loại phát hiện và thao tác sửa từng mục cho văn bản mẫu."
+    },
+    {
+      "filename": "04-vietnamese-spellcheck.png",
+      "width": 1600,
+      "height": 1200,
+      "route": "/",
+      "tab": "Chính tả tiếng Việt",
+      "captionVi": "Bảng chính tả tiếng Việt đánh dấu một lỗi gõ thử và đưa ra gợi ý sửa.",
+      "proves": "Trình soạn thảo đánh dấu từ thử nghiệm “bảnn” và hiển thị các lựa chọn gợi ý; nội dung chỉ đổi khi người dùng chọn."
+    },
+    {
+      "filename": "05-template-library.png",
+      "width": 1600,
+      "height": 1200,
+      "route": "/",
+      "tab": "Biểu mẫu",
+      "captionVi": "Thư viện biểu mẫu production với ô tìm kiếm, bộ lọc loại và đơn vị.",
+      "proves": "Giao diện thư viện hiển thị danh mục biểu mẫu cùng các bộ lọc tìm kiếm và lựa chọn mẫu."
+    },
+    {
+      "filename": "06-ai-workspace.png",
+      "width": 1600,
+      "height": 1200,
+      "route": "/",
+      "tab": "AI Trợ lý / Soạn thảo; nhà cung cấp mock",
+      "captionVi": "Không gian AI hiển thị biểu mẫu soạn thảo và nhà cung cấp giả lập tích hợp sẵn.",
+      "proves": "Nhãn nhà cung cấp là “mock”; màn hình không mở cấu hình khóa API và prompt ví dụ chỉ dùng nội dung tổng quát."
+    },
+    {
+      "filename": "07-ai-diff-preview.png",
+      "width": 1600,
+      "height": 1200,
+      "route": "/",
+      "tab": "AI Trợ lý / Soát lỗi / Xem trước khác biệt",
+      "captionVi": "Bản xem trước so sánh câu mẫu và một đề xuất sửa chính tả từ nhà cung cấp mock.",
+      "proves": "Giao diện diff phân biệt phần bỏ và phần thêm, cho phép duyệt thay đổi trước khi áp dụng; yêu cầu được chạy bằng provider mock."
+    },
+    {
+      "filename": "08-account-privacy-drive.png",
+      "width": 1600,
+      "height": 1200,
+      "route": "/account",
+      "tab": "Tài khoản / Google Drive / Quyền riêng tư",
+      "captionVi": "Trang tài khoản cho biết Drive chưa kết nối và giải thích phạm vi xóa tài khoản.",
+      "proves": "Trang hiển thị trạng thái Drive chưa kết nối, các trường bảo mật đang để trống và thông tin rằng tệp Drive không bị xóa cùng tài khoản TVCI."
+    }
+  ]
+}

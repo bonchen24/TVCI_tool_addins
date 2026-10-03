@@ -12,6 +12,7 @@ import { TransactionManager } from "../word/transaction.service";
 import { loadAiSettings } from "../ai/settings";
 import { applyAiSettingsClearedMessage, applyAiSettingsSavedMessage } from "../ai/settings-bridge";
 import { applyDocumentSettingsDefaultMessage } from "../models/document-settings-bridge";
+import { closeSmartDraftDialogOnAck, performSmartDraftCompletion } from "./smart-draft-bridge";
 
 export type DialogView = "settings" | "inspect" | "template" | "template-form" | "builder" | "knowledge" | "settings_modal" | "smart_draft" | "learn_experience";
 
@@ -65,6 +66,8 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
   }
 
   return new Promise<void>((resolve) => {
+    let pendingSmartDraftRequestId: string | null = null;
+
     if (typeof Office === "undefined" || !Office.context?.ui?.displayDialogAsync) {
       logDialog("displayDialogAsync not available in Office.context.ui");
       console.warn("Office.context.ui.displayDialogAsync is not available");
@@ -170,24 +173,79 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
               return;
             }
 
+            if (data.type === "smart_draft_complete_ack") {
+              const requestId = typeof data.requestId === "string" ? data.requestId : undefined;
+              const acknowledged = closeSmartDraftDialogOnAck(requestId, pendingSmartDraftRequestId, () => {
+                pendingSmartDraftRequestId = null;
+                logDialog("Smart Draft completion acknowledged", { requestId });
+                dialog.close();
+                activeDialog = null;
+                resolve();
+              });
+              if (!acknowledged) logDialog("Ignored unmatched Smart Draft completion acknowledgement", { requestId });
+              return;
+            }
+
             if (data.type === "smart_draft_complete" && data.template) {
-              logDialog("Handling smart_draft_complete in parent", { templateId: data.template?.id });
-              await insertTemplate(data.template);
-              if (data.values) {
-                const schema = getTemplateFormSchema(data.template);
-                if (schema) {
-                  await applyTemplateFormToWord(schema, data.values);
-                } else {
-                  const items = Object.entries(data.values).map(([tag, value]) => ({
-                    tag,
-                    value: Array.isArray(value) ? value.join("\n") : String(value || ""),
-                  }));
-                  await setMultipleContentControlTexts(items);
-                }
+              const requestId = typeof data.requestId === "string" ? data.requestId : "";
+              if (!requestId) {
+                dialog.messageChild(JSON.stringify({
+                  type: "smart_draft_complete_result",
+                  requestId,
+                  ok: false,
+                  error: "Yêu cầu điền biểu mẫu thiếu mã xác nhận. Hãy đóng hộp thoại và thử lại.",
+                }));
+                return;
               }
-              dialog.close();
-              activeDialog = null;
-              resolve();
+              if (pendingSmartDraftRequestId) {
+                if (pendingSmartDraftRequestId !== requestId) {
+                  dialog.messageChild(JSON.stringify({
+                    type: "smart_draft_complete_result",
+                    requestId,
+                    ok: false,
+                    error: "Một yêu cầu điền biểu mẫu khác đang được xử lý.",
+                  }));
+                }
+                return;
+              }
+
+              pendingSmartDraftRequestId = requestId;
+              logDialog("Handling smart_draft_complete in parent", { templateId: data.template?.id, requestId });
+              const completed = await performSmartDraftCompletion(
+                requestId,
+                async () => {
+                  await insertTemplate(data.template);
+                  if (data.values) {
+                    const schema = getTemplateFormSchema(data.template);
+                    if (schema) {
+                      await applyTemplateFormToWord(schema, data.values, data.template.organization);
+                    } else {
+                      const items = Object.entries(data.values).map(([tag, value]) => ({
+                        tag,
+                        value: Array.isArray(value) ? value.join("\n") : String(value || ""),
+                      }));
+                      await setMultipleContentControlTexts(items);
+                    }
+                  }
+                },
+                (message) => dialog.messageChild(message),
+                (error) => logDialog("Smart Draft Word insertion failed", { templateId: data.template?.id, requestId, error: String(error) }),
+              ).catch((error) => {
+                pendingSmartDraftRequestId = null;
+                logDialog("Smart Draft result delivery failed", { requestId, error: String(error) });
+                try {
+                  dialog.messageChild(JSON.stringify({
+                    type: "smart_draft_complete_result",
+                    requestId,
+                    ok: false,
+                    error: error instanceof Error ? error.message : String(error),
+                  }));
+                } catch {
+                  // The dialog may have closed before the failure acknowledgement was delivered.
+                }
+                return false;
+              });
+              if (!completed) pendingSmartDraftRequestId = null;
               return;
             }
 
@@ -206,7 +264,7 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
               if (data.values) {
                 const schema = getTemplateFormSchema(data.template);
                 if (schema) {
-                  await applyTemplateFormToWord(schema, data.values);
+                  await applyTemplateFormToWord(schema, data.values, data.template.organization);
                 }
               }
               dialog.close();
@@ -219,7 +277,7 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
               logDialog("Handling apply_template_form in parent", { templateId: data.template?.id });
               const schema = getTemplateFormSchema(data.template);
               if (schema) {
-                await applyTemplateFormToWord(schema, data.values);
+                await applyTemplateFormToWord(schema, data.values, data.template.organization);
               }
               dialog.close();
               activeDialog = null;

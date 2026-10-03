@@ -425,6 +425,7 @@ export async function applySettingsToWord(settings: DocumentSettings): Promise<v
     // Set font and paragraph for selected range or entire document body if nothing selected
     const body = context.document.body;
     body.font.name = settings.typography.fontName || "Times New Roman";
+    body.font.size = settings.typography.bodySize || 13;
 
     await context.sync();
   });

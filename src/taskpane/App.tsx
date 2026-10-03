@@ -57,6 +57,7 @@ import { TemplateWizardModal } from "./components/TemplateWizardModal";
 import { evaluateDocumentRules } from "../rules/document-evaluator";
 import type { DocumentEvaluationSummary } from "../rules/models";
 import { getSuggestedQuickPrompts, buildAugmentedAiPrompt } from "../ai/contextual-pipeline";
+import { buildTemplateApplyPlan, type TemplateApplyAction, type TemplateApplyPlan } from "../ai/apply-plan";
 import { getAllKnowledgeRecords, saveCustomKnowledgeRecord, deleteCustomKnowledgeRecord } from "../knowledge/storage";
 import type { KnowledgeRecord } from "../knowledge/models";
 import { processAttachmentFile, type AiAttachment } from "../ai/attachment.service";
@@ -73,6 +74,7 @@ import { TemplateFormModal } from "./components/TemplateFormModal";
 import { SmartDraftingModal } from "./components/SmartDraftingModal";
 import { LearnExperienceModal } from "./components/LearnExperienceModal";
 import { openOfficeDialog } from "../commands/dialog";
+import { SmartDraftDialogBridge } from "../commands/smart-draft-bridge";
 import { applyA4Margins } from "../word/page-toolkit.service";
 import {
   loadSavedSettings,
@@ -155,6 +157,7 @@ function getInitialDialogModal(): ActiveModalType {
 
 export default function App() {
   const isDialog = typeof window !== "undefined" && (new URLSearchParams(window.location.search).get("dialog") === "1" || window.location.pathname.endsWith("dialog.html"));
+  const smartDraftDialogBridgeRef = React.useRef<SmartDraftDialogBridge | null>(null);
   const closeActiveModal = () => {
     if (isDialog) closeDialogContainer();
     else setActiveModal("none");
@@ -245,6 +248,8 @@ export default function App() {
   const [templateFormSource, setTemplateFormSource] = useState("");
   const [templateFormSuggestions, setTemplateFormSuggestions] = useState<TemplateFormAiSuggestion[]>([]);
   const [templateFormSyncMessage, setTemplateFormSyncMessage] = useState("");
+  const [pendingApplyFields, setPendingApplyFields] = useState<TemplateFormValues | null>(null);
+  const [pendingApplyAction, setPendingApplyAction] = useState<TemplateApplyAction>("FILL_MISSING");
   const [proofreadingInput, setProofreadingInput] = useState("");
   const [proofreadingResult, setProofreadingResult] = useState<ProofreadingResult | null>(null);
   const initialAiSettings = useMemo(() => loadAiSettings(), []);
@@ -513,6 +518,19 @@ export default function App() {
   const partyDocumentTypes = useMemo(() => [...new Set([...PARTY_DOCUMENT_TYPES, ...documentTypes])], [documentTypes]);
   const filteredGuidance = useMemo(() => searchQuickGuidance(QUICK_GUIDANCE, referenceQuery), [referenceQuery]);
   const activeFormSchema: TemplateFormSchema | null = activeFormTemplate ? getTemplateFormSchema(activeFormTemplate) : null;
+  useEffect(() => {
+    setPendingApplyFields(null);
+  }, [activeFormTemplate?.id]);
+  const pendingApplyPlan: TemplateApplyPlan | null = useMemo(() => {
+    if (!pendingApplyFields || !activeFormSchema) return null;
+    return buildTemplateApplyPlan(activeFormSchema, currentFormBaseValues, pendingApplyFields, pendingApplyAction);
+  }, [activeFormSchema, currentFormBaseValues, pendingApplyAction, pendingApplyFields]);
+  const contextualQuickPrompts = useMemo(() => getSuggestedQuickPrompts({
+    activeTab: "drafting",
+    template: activeFormTemplate,
+    issueCount: issues.length,
+    selection,
+  }).slice(0, 3), [activeFormTemplate, issues.length, selection]);
 
   const favoriteTemplates = useMemo(() => {
     return favoriteIds
@@ -893,7 +911,7 @@ export default function App() {
       }
     }
     await runTemplateInsertion(() => insertTemplate(template));
-    const sync = await applyTemplateFormToWord(schema, normalized);
+    const sync = await applyTemplateFormToWord(schema, normalized, template.organization);
     setActiveTemplateName(template.name);
     setTemplateFormSyncMessage(describeTemplateFormSync(sync));
     const hint = errors.length ? ` (còn ${errors.length} trường chưa nhập có thể sửa trực tiếp trên Word)` : "";
@@ -936,7 +954,7 @@ export default function App() {
       await runTemplateInsertion(() => insertTemplate(target));
     }
 
-    const sync = await applyTemplateFormToWord(schema, normalized);
+    const sync = await applyTemplateFormToWord(schema, normalized, target.organization);
     setTemplateFormSyncMessage(describeTemplateFormSync(sync));
     setStatus(`✓ Đã áp dụng thành công toàn bộ nội dung vừa soạn vào biểu mẫu "${target.name}" trên Word!`);
   });
@@ -982,12 +1000,60 @@ export default function App() {
         sendDebug(`messageParent apply failed: ${String(e)}`);
       }
     }
-    const result = await applyTemplateFormToWord(activeFormSchema, normalized);
+    const result = await applyTemplateFormToWord(activeFormSchema, normalized, activeFormTemplate.organization);
     const message = describeTemplateFormSync(result);
     setTemplateFormSyncMessage(message);
     const hint = errors.length ? ` (Còn ${errors.length} trường chưa nhập)` : "";
     setStatus(`Đã cập nhật các trường vào văn bản Word!${hint}`);
   });
+
+  const handleConfirmPendingApply = () => run(async () => {
+    if (!activeFormTemplate || !activeFormSchema || !pendingApplyPlan) throw new Error("Không còn kế hoạch áp dụng để xác nhận.");
+    const updatedValues = { ...currentFormBaseValues, ...pendingApplyPlan.values };
+    const normalizedAll = normalizeTemplateFormValues(activeFormSchema, updatedValues, activeFormTemplate.organization);
+    const tagsToWrite = new Set(Object.keys(pendingApplyPlan.values));
+    const normalizedPlanValues = Object.fromEntries(
+      [...tagsToWrite].map((tag) => [tag, normalizedAll[tag] ?? pendingApplyPlan.values[tag]])
+    ) as TemplateFormValues;
+    if (Object.keys(normalizedPlanValues).length === 0) throw new Error("Không có trường nào thay đổi để áp dụng.");
+
+    if (isDialog) {
+      Office.context.ui.messageParent(JSON.stringify({
+        type: "apply_template_form",
+        template: activeFormTemplate,
+        values: normalizedPlanValues,
+      }));
+    } else {
+      const result = await applyTemplateFormToWord(activeFormSchema, normalizedPlanValues, activeFormTemplate.organization);
+      setTemplateFormSyncMessage(describeTemplateFormSync(result));
+    }
+    setTemplateFormValues(updatedValues);
+    setTemplateFormSessionValues((current) => {
+      const next = { ...current };
+      for (const tag of TEMPLATE_FORM_SESSION_TAGS) if (normalizedAll[tag] !== undefined) next[tag] = normalizedAll[tag];
+      return next;
+    });
+    saveTemplateFormDraft(activeFormTemplate.id, activeFormTemplate.organization, activeFormTemplate.documentType, updatedValues);
+    const updatedCount = pendingApplyPlan.items.filter((item) => item.status === "update").length;
+    const skippedCount = pendingApplyPlan.items.filter((item) => item.status === "skip").length;
+    setPendingApplyFields(null);
+    setStatus(`Đã áp dụng kế hoạch: cập nhật ${updatedCount} trường${skippedCount ? `, bỏ qua ${skippedCount} trường` : ""}.`);
+  });
+
+  const handlePreparePendingApply = async (fields: Record<string, string>) => {
+    if (!activeFormSchema) {
+      await run(async () => {
+        setTemplateFormValues((prev) => ({ ...prev, ...fields }));
+        const items = Object.entries(fields).map(([tag, value]) => ({ tag, value }));
+        await setMultipleContentControlTexts(items);
+        setStatus(`Đã cập nhật ${items.length} trường thông tin vào văn bản Word.`);
+      });
+      return;
+    }
+    setPendingApplyAction("FILL_MISSING");
+    setPendingApplyFields(fields);
+    setStatus("Đã tạo bản xem trước áp dụng. Hãy rà soát và xác nhận trước khi ghi vào Word.");
+  };
 
   const handleSuggestTemplateForm = () => run(async () => {
     if (!activeFormSchema) throw new Error("Hãy mở form từ một biểu mẫu trước.");
@@ -1029,6 +1095,7 @@ export default function App() {
   const handleCloseTemplateForm = () => {
     setActiveFormTemplate(null);
     setTemplateFormValues({});
+    setPendingApplyFields(null);
     setTemplateFormSuggestions([]);
     setTemplateFormSource("");
     setTemplateFormSyncMessage("");
@@ -1274,7 +1341,12 @@ export default function App() {
     setChatAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
-  const handleSendChat = (overridePrompt?: unknown, overrideAttachments?: AiAttachment[], overrideStyle?: WritingStyleId) => run(async () => {
+  const handleSendChat = (
+    overridePrompt?: unknown,
+    overrideAttachments?: AiAttachment[],
+    overrideStyle?: WritingStyleId,
+    overrideSelection?: string,
+  ) => run(async () => {
     const attachments = overrideAttachments ?? chatAttachments;
     const style = overrideStyle ?? writingStyle;
     const input = (typeof overridePrompt === "string" ? overridePrompt : chatInput).trim();
@@ -1283,7 +1355,8 @@ export default function App() {
       setAiSettingsModalOpen(true);
       throw new Error(`Chưa có khóa API Key cho ${aiProvider === "gemini" ? "Google Gemini" : "OpenAI"}. Đã mở hộp thoại Cài đặt, vui lòng dán API Key để AI bắt đầu soạn thảo.`);
     }
-    const targetSelection = aiTargetSelection.trim() && aiTargetSelection.trim() === input ? aiTargetSelection : "";
+    const targetSelection = overrideSelection?.trim()
+      || (aiTargetSelection.trim() && aiTargetSelection.trim() === input ? aiTargetSelection : "");
     const attachmentNote = attachments.length > 0
       ? ` (Kèm ${attachments.length} tệp nguồn: ${attachments.map((a) => a.name).join(", ")})`
       : "";
@@ -1745,6 +1818,7 @@ export default function App() {
             syncMessage={templateFormSyncMessage}
             relatedKnowledgeCount={relatedKnowledgeCount}
             onOpenRelatedKnowledge={() => setActiveModal("knowledge")}
+            onOpenLearnExperience={() => setActiveModal("learn_experience")}
             onChange={handleTemplateFormChange}
             onClose={handleCloseTemplateForm}
             onInsertBlank={() => handleInsertTemplateBlank(activeFormTemplate!)}
@@ -1771,35 +1845,53 @@ export default function App() {
             setActiveModal("ai_settings");
           }}
           onCompleteAndFill={async (template, values) => {
-            try {
-              Office.context.ui.messageParent(
-                JSON.stringify({
-                  type: "smart_draft_complete",
-                  template,
-                  values,
-                })
-              );
-            } catch {
-              await run(async () => {
-                const schema = getTemplateFormSchema(template);
-                setActiveFormTemplate(template);
-                setActiveTemplateName(template.name);
-                setTemplateFormValues(values);
-                saveTemplateFormDraft(template.id, template.organization, template.documentType, values);
-
-                await runTemplateInsertion(() => insertTemplate(template));
-                if (schema) {
-                  await applyTemplateFormToWord(schema, values);
-                } else {
-                  const items = Object.entries(values).map(([tag, value]) => ({
-                    tag,
-                    value: Array.isArray(value) ? value.join("\n") : String(value || ""),
-                  }));
-                  await setMultipleContentControlTexts(items);
+            if (isDialog) {
+              if (!smartDraftDialogBridgeRef.current) {
+                if (typeof Office === "undefined" || !Office.context?.ui) {
+                  throw new Error("Không kết nối được cửa sổ Word để điền biểu mẫu.");
                 }
-                closeActiveModal();
+                const ui = Office.context.ui;
+                smartDraftDialogBridgeRef.current = new SmartDraftDialogBridge({
+                  registerParentMessageHandler: (handler, callback) => {
+                    ui.addHandlerAsync(
+                      Office.EventType.DialogParentMessageReceived,
+                      (event) => handler({ message: event.message }),
+                      (result) => callback({ status: result.status, error: { message: result.error?.message } }),
+                    );
+                  },
+                  messageParent: (message) => ui.messageParent(message),
+                }, Office.AsyncResultStatus.Succeeded);
+              }
+
+              const requestId = `smart-draft-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+              await smartDraftDialogBridgeRef.current.complete({
+                type: "smart_draft_complete",
+                requestId,
+                template,
+                values,
               });
+              return;
             }
+
+            await run(async () => {
+              const schema = getTemplateFormSchema(template);
+              setActiveFormTemplate(template);
+              setActiveTemplateName(template.name);
+              setTemplateFormValues(values);
+              saveTemplateFormDraft(template.id, template.organization, template.documentType, values);
+
+              await runTemplateInsertion(() => insertTemplate(template));
+              if (schema) {
+                await applyTemplateFormToWord(schema, values, template.organization);
+              } else {
+                const items = Object.entries(values).map(([tag, value]) => ({
+                  tag,
+                  value: Array.isArray(value) ? value.join("\n") : String(value || ""),
+                }));
+                await setMultipleContentControlTexts(items);
+              }
+              closeActiveModal();
+            });
           }}
         />
 
@@ -1809,6 +1901,7 @@ export default function App() {
           onClose={closeActiveModal}
           existingRecords={knowledgeRecords}
           onSaveRecord={handleSaveKnowledgeRecord}
+          onDeleteRecord={handleDeleteKnowledgeRecord}
           onNotify={setStatus}
           aiSettings={{ provider: aiProvider, model: aiModel, apiKey: aiApiKey }}
         />
@@ -1860,6 +1953,9 @@ export default function App() {
         }}
         onRefineMessage={handleRefineMessage}
         onVersionChange={(text) => setAiPreview(text)}
+        onQuickDraft={handleQuickDraft}
+        contextualSuggestions={contextualQuickPrompts}
+        onContextualSuggestion={(prompt) => handleSendChat(prompt, undefined, undefined, selection)}
         onNewConversation={handleNewChat}
         conversations={chatConversations}
         activeConversationId={activeConversationId}
@@ -1914,16 +2010,13 @@ export default function App() {
           }
         }}
         onRollback={handleRollbackLastAction}
-        onApplyFieldsToForm={async (fields) => {
-          await run(async () => {
-            if (activeFormSchema) {
-              await applyTemplateFormToWord(activeFormSchema, fields);
-            }
-            setTemplateFormValues((prev) => ({ ...prev, ...fields }));
-            const items = Object.entries(fields).map(([tag, value]) => ({ tag, value }));
-            await setMultipleContentControlTexts(items);
-            setStatus(`Đã lưu và cập nhật ${items.length} trường thông tin vào văn bản Word.`);
-          });
+        onApplyFieldsToForm={handlePreparePendingApply}
+        applyPlan={pendingApplyPlan}
+        onApplyPlanActionChange={(action) => setPendingApplyAction(action)}
+        onConfirmApplyPlan={handleConfirmPendingApply}
+        onCancelApplyPlan={() => {
+          setPendingApplyFields(null);
+          setStatus("Đã hủy bản xem trước áp dụng.");
         }}
         hasSelection={Boolean(selection.trim())}
         selectionWordCount={selection.trim() ? selection.trim().split(/\s+/).length : 0}
@@ -1941,6 +2034,9 @@ export default function App() {
         relatedKnowledgeCount={relatedKnowledgeCount}
         onOpenRelatedKnowledge={() => {
           void openOfficeDialog("knowledge");
+        }}
+        onOpenLearnExperience={() => {
+          void openOfficeDialog("learn_experience");
         }}
         onChange={handleTemplateFormChange}
         onClose={handleCloseTemplateForm}
@@ -1961,6 +2057,7 @@ export default function App() {
         onClose={closeActiveModal}
         existingRecords={knowledgeRecords}
         onSaveRecord={handleSaveKnowledgeRecord}
+        onDeleteRecord={handleDeleteKnowledgeRecord}
         onNotify={setStatus}
         aiSettings={{ provider: aiProvider, model: aiModel, apiKey: aiApiKey }}
       />

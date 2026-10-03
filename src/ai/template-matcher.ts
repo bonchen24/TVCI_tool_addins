@@ -1,6 +1,40 @@
 import type { TemplateRecord } from "../templates/library";
 import type { TemplateFormSchema, TemplateFormValues } from "../templates/form-schema";
 
+export type DraftSectionKind =
+  | "SO_KY_HIEU"
+  | "NGAY_BAN_HANH"
+  | "TRICH_YEU"
+  | "KINH_GUI"
+  | "NOI_NHAN_TRUC_TIEP"
+  | "CAN_CU"
+  | "NOI_DUNG"
+  | "LY_DO"
+  | "DE_XUAT_KIEN_NGHI"
+  | "NOI_DUNG_DIEN_BIEN"
+  | "KET_LUAN"
+  | "DIEU_KHOAN"
+  | "THOI_GIAN"
+  | "DIA_DIEM"
+  | "THANH_PHAN"
+  | "CHU_TRI"
+  | "THU_KY"
+  | "NGUOI_KY"
+  | "NOI_NHAN";
+
+export interface DraftSection {
+  kind: DraftSectionKind;
+  heading: string;
+  value: string;
+  items?: string[];
+}
+
+export interface ParsedDraftSections {
+  sections: DraftSection[];
+  narrative: string;
+  recognizedKinds: DraftSectionKind[];
+}
+
 export function suggestMatchingTemplates(text: string, templates: TemplateRecord[]): TemplateRecord[] {
   if (!text || !templates.length) return templates.slice(0, 5);
 
@@ -81,6 +115,156 @@ export function getPrimaryContentField(schema: TemplateFormSchema): string {
   return fields[0]?.tag ?? "NOI_DUNG";
 }
 
+const SECTION_HEADERS: Array<{ kind: DraftSectionKind; pattern: RegExp }> = [
+  { kind: "SO_KY_HIEU", pattern: /^\s*số(?:\s*ký\s*hiệu|\/kh)?\s*:?\s*(.*)$/iu },
+  { kind: "NGAY_BAN_HANH", pattern: /^\s*(?:hà nội,\s*)?ngày\s+(.+)$/iu },
+  { kind: "TRICH_YEU", pattern: /^\s*(?:v\/v|về việc|trích yếu)\s*:?\s*(.*)$/iu },
+  { kind: "KINH_GUI", pattern: /^\s*kính gửi\s*:?\s*(.*)$/iu },
+  { kind: "CAN_CU", pattern: /^\s*căn cứ\s*:?\s*(.*)$/iu },
+  { kind: "NOI_DUNG_DIEN_BIEN", pattern: /^\s*(?:nội dung diễn biến|diễn biến(?: cuộc họp)?)\s*(?::\s*(.*)|)$/iu },
+  { kind: "NOI_DUNG", pattern: /^\s*(?:nội dung|nội dung chính)\s*(?::\s*(.*)|)$/iu },
+  { kind: "LY_DO", pattern: /^\s*(?:lý do(?: và sự cần thiết)?|sự cần thiết)\s*(?::\s*(.*)|)$/iu },
+  { kind: "DE_XUAT_KIEN_NGHI", pattern: /^\s*(?:đề xuất(?: và kiến nghị)?|kiến nghị)\s*(?::\s*(.*)|)$/iu },
+  { kind: "KET_LUAN", pattern: /^\s*kết luận(?: cuộc họp)?\s*(?::\s*(.*)|)$/iu },
+  { kind: "DIEU_KHOAN", pattern: /^\s*điều\s+\d+[.:]?\s*(.*)$/iu },
+  { kind: "THOI_GIAN", pattern: /^\s*thời gian\s*:?\s*(.*)$/iu },
+  { kind: "DIA_DIEM", pattern: /^\s*địa điểm\s*:?\s*(.*)$/iu },
+  { kind: "THANH_PHAN", pattern: /^\s*thành phần(?: tham dự)?\s*:?\s*(.*)$/iu },
+  { kind: "CHU_TRI", pattern: /^\s*chủ trì\s*:?\s*(.*)$/iu },
+  { kind: "THU_KY", pattern: /^\s*thư ký\s*:?\s*(.*)$/iu },
+  { kind: "NGUOI_KY", pattern: /^\s*người ký\s*:?\s*(.*)$/iu },
+  { kind: "NOI_NHAN", pattern: /^\s*nơi nhận\s*:?\s*(.*)$/iu },
+];
+
+const STRUCTURAL_HEADING = /^\s*(?:[IVX]+|\d+|[a-z])\s*[.)-]\s+/iu;
+const FIXED_DOCUMENT_LINE = /^(?:TỜ TRÌNH|QUYẾT ĐỊNH:?|CÔNG VĂN|THÔNG BÁO|BIÊN BẢN|BÁO CÁO|KẾ HOẠCH|QUY CHẾ|NGHỊ QUYẾT|NƠI NHẬN:?|LƯU\s*:)/iu;
+const SIGNER_TITLE_LINE = /^(?:(?:KT|TL|TUQ)\.\s*)?(?:GIÁM ĐỐC|VIỆN TRƯỞNG|PHÓ GIÁM ĐỐC|PHÓ VIỆN TRƯỞNG|CHỦ TỊCH|CHỦ TRÌ|THỦ TRƯỞNG|TRƯỞNG PHÒNG)$/iu;
+const SIGNER_NAME_LINE = /^\p{Lu}[\p{L}.'’-]*(?:\s+\p{Lu}[\p{L}.'’-]*){1,5}$/u;
+
+function isEmptyValue(value: unknown): boolean {
+  return Array.isArray(value) ? value.every((item) => !String(item).trim()) : !String(value ?? "").trim();
+}
+
+function cleanSectionLine(value: string): string {
+  return value
+    .replace(/^\s*[-*•]\s*/u, "")
+    .replace(/^\s*(?:căn cứ|kính gửi|nơi nhận)\s*:?\s*/iu, "")
+    .trim();
+}
+
+function sectionHeader(line: string): { kind: DraftSectionKind; heading: string; inline: string } | null {
+  for (const candidate of SECTION_HEADERS) {
+    const match = candidate.pattern.exec(line);
+    if (match) return { kind: candidate.kind, heading: line.trim(), inline: (match[1] ?? "").trim() };
+  }
+
+  const numbered = /^\s*(?:[IVX]+|\d+|[a-z])\s*[.)-]\s*(.+)$/iu.exec(line);
+  if (!numbered) return null;
+  const heading = numbered[1].trim();
+  if (/^(?:lý do|sự cần thiết)/iu.test(heading)) return { kind: "LY_DO", heading: line.trim(), inline: "" };
+  if (/^(?:đề xuất|kiến nghị)/iu.test(heading)) return { kind: "DE_XUAT_KIEN_NGHI", heading: line.trim(), inline: "" };
+  if (/^(?:nội dung diễn biến|diễn biến)/iu.test(heading)) return { kind: "NOI_DUNG_DIEN_BIEN", heading: line.trim(), inline: "" };
+  if (/^kết luận/iu.test(heading)) return { kind: "KET_LUAN", heading: line.trim(), inline: "" };
+  return null;
+}
+
+function sectionItems(kind: DraftSectionKind, lines: string[]): string[] {
+  const cleaned = lines.map(cleanSectionLine).filter(Boolean);
+  if (kind === "CAN_CU" || kind === "KINH_GUI" || kind === "NOI_NHAN" || kind === "THANH_PHAN") return cleaned;
+  return cleaned;
+}
+
+/**
+ * Splits a draft into semantic sections before any schema fallback is applied.
+ * The parser deliberately removes section labels from values because those
+ * labels already belong to the Word template's fixed layout.
+ */
+export function parseDraftSections(draftText: string): ParsedDraftSections {
+  const lines = String(draftText ?? "").replace(/\r\n?/g, "\n").split("\n");
+  const sections: DraftSection[] = [];
+  const narrative: string[] = [];
+  let current: { kind: DraftSectionKind; heading: string; lines: string[] } | null = null;
+  let signerNamePending = false;
+
+  const flush = () => {
+    if (!current) return;
+    const values = sectionItems(current.kind, current.lines);
+    if (values.length > 0) {
+      const listKinds: DraftSectionKind[] = ["CAN_CU", "KINH_GUI", "NOI_NHAN", "THANH_PHAN", "DIEU_KHOAN"];
+      sections.push({
+        kind: current.kind,
+        heading: current.heading,
+        value: values.join("\n"),
+        ...(listKinds.includes(current.kind) ? { items: values } : {}),
+      });
+    }
+    current = null;
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const header = line ? sectionHeader(line) : null;
+    if (signerNamePending && !line) continue;
+    if (signerNamePending && line) {
+      signerNamePending = false;
+      if (SIGNER_NAME_LINE.test(line)) continue;
+    }
+    if (header) {
+      flush();
+      current = { kind: header.kind, heading: header.heading, lines: header.inline ? [header.inline] : [] };
+      continue;
+    }
+
+    if (!line) {
+      flush();
+      continue;
+    }
+
+    if (current) {
+      // A new top-level structural heading ends a section even when it was not
+      // one of the known semantic labels.
+      if (STRUCTURAL_HEADING.test(line) && !/^\s*(?:[-*•]|\d+\.)/u.test(line)) {
+        flush();
+        narrative.push(line);
+      } else {
+        current.lines.push(line);
+      }
+      continue;
+    }
+
+    if (SIGNER_TITLE_LINE.test(line)) {
+      signerNamePending = true;
+      continue;
+    }
+
+    if (!FIXED_DOCUMENT_LINE.test(line) && !/^\s*(?:TẬP ĐOÀN|VIỆN CƠ KHÍ|CỘNG HOÀ|Độc lập|Hà Nội, ngày)/iu.test(line)) {
+      narrative.push(line);
+    }
+  }
+  flush();
+
+  const recognizedKinds = [...new Set(sections.map((section) => section.kind))];
+  return {
+    sections,
+    narrative: narrative.join("\n").trim(),
+    recognizedKinds,
+  };
+}
+
+function firstSectionValue(parsed: ParsedDraftSections, kind: DraftSectionKind): string | undefined {
+  return parsed.sections.find((section) => section.kind === kind)?.value;
+}
+
+function allSectionItems(parsed: ParsedDraftSections, kind: DraftSectionKind): string[] {
+  return parsed.sections.flatMap((section) => section.kind === kind ? section.items ?? section.value.split("\n") : []);
+}
+
+function setIfMissing(result: TemplateFormValues, tag: string, value: string | string[] | undefined): void {
+  if (value === undefined || (Array.isArray(value) && value.length === 0) || isEmptyValue(result[tag])) {
+    if (value !== undefined && (!Array.isArray(value) || value.length > 0)) result[tag] = value;
+  }
+}
+
 export function decomposeDraftIntoFormFields(
   schema: TemplateFormSchema,
   draftText: string,
@@ -88,6 +272,8 @@ export function decomposeDraftIntoFormFields(
 ): TemplateFormValues {
   const result: TemplateFormValues = { ...existingValues };
   const allowedTags = new Set(schema.fields.map((f) => f.tag));
+
+  const parsed = parseDraftSections(draftText);
 
   // 1. Số ký hiệu: "Số: 45/TTr-VCNM" or "Số 12/CV-TTTN"
   if (!result.SO_KY_HIEU) {
@@ -109,91 +295,35 @@ export function decomposeDraftIntoFormFields(
     }
   }
 
-  // 4. Kính gửi / Nơi nhận trực tiếp: "Kính gửi: ..."
-  const kgMatch = draftText.match(/(?:kính gửi)[:\s]+([^\r\n]+(?:\r?\n(?!\r?\n)[^\r\n]+)*)/i);
-  if (kgMatch && kgMatch[1]) {
-    const val = kgMatch[1].trim().replace(/^[:\-\s]+/, "");
-    if (allowedTags.has("KINH_GUI") && !result.KINH_GUI) {
-      result.KINH_GUI = val;
-    } else if (allowedTags.has("NOI_NHAN_TRUC_TIEP") && !result.NOI_NHAN_TRUC_TIEP) {
-      result.NOI_NHAN_TRUC_TIEP = val;
-    }
+  // 4-5. Semantic sections are parsed once, then routed only to fields that
+  // exist in the active schema. Section labels never enter the field value.
+  const addressee = firstSectionValue(parsed, "KINH_GUI");
+  if (addressee) {
+    if (allowedTags.has("KINH_GUI")) setIfMissing(result, "KINH_GUI", addressee);
+    else if (allowedTags.has("NOI_NHAN_TRUC_TIEP")) setIfMissing(result, "NOI_NHAN_TRUC_TIEP", addressee);
+    else if (allowedTags.has("DOI_TUONG_NHAN")) setIfMissing(result, "DOI_TUONG_NHAN", addressee);
   }
-
-  // 5. Căn cứ pháp lý: các dòng bắt đầu bằng "Căn cứ ..."
-  if (allowedTags.has("CAN_CU") && (!result.CAN_CU || (Array.isArray(result.CAN_CU) && result.CAN_CU.length === 0))) {
-    const canCuLines = draftText
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => /^căn\s+cứ/i.test(line));
-    if (canCuLines.length > 0) {
-      result.CAN_CU = canCuLines;
-    }
-  }
+  if (allowedTags.has("CAN_CU")) setIfMissing(result, "CAN_CU", allSectionItems(parsed, "CAN_CU"));
 
   // 6. Biên bản: Thời gian, Địa điểm, Chủ trì, Thư ký, Thành phần
-  if (allowedTags.has("THOI_GIAN") && !result.THOI_GIAN) {
-    const m = draftText.match(/(?:thời gian)[:\s]+([^\r\n]+)/i);
-    if (m && m[1]) result.THOI_GIAN = m[1].trim();
-  }
-  if (allowedTags.has("DIA_DIEM") && !result.DIA_DIEM) {
-    const m = draftText.match(/(?:địa điểm)[:\s]+([^\r\n]+)/i);
-    if (m && m[1]) result.DIA_DIEM = m[1].trim();
-  }
-  if (allowedTags.has("CHU_TRI") && !result.CHU_TRI) {
-    const m = draftText.match(/(?:chủ trì)[:\s]+([^\r\n]+)/i);
-    if (m && m[1]) result.CHU_TRI = m[1].trim();
-  }
-  if (allowedTags.has("THU_KY") && !result.THU_KY) {
-    const m = draftText.match(/(?:thư ký)[:\s]+([^\r\n]+)/i);
-    if (m && m[1]) result.THU_KY = m[1].trim();
-  }
+  if (allowedTags.has("THOI_GIAN")) setIfMissing(result, "THOI_GIAN", firstSectionValue(parsed, "THOI_GIAN"));
+  if (allowedTags.has("DIA_DIEM")) setIfMissing(result, "DIA_DIEM", firstSectionValue(parsed, "DIA_DIEM"));
+  if (allowedTags.has("CHU_TRI")) setIfMissing(result, "CHU_TRI", firstSectionValue(parsed, "CHU_TRI"));
+  if (allowedTags.has("THU_KY")) setIfMissing(result, "THU_KY", firstSectionValue(parsed, "THU_KY"));
   if (allowedTags.has("THANH_PHAN") && !result.THANH_PHAN) {
-    const m = draftText.match(/(?:thành phần(?: tham dự)?)[:\s]*\r?\n([\s\S]*?)(?=(?:\r?\n\s*(?:[I|V|X]+\.|\d+\.|chủ trì|thư ký|nội dung|kết luận|người ký)))/i);
-    if (m && m[1]) {
-      const items = m[1].split(/\r?\n/).map((l) => l.trim().replace(/^[\-\*•\d\.]\s*/, "")).filter(Boolean);
-      if (items.length > 0) result.THANH_PHAN = items;
-    }
+    setIfMissing(result, "THANH_PHAN", allSectionItems(parsed, "THANH_PHAN"));
   }
 
   // 7. Tờ trình: Lý do & Đề xuất kiến nghị
-  if (allowedTags.has("LY_DO") && !result.LY_DO) {
-    const m = draftText.match(/(?:(?:I\.\s*|1\.\s*)?lý do(?: và sự cần thiết)?|sự cần thiết)[:\s]*\r?\n([\s\S]*?)(?=(?:\r?\n\s*(?:(?:II\.|2\.)?\s*đề xuất|kiến nghị|người ký|nơi nhận)))/i);
-    if (m && m[1]) {
-      result.LY_DO = m[1].trim();
-    }
-  }
-  if (allowedTags.has("DE_XUAT_KIEN_NGHI") && !result.DE_XUAT_KIEN_NGHI) {
-    const m = draftText.match(/(?:(?:II\.|2\.)?\s*đề xuất(?: và kiến nghị)?|kiến nghị)[:\s]*\r?\n([\s\S]*?)(?=(?:\r?\n\s*(?:người ký|nơi nhận|$)))/i);
-    if (m && m[1]) {
-      result.DE_XUAT_KIEN_NGHI = m[1].trim();
-    }
-  }
+  if (allowedTags.has("LY_DO")) setIfMissing(result, "LY_DO", firstSectionValue(parsed, "LY_DO"));
+  if (allowedTags.has("DE_XUAT_KIEN_NGHI")) setIfMissing(result, "DE_XUAT_KIEN_NGHI", firstSectionValue(parsed, "DE_XUAT_KIEN_NGHI"));
 
   // 8. Biên bản: Diễn biến & Kết luận
-  if (allowedTags.has("NOI_DUNG_DIEN_BIEN") && !result.NOI_DUNG_DIEN_BIEN) {
-    const m = draftText.match(/(?:(?:I\.\s*|1\.\s*)?nội dung diễn biến|diễn biến cuộc họp|nội dung cuộc họp)[:\s]*\r?\n([\s\S]*?)(?=(?:\r?\n\s*(?:(?:II\.|2\.)?\s*kết luận|người ký)))/i);
-    if (m && m[1]) {
-      result.NOI_DUNG_DIEN_BIEN = m[1].trim();
-    }
-  }
-  if (allowedTags.has("KET_LUAN") && !result.KET_LUAN) {
-    const m = draftText.match(/(?:(?:II\.|2\.)?\s*kết luận(?: cuộc họp)?)[:\s]*\r?\n([\s\S]*?)(?=(?:\r?\n\s*(?:người ký|$)))/i);
-    if (m && m[1]) {
-      result.KET_LUAN = m[1].trim();
-    }
-  }
+  if (allowedTags.has("NOI_DUNG_DIEN_BIEN")) setIfMissing(result, "NOI_DUNG_DIEN_BIEN", firstSectionValue(parsed, "NOI_DUNG_DIEN_BIEN"));
+  if (allowedTags.has("KET_LUAN")) setIfMissing(result, "KET_LUAN", firstSectionValue(parsed, "KET_LUAN"));
 
   // 9. Quyết định: Điều khoản & Căn cứ
-  if (allowedTags.has("DIEU_KHOAN") && !result.DIEU_KHOAN) {
-    const dieuKhoanLines = draftText
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter((l) => /^điều\s+\d+[:\.]/i.test(l));
-    if (dieuKhoanLines.length > 0) {
-      result.DIEU_KHOAN = dieuKhoanLines;
-    }
-  }
+  if (allowedTags.has("DIEU_KHOAN")) setIfMissing(result, "DIEU_KHOAN", allSectionItems(parsed, "DIEU_KHOAN"));
 
   // 10. Người ký
   if (allowedTags.has("NGUOI_KY") && !result.NGUOI_KY) {
@@ -212,25 +342,33 @@ export function decomposeDraftIntoFormFields(
   }
 
   // 11. Nơi nhận: "- Như trên; \n - Lưu: VT..."
-  if (allowedTags.has("NOI_NHAN") && !result.NOI_NHAN) {
-    const noiNhanIndex = draftText.search(/nơi\s+nhận[:\s]*/i);
-    if (noiNhanIndex !== -1) {
-      const remaining = draftText.slice(noiNhanIndex);
-      const lines = remaining
-        .split(/\r?\n/)
-        .map((l) => l.trim())
-        .filter((l) => l.startsWith("-") || l.startsWith("•") || l.startsWith("*"));
-      if (lines.length > 0) {
-        result.NOI_NHAN = lines.join("\n");
-      }
-    }
+  if (allowedTags.has("NOI_NHAN")) {
+    const recipients = allSectionItems(parsed, "NOI_NHAN");
+    setIfMissing(result, "NOI_NHAN", recipients.length > 0 ? recipients.join("\n") : undefined);
   }
 
-  // 12. Fallback for primary body field (NOI_DUNG / NOI_DUNG_CHUNG) if still empty
+  // 12. Keep free narrative and substantive sections with no dedicated field
+  // in the primary body. Sections already mapped to fields are not duplicated.
   const primaryField = getPrimaryContentField(schema);
-  if (!result[primaryField]) {
-    result[primaryField] = draftText;
-  }
+  const explicitBody = firstSectionValue(parsed, "NOI_DUNG");
+  const structuralOnlyKinds: DraftSectionKind[] = [
+    "SO_KY_HIEU", "NGAY_BAN_HANH", "TRICH_YEU", "KINH_GUI",
+    "NOI_NHAN_TRUC_TIEP", "NGUOI_KY", "NOI_NHAN",
+  ];
+  const unclaimedSections = parsed.sections.filter((section) =>
+    !structuralOnlyKinds.includes(section.kind)
+    && section.kind !== "NOI_DUNG"
+    && !allowedTags.has(section.kind)
+  );
+  const bodyParts = [
+    ...(explicitBody ? [explicitBody] : []),
+    ...(parsed.narrative ? [parsed.narrative] : []),
+    ...unclaimedSections.map((section) =>
+      section.heading ? `${section.heading}\n${section.value}` : section.value
+    ),
+  ].filter((part) => part.trim());
+  const body = bodyParts.join("\n\n");
+  if (isEmptyValue(result[primaryField]) && body) result[primaryField] = body;
 
   return result;
 }
@@ -242,4 +380,3 @@ export function mapDraftToFormValues(
 ): TemplateFormValues {
   return decomposeDraftIntoFormFields(schema, draftText, existingValues);
 }
-

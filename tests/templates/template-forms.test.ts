@@ -5,7 +5,7 @@ import {
   getTemplateFormSchemaByDocumentType,
   type TemplateFormValues,
 } from "../../src/templates/form-schema";
-import { normalizeTemplateFormValues, validateTemplateForm } from "../../src/templates/form-validation";
+import { formatDateForUi, normalizeDateInputValue, normalizeTemplateFormValues, validateTemplateForm } from "../../src/templates/form-validation";
 import { loadTemplateFormDraft, saveTemplateFormDraft, templateFormDraftKey } from "../../src/templates/form-drafts";
 import { buildTemplateFormPreview } from "../../src/templates/form-preview";
 
@@ -75,26 +75,26 @@ test("form validation rejects a leave period whose end precedes its start", () =
   expect(errors.map((error) => error.code)).toContain("range");
 });
 
-test("normalization keeps V/v and Về việc punctuation and formats Kính gửi/Nơi nhận without inventing facts", () => {
+test("normalization preserves source punctuation and does not invent recipient or archive lines", () => {
   const schema = getTemplateFormSchemaByDocumentType("Công văn");
   const normalized = normalizeTemplateFormValues(schema, {
     TRICH_YEU: "V/v: mở rộng thử nghiệm",
     NOI_NHAN_TRUC_TIEP: "Bộ Công Thương",
     NOI_NHAN: "Phòng Kỹ thuật",
   });
-  expect(normalized.TRICH_YEU).toBe("V/v mở rộng thử nghiệm");
-  expect(normalized.NOI_NHAN).toBe("- Như trên;\n- Phòng Kỹ thuật;\nLưu:");
+  expect(normalized.TRICH_YEU).toBe("V/v: mở rộng thử nghiệm");
+  expect(normalized.NOI_NHAN).toBe("Phòng Kỹ thuật");
 
   const normalizedVeViec = normalizeTemplateFormValues(schema, {
     TRICH_YEU: "Về việc: Ban hành quy chế",
   });
-  expect(normalizedVeViec.TRICH_YEU).toBe("Về việc ban hành quy chế");
+  expect(normalizedVeViec.TRICH_YEU).toBe("Về việc: Ban hành quy chế");
 
   const report = getTemplateFormSchemaByDocumentType("Báo cáo");
   expect(normalizeTemplateFormValues(report, {
     KINH_GUI: "Viện trưởng Viện Cơ khí Năng lượng và Mỏ - VINACOMIN\nHội đồng Viện",
     NOI_NHAN: "Như trên;",
-  }).KINH_GUI).toBe("- Viện trưởng Viện Cơ khí Năng lượng và Mỏ - VINACOMIN;\n- Hội đồng Viện.");
+  }).KINH_GUI).toBe("Viện trưởng Viện Cơ khí Năng lượng và Mỏ - VINACOMIN\nHội đồng Viện");
 });
 
 test("normalization does not turn a missing required Nơi nhận into a fake Lưu line", () => {
@@ -113,16 +113,16 @@ test("drafts are keyed by template, organization and document type", () => {
   expect(loadTemplateFormDraft("iemm-bao-cao-001", "TVCI", "Báo cáo", storage)).toBeNull();
 });
 
-test("FINAL formatting formats V/v with lowercase first letter and no colon, cleans recipient punctuation and completes archive", () => {
+test("normalization removes only a duplicated V/v prefix and preserves recipient formatting", () => {
   const schema = getTemplateFormSchemaByDocumentType("Công văn");
   const normalized = normalizeTemplateFormValues(schema, {
     TRICH_YEU: "V/v: v/v triển khai thử nghiệm",
     KINH_GUI: "- Bộ Công Thương,\n- Viện trưởng;",
     NOI_NHAN: "Phòng Kỹ thuật,\nLưu: VT, Văn phòng",
   });
-  expect(normalized.TRICH_YEU).toBe("V/v triển khai thử nghiệm");
-  expect(normalized.KINH_GUI).toBe("- Bộ Công Thương;\n- Viện trưởng.");
-  expect(normalized.NOI_NHAN).toBe("- Như trên;\n- Phòng Kỹ thuật;\nLưu: VT, Văn phòng.");
+  expect(normalized.TRICH_YEU).toBe("V/v: triển khai thử nghiệm");
+  expect(normalized.KINH_GUI).toBe("- Bộ Công Thương,\n- Viện trưởng;");
+  expect(normalized.NOI_NHAN).toBe("Phòng Kỹ thuật,\nLưu: VT, Văn phòng");
 });
 
 test("FINAL date display pads days and only January or February", () => {
@@ -131,7 +131,39 @@ test("FINAL date display pads days and only January or February", () => {
   expect(normalizeTemplateFormValues(schema, { NGAY_BAN_HANH: "2026-09-09" }).NGAY_BAN_HANH).toBe("Hà Nội, ngày 09 tháng 9 năm 2026");
 });
 
-test("FINAL form preview uses the same normalized values as Word insertion", () => {
+test("administrative addressee fields expose the multiline template labels from the fixed schemas", () => {
+  const letter = getTemplateFormSchemaByDocumentType("Công văn");
+  const letterAddressee = letter.fields.find((field) => field.tag === "NOI_NHAN_TRUC_TIEP");
+  expect(letterAddressee).toMatchObject({ type: "multi-line", label: "Kính gửi", required: true });
+  expect(letterAddressee?.helpText).toMatch(/từ hai nơi trình bày mỗi nơi một dòng/i);
+
+  const notice = getTemplateFormSchemaByDocumentType("Thông báo");
+  expect(notice.fields.find((field) => field.tag === "SO_KY_HIEU")?.placeholder).toBe("12/VCNM-TTTN");
+  expect(notice.fields.some((field) => field.tag === "TRICH_YEU")).toBe(false);
+  expect(notice.fields.find((field) => field.tag === "DOI_TUONG_NHAN")).toMatchObject({
+    type: "multi-line",
+    label: "Kính gửi",
+    required: true,
+  });
+});
+
+test("normalization removes a duplicate prefix after either trích yếu label", () => {
+  const schema = getTemplateFormSchemaByDocumentType("Công văn");
+  expect(normalizeTemplateFormValues(schema, {
+    TRICH_YEU: "Về việc: V/v triển khai thử nghiệm",
+  }).TRICH_YEU).toBe("Về việc: triển khai thử nghiệm");
+});
+
+test("date fields use dd/mm/yyyy in the UI and full administrative date in Word", () => {
+  expect(formatDateForUi("2026-09-22")).toBe("22/09/2026");
+  expect(formatDateForUi("Hà Nội, ngày 22 tháng 9 năm 2026")).toBe("22/09/2026");
+  expect(normalizeDateInputValue("22092026")).toBe("22/09/2026");
+  expect(normalizeTemplateFormValues(getTemplateFormSchemaByDocumentType("Công văn"), {
+    NGAY_BAN_HANH: "22/09/2026",
+  }).NGAY_BAN_HANH).toBe("Hà Nội, ngày 22 tháng 9 năm 2026");
+});
+
+test("form preview shows the same source values that Word insertion receives", () => {
   const template = TEMPLATE_CATALOG.find((item) => item.id === "tvci-cv-001")!;
   const schema = getTemplateFormSchema(template)!;
   const preview = buildTemplateFormPreview(template, schema, {
@@ -142,25 +174,25 @@ test("FINAL form preview uses the same normalized values as Word insertion", () 
     NOI_DUNG: "Trân trọng cảm ơn",
   });
   expect(preview.issuerLines).toEqual(["VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN", "TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP"]);
-  expect(preview.subject).toBe("V/v triển khai thử nghiệm");
+  expect(preview.subject).toBe("v/v: triển khai thử nghiệm");
   expect(preview.date).toBe("Hà Nội, ngày 09 tháng 9 năm 2026");
-  expect(preview.addressee).toBe("Kính gửi:\n- Bộ Công Thương;\n- Viện trưởng.");
-  expect(preview.recipients).toContain("- Như trên;");
-  expect(preview.body).toBe("Trân trọng cảm ơn./.");
+  expect(preview.addressee).toBe("Kính gửi:\nBộ Công Thương\nViện trưởng");
+  expect(preview.recipients).toBe("Phòng Kỹ thuật");
+  expect(preview.body).toBe("Trân trọng cảm ơn");
 });
 
-test("FINAL direct addressee field formats multiple recipients for the actual Công văn schema", () => {
+test("direct addressee and Nơi nhận fields preserve their values for the Công văn schema", () => {
   const schema = getTemplateFormSchemaByDocumentType("Công văn");
   const normalized = normalizeTemplateFormValues(schema, {
     NOI_NHAN_TRUC_TIEP: "- Bộ Công Thương,\n- Viện trưởng;",
     NOI_NHAN: "Phòng Kỹ thuật",
   });
-  expect(normalized.NOI_NHAN_TRUC_TIEP).toBe("- Bộ Công Thương;\n- Viện trưởng.");
-  expect(normalized.NOI_NHAN).toBe("- Như trên;\n- Phòng Kỹ thuật;\nLưu:");
+  expect(normalized.NOI_NHAN_TRUC_TIEP).toBe("- Bộ Công Thương,\n- Viện trưởng;");
+  expect(normalized.NOI_NHAN).toBe("Phòng Kỹ thuật");
 });
 
-test("FINAL archive defaults to the full issuing unit for each organization", () => {
+test("normalization does not invent an archive line for any organization", () => {
   const schema = getTemplateFormSchemaByDocumentType("Công văn");
-  expect(normalizeTemplateFormValues(schema, { NOI_NHAN: "Như trên;" }, "IEMM").NOI_NHAN).toContain("Lưu: VT, VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN.");
-  expect(normalizeTemplateFormValues(schema, { NOI_NHAN: "Như trên;" }, "TVCI").NOI_NHAN).toContain("Lưu: VT, T2.");
+  expect(normalizeTemplateFormValues(schema, { NOI_NHAN: "Như trên;" }, "IEMM").NOI_NHAN).toBe("Như trên;");
+  expect(normalizeTemplateFormValues(schema, { NOI_NHAN: "Như trên;" }, "TVCI").NOI_NHAN).toBe("Như trên;");
 });

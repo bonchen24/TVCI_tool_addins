@@ -8,6 +8,9 @@ import type { DocumentSettings } from "../../models/document-settings";
 import type { TemplateRecord } from "../../templates/library";
 import { getTemplateFormSchema } from "../../templates/form-schema";
 import { mapDraftToFormValues } from "../../ai/template-matcher";
+import { QUICK_DRAFT_ACTIONS, getQuickDraftActionsForDocument, type QuickDraftActionId } from "../../ai/document-context";
+import type { QuickPromptSuggestion } from "../../ai/contextual-pipeline";
+import type { TemplateApplyAction, TemplateApplyPlan } from "../../ai/apply-plan";
 
 // Kept as a shared preset catalog for SmartDraftingModal; the normal Task Pane
 // deliberately does not render these as a form-field dashboard.
@@ -62,8 +65,15 @@ export interface AiTaskpaneViewProps {
   onSaveToKnowledge: (text: string) => void;
   onRollback: () => void;
   onApplyFieldsToForm?: (fields: Record<string, string>) => Promise<void>;
+  applyPlan?: TemplateApplyPlan | null;
+  onApplyPlanActionChange?: (action: TemplateApplyAction) => void;
+  onConfirmApplyPlan?: () => Promise<void>;
+  onCancelApplyPlan?: () => void;
   onRefineMessage?: (msgIndex: number, instructionPrompt: string, currentText: string) => Promise<string>;
   onVersionChange?: (text: string) => void;
+  onQuickDraft: (action: QuickDraftActionId) => Promise<void> | void;
+  contextualSuggestions?: QuickPromptSuggestion[];
+  onContextualSuggestion?: (prompt: string) => Promise<void> | void;
   hasSelection: boolean;
   selectionWordCount: number;
 }
@@ -97,8 +107,15 @@ export function AiTaskpaneView({
   onSaveToKnowledge,
   onRollback,
   onApplyFieldsToForm,
+  applyPlan,
+  onApplyPlanActionChange,
+  onConfirmApplyPlan,
+  onCancelApplyPlan,
   onRefineMessage,
   onVersionChange,
+  onQuickDraft,
+  contextualSuggestions = [],
+  onContextualSuggestion,
   hasSelection,
   selectionWordCount,
 }: AiTaskpaneViewProps): React.ReactElement {
@@ -109,6 +126,7 @@ export function AiTaskpaneView({
   const [writingStyle, setWritingStyle] = useState<WritingStyleId>("administrative");
   const [attachment, setAttachment] = useState<AiAttachment | null>(null);
   const [attachmentBusy, setAttachmentBusy] = useState(false);
+  const [quickActionsOpen, setQuickActionsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startConversationRename = (conversation: ChatConversation) => {
@@ -161,8 +179,28 @@ export function AiTaskpaneView({
     onVersionChange?.(nextText);
   };
 
+  const primaryQuickActionIds: QuickDraftActionId[] = ["continue", "main", "opening", "conclusion"];
+  const quickActions = getQuickDraftActionsForDocument(activeTemplate?.documentType || documentSettings.docType);
+  const primaryQuickActions = quickActions.filter((action) => primaryQuickActionIds.includes(action.id));
+  const moreQuickActions = quickActions.filter((action) => !primaryQuickActionIds.includes(action.id));
+  const visibleContextualSuggestions = contextualSuggestions.slice(0, 3);
+
+  const renderQuickDraftButton = (action: typeof QUICK_DRAFT_ACTIONS[number]) => (
+    <button
+      key={action.id}
+      type="button"
+      className="aiQuickBtn"
+      onClick={() => void onQuickDraft(action.id)}
+      disabled={busy}
+      title={`Soạn nhanh: ${action.label}`}
+      aria-label={`Soạn nhanh: ${action.label}`}
+    >
+      {action.label}
+    </button>
+  );
+
   const primaryActionLabel = activeTemplate && onApplyFieldsToForm
-    ? "Áp dụng vào biểu mẫu"
+    ? "Xem trước áp dụng"
     : hasSelection
       ? "Thay đoạn chọn"
       : "Chèn vào Word";
@@ -248,6 +286,115 @@ export function AiTaskpaneView({
       </header>
 
       <section className="aiChatThread" aria-label="Nội dung hội thoại">
+        <section className="aiQuickDraftPanel" aria-label="Soạn nhanh">
+          <div className="aiQuickDraftHeader">
+            <strong>Soạn nhanh</strong>
+            <span>{hasSelection ? "Ưu tiên biên tập đoạn đang chọn" : "Chọn một tác vụ theo ngữ cảnh văn bản"}</span>
+          </div>
+          {visibleContextualSuggestions.length > 0 && (
+            <div className="aiContextualSuggestions" aria-label="Gợi ý theo ngữ cảnh">
+              {visibleContextualSuggestions.map((suggestion) => (
+                <button
+                  key={`${suggestion.label}-${suggestion.prompt}`}
+                  type="button"
+                  className="aiContextualSuggestion"
+                  onClick={() => {
+                    if (busy) return;
+                    if (onContextualSuggestion) void onContextualSuggestion(suggestion.prompt);
+                    else setComposerText(suggestion.prompt);
+                  }}
+                  disabled={busy}
+                  title={suggestion.prompt}
+                  aria-label={`Gợi ý: ${suggestion.label}`}
+                >
+                  {suggestion.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="aiQuickDraftActions" aria-label="Tác vụ soạn nhanh">
+            {primaryQuickActions.map(renderQuickDraftButton)}
+            <div className="aiMoreQuickContainer">
+              <button
+                type="button"
+                className="aiQuickBtn more"
+                onClick={() => setQuickActionsOpen((open) => !open)}
+                disabled={busy}
+                title="Thêm tác vụ soạn nhanh"
+                aria-label="Thêm tác vụ soạn nhanh"
+                aria-expanded={quickActionsOpen}
+              >
+                Thêm…
+              </button>
+              {quickActionsOpen && (
+                <div className="aiMoreQuickMenu" role="menu" aria-label="Tác vụ soạn nhanh khác">
+                  {moreQuickActions.map((action) => (
+                    <button
+                      key={action.id}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setQuickActionsOpen(false);
+                        void onQuickDraft(action.id);
+                      }}
+                      disabled={busy}
+                      title={`Soạn nhanh: ${action.label}`}
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+        {applyPlan && (
+          <section
+            aria-label="Xem trước kế hoạch áp dụng"
+            style={{ margin: "6px 8px", padding: "8px", border: "1px solid #bfdbfe", borderRadius: "6px", background: "#f8fbff" }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
+              <strong style={{ color: "#1e40af" }}>Xem trước áp dụng</strong>
+              <span style={{ fontSize: "11px", color: "#475569" }}>
+                {applyPlan.items.filter((item) => item.status === "update").length} trường sẽ cập nhật
+              </span>
+            </div>
+            <div style={{ marginTop: "6px", display: "grid", gap: "4px" }}>
+              {applyPlan.items.filter((item) => item.status === "update").map((item) => (
+                <div key={item.tag} style={{ fontSize: "11px", lineHeight: 1.35 }}>
+                  <strong>{item.label}:</strong> {item.action === "APPEND" ? "ghi nối" : item.action === "REPLACE" ? "thay nội dung" : "điền mới"}
+                  <div style={{ color: "#334155", whiteSpace: "pre-wrap", maxHeight: "48px", overflow: "hidden" }}>{String(item.after ?? "")}</div>
+                </div>
+              ))}
+              {applyPlan.items.filter((item) => item.status === "skip").length > 0 && (
+                <div style={{ marginTop: "3px", color: "#64748b", fontSize: "10px" }}>
+                  Bỏ qua: {applyPlan.items.filter((item) => item.status === "skip").map((item) => `${item.label} — ${item.reason || "không thay đổi"}`).join("; ")}
+                </div>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: "6px", alignItems: "center", marginTop: "8px", flexWrap: "wrap" }}>
+              <label style={{ fontSize: "11px", color: "#475569" }}>
+                Cách áp dụng:{" "}
+                <select
+                  value={applyPlan.action}
+                  onChange={(event) => onApplyPlanActionChange?.(event.target.value as TemplateApplyAction)}
+                  disabled={busy}
+                  aria-label="Cách áp dụng kế hoạch"
+                >
+                  <option value="FILL_MISSING">Chỉ điền trường trống</option>
+                  <option value="APPEND">Ghi nối, bỏ trùng</option>
+                  <option value="REPLACE">Thay nội dung trường</option>
+                </select>
+              </label>
+              <button type="button" className="aiActionBtn primary" onClick={() => void onConfirmApplyPlan?.()} disabled={busy || !applyPlan.items.some((item) => item.status === "update")}>
+                Áp dụng kế hoạch
+              </button>
+              <button type="button" className="aiActionBtn outline" onClick={onCancelApplyPlan} disabled={busy}>
+                Hủy
+              </button>
+            </div>
+          </section>
+        )}
         {messages.length === 0 && (
           <div className="aiEmptyChatState">
             <strong>Tôi có thể giúp gì cho bạn?</strong>
@@ -261,7 +408,7 @@ export function AiTaskpaneView({
             <div className="aiMessageText">{message.content}</div>
             {message.role === "assistant" && (
               <div className="aiMessageActionToolbar">
-                <button type="button" className="aiActionBtn primary" onClick={() => void handlePrimaryAction(message.content)} disabled={busy}>
+                    <button type="button" className="aiActionBtn primary" onClick={() => void handlePrimaryAction(message.content)} disabled={busy} title={activeTemplate && onApplyFieldsToForm ? "Áp dụng vào biểu mẫu sau khi xem trước" : undefined}>
                   {primaryActionLabel}
                 </button>
                 <button type="button" className="aiActionBtn outline" onClick={() => void onInsertBelow(message.content)} disabled={busy}>

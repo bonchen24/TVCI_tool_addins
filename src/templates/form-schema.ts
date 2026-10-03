@@ -107,7 +107,7 @@ export const FORM_SCHEMA_REGISTRY: Readonly<Record<FormDocumentType, TemplateFor
   "Công văn": schema("Công văn", [
     text("SO_KY_HIEU", "Số và ký hiệu", { required: true, placeholder: "12/VCNM-TTTN" }),
     date("NGAY_BAN_HANH", "Ngày ban hành", { required: true }),
-    text("NOI_NHAN_TRUC_TIEP", "Nơi nhận trực tiếp", { placeholder: "Tên cơ quan hoặc cá nhân" }),
+    multiLine("NOI_NHAN_TRUC_TIEP", "Kính gửi", { required: true, placeholder: "Mỗi cơ quan hoặc đơn vị một dòng", helpText: "Một nơi nhập một dòng; từ hai nơi trình bày mỗi nơi một dòng, dòng cuối kết thúc bằng dấu chấm." }),
     text("TRICH_YEU", "Trích yếu V/v", { required: true, placeholder: "V/v triển khai công việc" }),
     area("NOI_DUNG", "Nội dung", { required: true }),
     text("NGUOI_KY", "Người ký", { required: true, placeholder: "Họ và tên người ký" }),
@@ -123,13 +123,12 @@ export const FORM_SCHEMA_REGISTRY: Readonly<Record<FormDocumentType, TemplateFor
     multiLine("NOI_NHAN", "Nơi nhận", { required: true, helpText: "Dòng Lưu: được đặt ở cuối." }),
   ]),
   "Thông báo": schema("Thông báo", [
-    text("SO_KY_HIEU", "Số và ký hiệu", { required: true, placeholder: "12/TB-VCNM" }),
+    text("SO_KY_HIEU", "Số và ký hiệu", { required: true, placeholder: "12/VCNM-TTTN" }),
     date("NGAY_BAN_HANH", "Ngày ban hành", { required: true }),
-    text("TRICH_YEU", "Trích yếu", { required: true }),
     area("NOI_DUNG", "Nội dung", { required: true }),
-    text("DOI_TUONG_NHAN", "Đối tượng nhận", { required: true }),
+    multiLine("DOI_TUONG_NHAN", "Kính gửi", { required: true, placeholder: "Mỗi cơ quan hoặc đơn vị một dòng", helpText: "Trình bày theo khối Kính gửi của mẫu chuẩn." }),
     text("NGUOI_KY", "Người ký", { required: true }),
-    multiLine("NOI_NHAN", "Nơi nhận", { required: true }),
+    multiLine("NOI_NHAN", "Nơi nhận", { required: true, helpText: "Theo mẫu chuẩn: Như trên; dòng cuối Lưu: VT, VP." }),
   ]),
   "Tờ trình": schema("Tờ trình", [
     text("SO_KY_HIEU", "Số và ký hiệu", { required: true, placeholder: "12/TTr-VCNM" }),
@@ -254,4 +253,3 @@ export function isMainContentField(
   ];
   return MAIN_TAGS.some((t) => tag === t || tag.startsWith(`${t}_`) || tag.endsWith(`_${t}`));
 }
-

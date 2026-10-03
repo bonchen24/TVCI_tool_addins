@@ -17,12 +17,13 @@ test('one universal per-user installer with no shared certificate payload', () =
   const pkg = JSON.parse(read('package.json'));
   const iss = read('installer/TVCIWordTools.iss');
   const build = read('scripts/package-installer.mjs');
-  assert.equal(pkg.version, '0.1.9');
+  assert.equal(pkg.version, '0.1.12');
   assert.equal(pkg.scripts.installer, 'node scripts/package-installer.mjs');
   assert.equal(pkg.scripts['package:exe'], undefined);
   assert.match(iss, /PrivilegesRequired=lowest/);
   assert.match(iss, /OutputBaseFilename=TVCI-Word-Tools-Setup-\{#MyAppVersion\}/);
-  assert.match(iss, /AppPublisher=Trung tam Thu nghiem - Kiem dinh Cong nghiep/);
+  assert.match(iss, /#define Publisher "Trung tâm Thử nghiệm - Kiểm định Công nghiệp"/);
+  assert.match(iss, /AppPublisher=\{#Publisher\}/);
   assert.match(iss, /WizardStyle=modern/);
   assert.match(iss, /WizardSmallImageFile=\.\.\\assets\\icon-80\.png/);
   assert.doesNotMatch(iss, /-x64|HKLM|tvci-cert\.pfx|CloseApplications=force/i);
@@ -123,10 +124,148 @@ test('lifecycle keeps Word and user data intact', () => {
   assert.match(setup, /New-SelfSignedCertificate/);
   assert.match(setup, /CurrentUser/);
   assert.match(setup, /OfficeArch/);
-  assert.match(setup, /MicrosoftEdgeWebview2Setup\.exe/);
+  assert.match(setup, /MicrosoftEdgeWebView2RuntimeInstallerX64\.exe/);
+  assert.doesNotMatch(setup, /MicrosoftEdgeWebview2Setup\.exe|Internet required|Connect to the Internet/i);
   assert.match(remove, /Thumbprint/);
   assert.match(verify, /READY|FAIL/);
   assert.doesNotMatch(setup + remove, /Stop-Process.*WINWORD|taskkill.*WINWORD|Remove-Item\s+.*Wef/i);
+});
+
+test('upgrade stops only the identified TVCI host and releases port before Inno file operations', () => {
+  const iss = read('installer/TVCIWordTools.iss');
+  const common = read('installer/common.ps1');
+  const stop = read('installer/stop-host.ps1');
+  assert.match(iss, /function PrepareToInstall\s*\(var NeedsRestart: Boolean\): String/i);
+  assert.match(iss, /ExtractTemporaryFile\('common\.ps1'\)/);
+  assert.match(iss, /ExtractTemporaryFile\('stop-host\.ps1'\)/);
+  assert.match(iss, /PrepareToInstall[\s\S]*?stop-host\.ps1[\s\S]*?Result :=/i);
+  assert.match(common, /function Get-OwnHost/);
+  assert.match(common, /function Get-PortOwners/);
+  assert.match(common, /function Test-TvciExecutablePath/);
+  assert.match(common, /function Get-PortOwnerProcesses/);
+  assert.match(stop, /\. common\.ps1|common\.ps1/);
+  const preserveTarget = stop.indexOf('$targetInstallDir = $InstallDir');
+  const importCommon = stop.indexOf(". (Join-Path $PSScriptRoot 'common.ps1')");
+  assert.ok(preserveTarget >= 0 && preserveTarget < importCommon,
+    'stop-host must preserve the requested install path before common.ps1 can overwrite $InstallDir');
+  assert.match(stop, /Stop-TvciHost\s+-InstallPath\s+\$targetInstallDir/,
+    'host shutdown must use the preserved target path');
+  assert.match(stop, /InstallDir=\$targetInstallDir/,
+    'failure diagnostic must report the preserved install path');
+  assert.match(stop, /Stop-TvciHost\s+-InstallPath/);
+  assert.match(stop, /DiagnosticFile/);
+  assert.match(stop, /Exception\.ToString\(\)/);
+  assert.match(stop, /File\]::WriteAllText/);
+  const stopHost = common.match(/function Stop-TvciHost\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
+  assert.ok(stopHost, 'shared Stop-TvciHost implementation must exist');
+  assert.match(stopHost, /Get-ExternalPortOwners[\s\S]*throw[\s\S]*No process was stopped/);
+  assert.match(stopHost, /Stop-Process\s+-Id/);
+  assert.match(stopHost, /Get-PortOwnerProcesses/);
+  assert.match(stopHost, /do\s*\{[\s\S]*Get-OwnHost[\s\S]*Get-PortOwners[\s\S]*ownedProcesses\.Count\s+-eq\s+0\s+-and\s+\$portOwners\.Count\s+-eq\s+0[\s\S]*\}\s+while[\s\S]*TimeoutSeconds/i);
+  assert.doesNotMatch(stop, /Get-CimInstance Win32_Process -Filter "Name = 'node\.exe'"|launcher\.vbs\*|taskkill/i);
+  assert.match(common, /HostPort = 38473/);
+  const prepare = iss.match(/function PrepareToInstall\s*\(var NeedsRestart: Boolean\): String;([\s\S]*?)\nend;/i)?.[1] ?? '';
+  assert.match(prepare, /stop-host\.ps1[\s\S]*StopHostExitCode[\s\S]*StopHostExitCode\s*<>\s*0[\s\S]*Result\s*:=/i);
+  assert.match(prepare, /StopHostDiagnostic[\s\S]*LoadStringFromFile[\s\S]*Result\s*:=/i);
+  assert.match(iss, /Could not stop the existing TVCI host|Không thể dừng TVCI/i);
+  const filesSection = iss.slice(iss.indexOf('[Files]'), iss.indexOf('[InstallDelete]'));
+  assert.match(iss, /function PrepareToInstall\s*\(var NeedsRestart: Boolean\): String[\s\S]*?StopHostExitCode\s*<>\s*0/i);
+  assert.match(filesSection, /DestDir: "\{app\}\\app"/);
+});
+
+test('host stop regression scenarios use executable ownership and port PID resolution', t => {
+  if (process.platform !== 'win32' || process.arch !== 'x64') return t.skip('Windows x64 PowerShell only');
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'tvci-stop-host-test-'));
+  const installDir = path.join(tempRoot, 'install');
+  fs.mkdirSync(path.join(installDir, 'runtime'), { recursive: true });
+  fs.writeFileSync(path.join(installDir, 'runtime', 'node.exe'), 'mock');
+  const powershell = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+  const script = path.join(tempRoot, 'host-stop-tests.ps1');
+  const commonPath = path.join(root, 'installer', 'common.ps1').replaceAll("'", "''");
+  const installPath = installDir.replaceAll("'", "''");
+  fs.writeFileSync(script, `
+$ErrorActionPreference = 'Stop'
+. '${commonPath}'
+$script:MockProcesses = @()
+$script:MockPorts = @()
+$script:StoppedIds = @()
+function Get-CimInstance {
+  param([string]$ClassName, [string]$Filter)
+  if ($Filter -eq "Name = 'node.exe'") { return @($script:MockProcesses | Where-Object Name -eq 'node.exe') }
+  if ($Filter -match 'ProcessId = (\\d+)') { $id = [int]$Matches[1]; return @($script:MockProcesses | Where-Object ProcessId -eq $id) }
+}
+function Get-NetTCPConnection { param([int]$LocalPort, [string]$State) return @($script:MockPorts) }
+function Stop-Process { param([int]$Id, [string]$ErrorAction) $script:StoppedIds += $Id; $script:MockProcesses = @($script:MockProcesses | Where-Object ProcessId -ne $Id); $script:MockPorts = @($script:MockPorts | Where-Object OwningProcess -ne $Id) }
+function Start-Sleep { param([int]$Milliseconds) }
+$install = '${installPath}'
+$hostExe = Join-Path $install 'runtime\\node.exe'
+$tempExeForTests = $hostExe
+$foreignExe = Join-Path $env:WINDIR 'System32\\node.exe'
+$script:InstallDir = $install
+$script:HostExe = $hostExe
+$script:HostScript = Join-Path $install 'server\\server.js'
+$script:HostPort = 38473
+
+# The actual acceptance-test install path remains owned when its node.exe owns the port.
+$actualInstall = Join-Path $env:LOCALAPPDATA 'TVCIWordTools'
+$actualExe = Join-Path $actualInstall 'runtime\\node.exe'
+$script:HostExe = $actualExe
+$script:MockProcesses = @([pscustomobject]@{ ProcessId = 38473; Name = 'node.exe'; ExecutablePath = $actualExe; CommandLine = 'node.exe server.js' })
+$script:MockPorts = @([pscustomobject]@{ OwningProcess = 38473; LocalAddress = '127.0.0.1'; LocalPort = 38473; State = 'Listen' })
+if (@(Get-OwnHost).Count -ne 1 -or @(Get-ExternalPortOwners).Count -ne 0) { throw ("REAL_INSTALL_PATH_PORT_OWNER_NOT_CLASSIFIED_OWNED expected=$actualExe own=$(@(Get-OwnHost).Count) external=$(@(Get-ExternalPortOwners).Count) resolved=$(ConvertTo-TvciCanonicalPath $actualExe) host=$(ConvertTo-TvciCanonicalPath $script:HostExe)") }
+$script:HostExe = $tempExeForTests
+
+# Correct executable path is owned even when arguments use another quoting/path format.
+$script:MockProcesses = @([pscustomobject]@{ ProcessId = 501; Name = 'node.exe'; ExecutablePath = $hostExe; CommandLine = '"' + $hostExe + '" --old-format' })
+$script:MockPorts = @([pscustomobject]@{ OwningProcess = 501; LocalAddress = '127.0.0.1'; LocalPort = 38473; State = 'Listen' })
+if (@(Get-OwnHost).Count -ne 1) { throw 'OWNED_PATH_WITH_NONMATCHING_COMMANDLINE_NOT_RECOGNIZED' }
+Stop-TvciHost -InstallPath $install -TimeoutSeconds 1 | Out-Null
+if (501 -notin $script:StoppedIds) { throw 'OWNED_PORT_PID_NOT_STOPPED' }
+
+# A separate node.exe outside the install path must never be stopped.
+$script:StoppedIds = @()
+$script:MockProcesses = @([pscustomobject]@{ ProcessId = 601; Name = 'node.exe'; ExecutablePath = $foreignExe; CommandLine = 'node.exe server.js' })
+$script:MockPorts = @()
+Stop-TvciHost -InstallPath $install -TimeoutSeconds 1 | Out-Null
+if (601 -in $script:StoppedIds) { throw 'UNRELATED_NODE_WAS_STOPPED' }
+
+# An external port owner fails with PID and executable path and stops nothing.
+$script:StoppedIds = @()
+$script:MockProcesses = @([pscustomobject]@{ ProcessId = 701; Name = 'node.exe'; ExecutablePath = $foreignExe; CommandLine = 'node.exe unrelated.js' })
+$script:MockPorts = @([pscustomobject]@{ OwningProcess = 701; LocalAddress = '127.0.0.1'; LocalPort = 38473; State = 'Listen' })
+try { Stop-TvciHost -InstallPath $install -TimeoutSeconds 1 | Out-Null; throw 'EXTERNAL_PORT_OWNER_WAS_ACCEPTED' }
+catch { if ($_.Exception.Message -eq 'EXTERNAL_PORT_OWNER_WAS_ACCEPTED') { throw }; if ($_.Exception.Message -notmatch '701' -or $_.Exception.Message -notmatch [regex]::Escape($foreignExe)) { throw ('EXTERNAL_DIAGNOSTIC_MISSING_PID_OR_PATH: ' + $_.Exception.Message) } }
+if ($script:StoppedIds.Count -ne 0) { throw 'EXTERNAL_OWNER_SCENARIO_STOPPED_A_PROCESS' }
+Write-Output 'HOST_STOP_REGRESSION_PASS'
+`, 'utf8');
+  try {
+    const result = spawnSync(powershell, ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script], { encoding: 'utf8' });
+    if ((result.error as NodeJS.ErrnoException | undefined)?.code === 'EPERM') return t.skip('PowerShell launch is blocked by the sandbox');
+    assert.equal(result.error, undefined, result.error?.message || 'PowerShell failed to launch');
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.match(result.stdout, /HOST_STOP_REGRESSION_PASS/);
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+});
+
+test('offline WebView2 standalone installer is a required packaged prerequisite', () => {
+  const setup = read('installer/setup.ps1');
+  const iss = read('installer/TVCIWordTools.iss');
+  const build = read('scripts/package-installer.mjs');
+  const verify = read('scripts/verify-installer.mjs');
+  assert.match(setup, /MicrosoftEdgeWebView2RuntimeInstallerX64\.exe/);
+  assert.match(setup, /\/silent.*\/install/);
+  assert.doesNotMatch(setup + build + iss, /MicrosoftEdgeWebview2Setup\.exe|online bootstrapper|Internet required/i);
+  assert.match(build, /MicrosoftEdgeWebView2RuntimeInstallerX64\.exe/);
+  assert.match(build, /installer', 'prerequisites', 'MicrosoftEdgeWebView2RuntimeInstallerX64\.exe/);
+  assert.match(build, /Missing required offline prerequisite/);
+  assert.doesNotMatch(build, /installer', 'MicrosoftEdgeWebview2Setup\.exe/);
+  assert.match(iss, /staging\\runtime\\\*.*DestDir: "\{app\}\\runtime"/);
+  assert.doesNotMatch(iss, /MicrosoftEdgeWebView2RuntimeInstallerX64\.exe/,
+    'runtime wildcard must package the standalone installer exactly once');
+  assert.match(verify, /MicrosoftEdgeWebView2RuntimeInstallerX64\.exe/);
+  assert.doesNotMatch(verify, /MicrosoftEdgeWebview2Setup\.exe/);
 });
 
 test('installed-manifest verifier reports stale or missing canonical Ribbon identifiers', t => {

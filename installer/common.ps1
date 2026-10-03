@@ -129,9 +129,26 @@ function Test-WebView2 {
     return $null
 }
 
+function ConvertTo-TvciCanonicalPath {
+    param([AllowNull()][string]$Path)
+    if ([string]::IsNullOrWhiteSpace($Path)) { return $null }
+    try {
+        $value = [Environment]::ExpandEnvironmentVariables($Path.Trim().Trim('"')).Replace('/', '\')
+        return [System.IO.Path]::GetFullPath($value).TrimEnd('\')
+    } catch { return $null }
+}
+
+function Test-TvciExecutablePath {
+    param([AllowNull()][string]$ExecutablePath)
+    $candidate = ConvertTo-TvciCanonicalPath $ExecutablePath
+    $expected = ConvertTo-TvciCanonicalPath $script:HostExe
+    return $candidate -and $expected -and [string]::Equals(
+        $candidate, $expected, [System.StringComparison]::OrdinalIgnoreCase)
+}
+
 function Get-OwnHost {
     @(Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" -ErrorAction SilentlyContinue | Where-Object {
-        $_.ExecutablePath -eq $script:HostExe -and $_.CommandLine -like "*$($script:HostScript)*"
+        Test-TvciExecutablePath $_.ExecutablePath
     })
 }
 
@@ -143,9 +160,88 @@ function Get-PortOwner {
     @(Get-PortOwners | Select-Object -First 1)[0]
 }
 
+function Get-PortOwnerProcesses {
+    $processes = @()
+    foreach ($owner in @(Get-PortOwners)) {
+        $processId = [int]$owner.OwningProcess
+        $process = Get-CimInstance Win32_Process -Filter "ProcessId = $processId" -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+        $processes += [pscustomobject]@{
+            ProcessId = $processId
+            ExecutablePath = if ($process) { $process.ExecutablePath } else { $null }
+            CommandLine = if ($process) { $process.CommandLine } else { $null }
+            LocalAddress = $owner.LocalAddress
+        }
+    }
+    return @($processes)
+}
+
 function Get-ExternalPortOwners {
-    $ownIds = @(Get-OwnHost | ForEach-Object ProcessId)
-    @(Get-PortOwners | Where-Object { $_.OwningProcess -notin $ownIds })
+    @(Get-PortOwnerProcesses | Where-Object { -not (Test-TvciExecutablePath $_.ExecutablePath) })
+}
+
+function Stop-TvciHost {
+    param(
+        [Parameter(Mandatory = $true)][string]$InstallPath,
+        [int]$TimeoutSeconds = 20
+    )
+
+    $resolvedInstallPath = [System.IO.Path]::GetFullPath($InstallPath).TrimEnd('\')
+    $script:InstallDir = $resolvedInstallPath
+    $script:HostExe = Join-Path $resolvedInstallPath 'runtime\node.exe'
+    $script:HostScript = Join-Path $resolvedInstallPath 'server\server.js'
+    $script:CertDir = Join-Path $resolvedInstallPath 'certs'
+
+    $externalOwners = @(Get-ExternalPortOwners)
+    if ($externalOwners.Count -gt 0) {
+        $details = ($externalOwners | ForEach-Object {
+            $path = if ($_.ExecutablePath) { $_.ExecutablePath } else { '<executable path unavailable>' }
+            "PID=$($_.ProcessId) path=$path address=$($_.LocalAddress)"
+        }) -join '; '
+        throw "Port $script:HostPort is owned by an unrelated process ($details). No process was stopped."
+    }
+
+    $processesToStop = @{}
+    foreach ($process in @(Get-OwnHost)) { $processesToStop[[int]$process.ProcessId] = $true }
+    foreach ($process in @(Get-PortOwnerProcesses | Where-Object { Test-TvciExecutablePath $_.ExecutablePath })) {
+        $processesToStop[[int]$process.ProcessId] = $true
+    }
+
+    if (Test-Path -LiteralPath $script:HostExe -PathType Leaf) {
+        $stopMarker = Join-Path $resolvedInstallPath '.tvci-stop'
+        New-Item -ItemType File -Path $stopMarker -Force | Out-Null
+    }
+    foreach ($processId in @($processesToStop.Keys)) {
+        # Re-resolve immediately before termination to avoid stopping a reused PID.
+        $process = Get-CimInstance Win32_Process -Filter "ProcessId = $processId" -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+        if ($process -and (Test-TvciExecutablePath $process.ExecutablePath)) {
+            Stop-Process -Id $processId -ErrorAction Stop
+        }
+    }
+
+    $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
+    do {
+        $ownedProcesses = @(Get-OwnHost)
+        $portOwners = @(Get-PortOwners)
+        if ($ownedProcesses.Count -eq 0 -and $portOwners.Count -eq 0) { return $true }
+        $externalOwners = @(Get-ExternalPortOwners)
+        if ($externalOwners.Count -gt 0) {
+            $details = ($externalOwners | ForEach-Object {
+                $path = if ($_.ExecutablePath) { $_.ExecutablePath } else { '<executable path unavailable>' }
+                "PID=$($_.ProcessId) path=$path address=$($_.LocalAddress)"
+            }) -join '; '
+            throw "Port $script:HostPort became owned by an unrelated process ($details). No unrelated process was stopped."
+        }
+        Start-Sleep -Milliseconds 250
+    } while ([DateTime]::UtcNow -lt $deadline)
+
+    $processIds = @($ownedProcesses | ForEach-Object ProcessId) -join ', '
+    $portDetails = @(Get-PortOwnerProcesses | ForEach-Object {
+        $path = if ($_.ExecutablePath) { $_.ExecutablePath } else { '<executable path unavailable>' }
+        "PID=$($_.ProcessId) path=$path"
+    }) -join '; '
+    throw "TVCI host shutdown timed out after $TimeoutSeconds seconds (host PID(s): $processIds; port $script:HostPort owner(s): $portDetails)."
 }
 
 function Test-TvciCertificate {

@@ -73,6 +73,18 @@ describe("template-validator service", () => {
     expect(result.errors.some((e) => e.message.includes("TEN_TRUONG"))).toBe(true);
   });
 
+  test("rejects an empty field label", () => {
+    const result = validateTemplateCandidate({
+      name: "Biểu mẫu thiếu nhãn",
+      organization: "TVCI",
+      documentType: "Công văn",
+      fields: [{ tag: "TEN_TRUONG", label: "   ", type: "text" }],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.field === "TEN_TRUONG" && /nhãn/i.test(e.message))).toBe(true);
+  });
+
   test("warns when select field has no options", () => {
     const candidate: TemplateCandidateInput = {
       name: "Biểu mẫu tùy chọn",

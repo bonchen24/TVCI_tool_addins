@@ -1,4 +1,5 @@
 import type { TemplateFillControl } from "./template-fill";
+import { ADMINISTRATIVE_AI_RULES } from "./administrative-rules";
 
 export interface AiDocumentContext {
   documentText: string;
@@ -21,6 +22,33 @@ export const QUICK_DRAFT_ACTIONS: Array<{ id: QuickDraftActionId; label: string;
   { id: "recipients", label: "Nơi nhận", instruction: "Soạn phần Nơi nhận dựa trên đối tượng đã xuất hiện trong tài liệu; không tự bịa cơ quan/cá nhân." },
   { id: "next_article", label: "Điều tiếp theo", instruction: "Soạn điều tiếp theo của quyết định/quy định dựa trên các điều hiện có; không tự tạo nghĩa vụ, thẩm quyền hoặc dữ kiện mới." },
 ];
+
+const QUICK_ACTION_LABEL_OVERRIDES: Record<string, Partial<Record<QuickDraftActionId, string>>> = {
+  "BIÊN BẢN": { opening: "Mở đầu biên bản", continue: "Viết diễn biến", main: "Viết nội dung", conclusion: "Soạn kết luận" },
+  "QUYẾT ĐỊNH": { basis: "Soạn căn cứ", main: "Soạn nội dung", conclusion: "Soạn điều khoản cuối", next_article: "Điều tiếp theo" },
+  "TỜ TRÌNH": { opening: "Lý do/sự cần thiết", main: "Soạn đề xuất", conclusion: "Soạn kiến nghị" },
+  "KẾ HOẠCH": { opening: "Mục đích/yêu cầu", main: "Nội dung kế hoạch", conclusion: "Tổ chức thực hiện" },
+  "BÁO CÁO": { main: "Nội dung báo cáo", conclusion: "Soạn kiến nghị" },
+  "THƯ MỜI": { addressee: "Đối tượng mời", main: "Nội dung cuộc họp", conclusion: "Nội dung cần chuẩn bị" },
+};
+
+function normalizeDocumentType(documentType?: string): string {
+  return (documentType || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleUpperCase("vi-VN")
+    .trim();
+}
+
+export function getQuickDraftActionsForDocument(documentType?: string): Array<{ id: QuickDraftActionId; label: string; instruction: string }> {
+  const normalized = normalizeDocumentType(documentType);
+  const profileKey = Object.keys(QUICK_ACTION_LABEL_OVERRIDES).find((key) => normalizeDocumentType(key) === normalized);
+  const overrides = profileKey ? QUICK_ACTION_LABEL_OVERRIDES[profileKey] : undefined;
+  return QUICK_DRAFT_ACTIONS.map((action) => ({
+    ...action,
+    label: overrides?.[action.id] || action.label,
+  }));
+}
 
 const DOCUMENT_TYPE_LABELS = new Set([
   "NGHỊ QUYẾT", "QUYẾT ĐỊNH", "CHỈ THỊ", "QUY ĐỊNH", "QUY CHẾ", "THÔNG BÁO",
@@ -65,7 +93,7 @@ export function buildQuickDraftPrompt(input: {
   if (!action) throw new Error("Tác vụ soạn nhanh không hợp lệ.");
   return [
     "Bạn là AI trợ lý soạn thảo văn bản VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN / TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP trong Microsoft Word.",
-    "Không tự bịa số hiệu, ngày tháng, tên người, tên cơ quan, tiêu chuẩn, model, mã hồ sơ, số liệu, căn cứ pháp lý hoặc dữ kiện chưa có trong ngữ cảnh.",
+    ADMINISTRATIVE_AI_RULES,
     `Tác vụ: ${action.instruction}`,
     input.userInstruction?.trim() ? `Yêu cầu bổ sung: ${input.userInstruction.trim()}` : "",
     "Ngữ cảnh Word:",

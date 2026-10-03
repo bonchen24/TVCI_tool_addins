@@ -68,7 +68,7 @@ module.exports = async (_env, argv) => {
       new HtmlWebpackPlugin({ template: "./src/commands/commands.html", filename: "commands.html", chunks: ["commands"], inject: "body" }),
       new CopyWebpackPlugin({ patterns: [
         { from: "assets", to: "assets" },
-        { from: "templates", to: "templates" },
+        { from: "templates", to: "templates", globOptions: { ignore: ["**/*.fixed.*"] } },
       ]}),
     ],
   };

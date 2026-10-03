@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { searchTemplates, type TemplateRecord, type TemplateOrganization } from "../../templates/library";
 import { getTemplateFormSchema, isMainContentField, type TemplateFormSchema, type TemplateFormValues } from "../../templates/form-schema";
-import { decomposeDraftIntoFormFields } from "../../ai/template-matcher";
+import { segmentDraftIntoFormValues } from "../../ai/template-form";
 import { requestAiPromptDirect, type AiSettings } from "../../ai/direct-client";
+import { formatDateForUi, normalizeDateInputValue } from "../../templates/form-validation";
 import { PRESET_OPTIONS } from "./AiTaskpaneView";
 
 const SparkleIcon = () => (
@@ -78,6 +79,8 @@ export function SmartDraftingModal({
   const [rawContent, setRawContent] = useState("");
   const [polishedContent, setPolishedContent] = useState("");
   const [isPolishing, setIsPolishing] = useState(false);
+  const [isSegmenting, setIsSegmenting] = useState(false);
+  const [segmentationSource, setSegmentationSource] = useState<"ai" | "rules" | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
 
   // Step 3: Fields
@@ -97,6 +100,7 @@ export function SmartDraftingModal({
       setRawContent("");
       setPolishedContent("");
       setFieldValues({});
+      setSegmentationSource(null);
       setAiError(null);
     }
   }, [isOpen]);
@@ -147,6 +151,7 @@ export function SmartDraftingModal({
         rawContent.trim(),
         "-------------------------------",
         "Chỉ trả về nội dung văn bản hoàn chỉnh đã soạn thảo, không thêm lời chào, không thêm giải thích rườm rà.",
+        "Không dùng Markdown hoặc ký hiệu trang trí như **, *, ###, _, backtick hay code fence. Không lặp lại một dữ kiện; không thêm dữ kiện không có trong nội dung nháp.",
       ].join("\n");
 
       const result = await requestAiPromptDirect(aiSettings, prompt, fetch, []);
@@ -159,7 +164,8 @@ export function SmartDraftingModal({
   };
 
   // Move to Step 3: Decompose into fields
-  const handleProceedToStep3 = () => {
+  const handleProceedToStep3 = async () => {
+    if (isSegmenting) return;
     const textToDecompose = polishedContent.trim() || rawContent.trim();
     if (!textToDecompose) {
       setAiError("Vui lòng soạn thảo hoặc dán nội dung trước khi chuyển sang phân mảnh.");
@@ -167,8 +173,28 @@ export function SmartDraftingModal({
     }
 
     if (activeSchema) {
-      const decomposed = decomposeDraftIntoFormFields(activeSchema, textToDecompose, fieldValues);
-      setFieldValues(decomposed);
+      setIsSegmenting(true);
+      setAiError(null);
+      try {
+        const result = await segmentDraftIntoFormValues(
+          activeSchema,
+          textToDecompose,
+          fieldValues,
+          (prompt) => {
+            if (!aiSettings.apiKey.trim()) throw new Error("Chưa cấu hình API Key AI.");
+            return requestAiPromptDirect(aiSettings, prompt, fetch, []);
+          },
+        );
+        setFieldValues(result.values);
+        setSegmentationSource(result.source);
+        if (result.source === "rules") {
+          setAiError(`AI chưa phân mảng được; hệ thống đã dùng cách dự phòng. Hãy kiểm tra các trường trước khi điền. ${result.error || ""}`.trim());
+        }
+        setStep(3);
+      } finally {
+        setIsSegmenting(false);
+      }
+      return;
     }
     setStep(3);
   };
@@ -179,7 +205,6 @@ export function SmartDraftingModal({
     setIsInserting(true);
     try {
       await onCompleteAndFill(selectedTemplate, fieldValues);
-      onClose();
     } catch (err) {
       setAiError(`Lỗi khi điền vào Word: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -312,7 +337,7 @@ export function SmartDraftingModal({
           {[
             { num: 1, label: "1. Chọn mẫu", active: step === 1, done: step > 1, canGo: true, onClick: () => setStep(1) },
             { num: 2, label: "2. Dán & Soạn AI", active: step === 2, done: step > 2, canGo: Boolean(selectedTemplate), onClick: () => selectedTemplate && setStep(2) },
-            { num: 3, label: "3. Phân mảnh trường", active: step === 3, done: false, canGo: Boolean(polishedContent || rawContent), onClick: () => (polishedContent || rawContent) && handleProceedToStep3() },
+            { num: 3, label: "3. Phân mảnh trường", active: step === 3, done: false, canGo: !isSegmenting && Boolean(polishedContent || rawContent), onClick: () => (polishedContent || rawContent) && void handleProceedToStep3() },
             { num: 4, label: "4. Xem lại & Chỉnh sửa", active: step === 3, done: false, canGo: false },
             { num: 5, label: "5. Điền vào Word", active: false, done: false, canGo: false },
           ].map((st, idx, arr) => (
@@ -655,7 +680,7 @@ export function SmartDraftingModal({
               >
                 <div>
                   <span style={{ fontSize: 11, color: "#166534", fontWeight: 700 }}>
-                    ✓ AI đã tự động phân mảnh văn bản thành {activeSchema?.fields.length || 0} trường dữ liệu.
+                    {segmentationSource === "ai" ? "✓ AI đã phân mảnh" : "✓ Đã phân mảnh"} văn bản thành {activeSchema?.fields.length || 0} trường dữ liệu.
                   </span>
                   <div style={{ fontSize: 10.5, color: "#15803d" }}>
                     Hãy kiểm tra các trường dưới đây, bổ sung hoặc sửa đổi nếu cần trước khi điền vào Word.
@@ -781,10 +806,15 @@ export function SmartDraftingModal({
                         </select>
                       ) : (
                         <input
-                          type={field.type === "date" ? "date" : "text"}
-                          value={strVal}
-                          placeholder={field.placeholder || `Nhập ${field.label}...`}
-                          onChange={(e) => setFieldValues({ ...fieldValues, [field.tag]: e.target.value })}
+                          type="text"
+                          inputMode={field.type === "date" ? "numeric" : undefined}
+                          maxLength={field.type === "date" ? 10 : undefined}
+                          value={field.type === "date" ? formatDateForUi(strVal) : strVal}
+                          placeholder={field.type === "date" ? "dd/mm/yyyy" : (field.placeholder || `Nhập ${field.label}...`)}
+                          onChange={(e) => setFieldValues({ ...fieldValues, [field.tag]: field.type === "date" ? normalizeDateInputValue(e.target.value) : e.target.value })}
+                          onBlur={(e) => {
+                            if (field.type === "date") setFieldValues({ ...fieldValues, [field.tag]: normalizeDateInputValue(e.target.value) });
+                          }}
                           style={{
                             height: 28,
                             padding: "0 8px",
@@ -876,21 +906,21 @@ export function SmartDraftingModal({
             {step === 2 && (
               <button
                 type="button"
-                onClick={handleProceedToStep3}
-                disabled={!rawContent.trim() && !polishedContent.trim()}
+                onClick={() => void handleProceedToStep3()}
+                disabled={isSegmenting || (!rawContent.trim() && !polishedContent.trim())}
                 style={{
                   height: 30,
                   padding: "0 16px",
                   fontSize: 11.5,
                   fontWeight: 700,
-                  backgroundColor: (rawContent.trim() || polishedContent.trim()) ? "#0d4f8b" : "#94a3b8",
+                  backgroundColor: isSegmenting ? "#94a3b8" : (rawContent.trim() || polishedContent.trim()) ? "#0d4f8b" : "#94a3b8",
                   color: "#ffffff",
                   border: "none",
                   borderRadius: 4,
-                  cursor: (rawContent.trim() || polishedContent.trim()) ? "pointer" : "not-allowed",
+                  cursor: isSegmenting || (!rawContent.trim() && !polishedContent.trim()) ? "not-allowed" : "pointer",
                 }}
               >
-                Tiếp tục: Phân mảnh trường dữ liệu ➔
+                {isSegmenting ? "AI đang phân mảng dữ liệu..." : "Tiếp tục: Phân mảnh trường dữ liệu ➔"}
               </button>
             )}
 

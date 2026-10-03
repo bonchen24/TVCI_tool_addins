@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param()
 $ErrorActionPreference = 'Stop'
 $env:PSModulePath = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\Modules'
@@ -19,6 +19,7 @@ try {
     Start-Transcript -Path (Join-Path $logDir 'setup.log') -Append | Out-Null
     $transcriptStarted = $true
     Import-Module Microsoft.PowerShell.Security -ErrorAction Stop
+    Write-Host 'BƯỚC: Kiểm tra Windows và Microsoft Word/Office.'
 
     if (-not [Environment]::Is64BitOperatingSystem) {
         Fail-Check 'Windows architecture' 'Windows x86 is not supported: the bundled host is x64.'
@@ -39,24 +40,26 @@ try {
         }
     }
 
+    Write-Host 'BƯỚC: Kiểm tra WebView2; nếu thiếu sẽ cài bằng bộ cài offline đi kèm.'
     $webview = Test-WebView2
     if (-not $webview) {
-        $bootstrapper = Join-Path $InstallDir 'runtime\MicrosoftEdgeWebview2Setup.exe'
-        if (-not (Test-Path -LiteralPath $bootstrapper -PathType Leaf)) {
-            Fail-Check 'WebView2' 'Runtime is missing and the bundled bootstrapper is unavailable.'
+        $offlineInstaller = Join-Path $InstallDir 'runtime\MicrosoftEdgeWebView2RuntimeInstallerX64.exe'
+        if (-not (Test-Path -LiteralPath $offlineInstaller -PathType Leaf)) {
+            Fail-Check 'WebView2' "Runtime is missing and the offline installer is unavailable: $offlineInstaller"
         }
-        Write-Host 'WebView2 missing; starting bundled online bootstrapper (Internet required).'
-        $p = Start-Process -FilePath $bootstrapper -ArgumentList '/silent', '/install' -Wait -PassThru -WindowStyle Hidden
+        Write-Host 'WebView2 missing; installing from the bundled offline Evergreen Standalone Installer.'
+        $p = Start-Process -FilePath $offlineInstaller -ArgumentList '/silent', '/install' -Wait -PassThru -WindowStyle Hidden
         if ($p.ExitCode -ne 0) {
-            Fail-Check 'WebView2' "Bootstrapper exited with code $($p.ExitCode). Connect to the Internet and run Repair."
+            Fail-Check 'WebView2' "Offline Evergreen Standalone Installer exited with code $($p.ExitCode). Run Repair or contact support."
         }
         $webview = Test-WebView2
         if (-not $webview) {
-            Fail-Check 'WebView2' 'Bootstrapper completed but a usable WebView2 runtime was not detected.'
+            Fail-Check 'WebView2' 'Offline Evergreen Standalone Installer completed but a usable WebView2 runtime was not detected.'
         }
     }
     Write-Host "WebView2: $webview"
 
+    Write-Host 'BƯỚC: Cấu hình HTTPS localhost/certificate.'
     New-Item -ItemType Directory -Path $CertDir -Force | Out-Null
     $stateFile = Join-Path $CertDir 'thumbprint.txt'
     $pfxFile = Join-Path $CertDir 'localhost.pfx'
@@ -95,23 +98,18 @@ try {
         & $checkNetIsolation.Source LoopbackExempt -a -n="Microsoft.Win32WebViewHost_cw5n1h2txyewy" 2>$null | Out-Null
     }
 
+    Write-Host 'BƯỚC: Kiểm tra cổng localhost 38473 sau khi PrepareToInstall đã dừng host TVCI cũ.'
     $externalOwners = @(Get-ExternalPortOwners)
     if ($externalOwners.Count -gt 0) {
         $details = ($externalOwners | ForEach-Object { "PID=$($_.OwningProcess) address=$($_.LocalAddress)" }) -join ', '
         Fail-Check 'Port conflict' "Port 38473 is already used by an unrelated process ($details). No process was stopped."
     }
 
-    $ownHostIds = @((Get-OwnHost | ForEach-Object ProcessId) | Select-Object -Unique)
-    foreach ($processId in $ownHostIds) {
-        Stop-Process -Id $processId -ErrorAction Stop
-    }
-    for ($i = 0; $i -lt 20 -and (Get-PortOwners).Count -gt 0; $i++) {
-        Start-Sleep -Milliseconds 200
-    }
     if ((Get-PortOwners).Count -gt 0) {
-        Fail-Check 'Port conflict' 'The previous TVCI host did not release port 38473.'
+        Fail-Check 'Port conflict' 'Port 38473 became busy after PrepareToInstall; no process was stopped here.'
     }
 
+    Write-Host 'BƯỚC: Đăng ký Word add-in trong tài khoản hiện tại.'
     $manifest = Join-Path $InstallDir 'manifest\manifest.xml'
     New-Item -Path $WefKey -Force | Out-Null
     New-ItemProperty -Path $WefKey -Name $AppId -Value $manifest -PropertyType String -Force | Out-Null
@@ -125,7 +123,9 @@ try {
 
     $stopMarker = Join-Path $InstallDir '.tvci-stop'
     Remove-Item -LiteralPath $stopMarker -Force -ErrorAction SilentlyContinue
+    Write-Host 'BƯỚC: Khởi động TVCI local host.'
     Start-Process -FilePath 'wscript.exe' -ArgumentList @('//B', '//Nologo', $launcher, $HostExe, $HostScript) -WindowStyle Hidden | Out-Null
+    Write-Host 'BƯỚC: Kiểm tra runtime, lệnh và cấu hình Ribbon.'
     $runtime = Test-TvciCommandRuntime
     if (-not $runtime.Ok) {
         Fail-Check 'Command runtime' $runtime.Detail
