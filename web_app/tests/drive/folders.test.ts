@@ -32,7 +32,7 @@ describe('Drive category and disconnect contract', () => {
     expect(Object.keys(folders)).toEqual(['documents', 'templates', 'knowledge', 'references', 'appData']);
     expect(client.createAppFolder).toHaveBeenCalledTimes(6);
     expect(client.createAppFolder.mock.calls.map(([name]) => name)).toEqual([
-      'TVCI Document Platform', 'Documents', 'Templates', 'Knowledge', 'References', 'AppData',
+      'TVCI DocMaster', 'Documents', 'Templates', 'Knowledge', 'References', 'AppData',
     ]);
     expect(db.prepare('SELECT root_folder_id, folders_json FROM drive_connections WHERE user_id = ?').get('u1')).toBeTruthy();
     db.close();

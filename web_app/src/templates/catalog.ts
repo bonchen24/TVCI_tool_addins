@@ -20,7 +20,36 @@ export function normalizeVietnamese(str: string): string {
     .trim();
 }
 
-export const ADMINISTRATIVE_TEMPLATES: AdministrativeTemplate[] = [
+const RUNTIME_SHA256_BY_FILE_NAME: Record<string, string> = {
+  'tvci-cong-van-template.docx': '29bcd69b4cadeabcdeb7495507a1c382ff6a96086ed43114d1d034704e705fa1',
+  'tvci-thong-bao-template.docx': 'b53c35525ee2dd66b416143426adc556a2f61577ae3d0fb0ae17b0322a996c45',
+  'tkv-quyet-dinh-template.docx': '6943a9b69b13a4b813e76d6d6a601dfc450e8732c1644c461880348d067ef73d',
+  'dang-sample.docx': '1abd2abe6a8912f07af4f4788be039ee107efd2e13758eb022e0726a9ea78f5e',
+  'iemm-to-trinh-noi-bo-template.docx': 'd403ca491efdcc4aa0bba39c7cda457d6e62dc72c8276d426675817a01625338',
+  'iemm-don-xin-nghi-phep-template.docx': 'ecec4bdbd864cf0756d7ab7ec072f8e354c7878f041219be82cc80149fccfe1d',
+  'iemm-thu-moi-template.docx': '8c565c85deac2c38cd06878ab2cefc6256eebc00ab35d4b510495fadd73de933',
+  'tvci-sample.docx': 'aac92663d74536c7534d2f7970b69bfc5275d4b823244963256c70c3da7f9a5a',
+};
+
+const QUARANTINED_SAMPLE_IDS = new Set(['dang-sample', 'tvci-sample']);
+
+function verificationFor(template: Omit<AdministrativeTemplate, 'verification'>): AdministrativeTemplate['verification'] {
+  const status = QUARANTINED_SAMPLE_IDS.has(template.id) ? 'quarantined' : 'unverified';
+  const runtimePath = `/templates/${template.fileName}`;
+  const runtimeSha256 = RUNTIME_SHA256_BY_FILE_NAME[template.fileName] ?? null;
+  return {
+    status,
+    reason: status === 'quarantined'
+      ? 'Generic/sample DOCX retained for audit only; no official canonical DOCX is present.'
+      : runtimeSha256
+        ? 'No exact official canonical DOCX is present. Generated catalog metadata and reference titles do not prove the approved form.'
+        : `Declared runtime DOCX path ${runtimePath} is not present; no canonical source is available.`,
+    canonicalSource: null,
+    runtime: { path: runtimePath, sha256: runtimeSha256 },
+  };
+}
+
+const CATALOG_RECORDS: Omit<AdministrativeTemplate, 'verification'>[] = [
   {
     id: 'tvci-cv',
     name: 'Công văn TVCI chuẩn',
@@ -821,27 +850,70 @@ export const ADMINISTRATIVE_TEMPLATES: AdministrativeTemplate[] = [
   },
 ];
 
+export const ADMINISTRATIVE_TEMPLATES: AdministrativeTemplate[] = CATALOG_RECORDS.map((template) => ({
+  ...template,
+  verification: verificationFor(template),
+}));
+
 /** Compatibility alias for E2E test suites */
 export const CATALOG = ADMINISTRATIVE_TEMPLATES;
+
+export function isOfficialTemplateVerified(template: AdministrativeTemplate): boolean {
+  const verification = template.verification;
+  const canonical = verification.canonicalSource;
+  const runtime = verification.runtime;
+  return template.status === 'active'
+    && verification.status === 'verified'
+    && canonical?.kind === 'official-canonical-docx'
+    && /^\/?canonical_templates\//.test(canonical.path)
+    && /^[a-f0-9]{64}$/.test(canonical.sha256)
+    && runtime.path === `/templates/${template.fileName}`
+    && /^[a-f0-9]{64}$/.test(runtime.sha256 ?? '')
+    && runtime.derivedFromCanonicalSha256 === canonical.sha256
+    && (runtime.comparison === 'byte-exact' || runtime.comparison === 'content-controls-only');
+}
+
+export function requireVerifiedTemplate(templateOrId: AdministrativeTemplate | string): AdministrativeTemplate {
+  const normalizedId = typeof templateOrId === 'string' ? templateOrId.trim().toLowerCase() : '';
+  const template = typeof templateOrId === 'string'
+    ? ADMINISTRATIVE_TEMPLATES.find((candidate) =>
+      candidate.id.toLowerCase() === normalizedId || candidate.schemaId.toLowerCase() === normalizedId)
+    : ADMINISTRATIVE_TEMPLATES.find((candidate) =>
+      candidate.id === templateOrId.id
+      && candidate.schemaId === templateOrId.schemaId
+      && candidate.fileName === templateOrId.fileName
+      && candidate.organization === templateOrId.organization);
+
+  const name = typeof templateOrId === 'string' ? templateOrId : templateOrId.id;
+  if (!template) {
+    throw new Error(`Mẫu biểu không tồn tại trong hệ thống: ${name}`);
+  }
+  if (!isOfficialTemplateVerified(template)) {
+    throw new Error(`Không thể áp dụng biểu mẫu "${name}": chưa có nguồn DOCX canonical được xác minh.`);
+  }
+  return template;
+}
 
 export function getTemplateById(id: string): AdministrativeTemplate | undefined {
   if (!id) return undefined;
   const targetId = id.trim().toLowerCase();
-  return ADMINISTRATIVE_TEMPLATES.find((t) => t.id.toLowerCase() === targetId);
+  return ADMINISTRATIVE_TEMPLATES.find((t) => t.id.toLowerCase() === targetId && isOfficialTemplateVerified(t));
 }
 
 export function getTemplatesByCategory(category: string): AdministrativeTemplate[] {
-  if (!category || category === 'all') return ADMINISTRATIVE_TEMPLATES;
+  const available = ADMINISTRATIVE_TEMPLATES.filter(isOfficialTemplateVerified);
+  if (!category || category === 'all') return available;
   const targetCategory = category.trim().toLowerCase();
-  return ADMINISTRATIVE_TEMPLATES.filter(
+  return available.filter(
     (t) => t.category.toLowerCase() === targetCategory
   );
 }
 
 export function getTemplatesByOrganization(org: TemplateOrganization | string): AdministrativeTemplate[] {
-  if (!org || org === 'all') return ADMINISTRATIVE_TEMPLATES;
+  const available = ADMINISTRATIVE_TEMPLATES.filter(isOfficialTemplateVerified);
+  if (!org || org === 'all') return available;
   const targetOrg = org.trim().toUpperCase();
-  return ADMINISTRATIVE_TEMPLATES.filter(
+  return available.filter(
     (t) => t.organization.toUpperCase() === targetOrg
   );
 }
@@ -856,6 +928,7 @@ export function searchTemplates(
   const normQuery = normalizeVietnamese(query);
 
   return ADMINISTRATIVE_TEMPLATES.filter((template) => {
+    if (!isOfficialTemplateVerified(template)) return false;
     // Org filter
     if (options?.organization && options.organization !== 'all') {
       if (template.organization.toUpperCase() !== options.organization.toUpperCase()) {

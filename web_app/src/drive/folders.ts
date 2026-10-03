@@ -1,7 +1,7 @@
 import { getDatabase } from '@/db/client';
 import type { DatabaseLike } from '@/db/schema';
 
-export const DRIVE_ROOT_FOLDER = 'TVCI Document Platform';
+export const DRIVE_ROOT_FOLDER = 'TVCI DocMaster';
 export const DRIVE_CATEGORIES = {
   documents: 'Documents',
   templates: 'Templates',

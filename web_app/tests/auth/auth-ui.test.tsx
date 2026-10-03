@@ -51,7 +51,7 @@ describe('login experience', () => {
   it('renders the approved product, subtitle, and login heading without small subtitle copy', () => {
     render(<LoginPage />);
 
-    expect(screen.getAllByText('TVCI Document Platform')).toHaveLength(2);
+    expect(screen.getAllByText('TVCI DocMaster')).toHaveLength(2);
     expect(screen.getByText('Soạn thảo, chuẩn hóa và hỗ trợ xử lý văn bản')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Đăng nhập' })).toBeInTheDocument();
     expect(screen.queryByText(/Tài khoản TVCI độc lập với Google Drive/i)).not.toBeInTheDocument();

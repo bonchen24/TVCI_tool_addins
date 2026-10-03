@@ -10,7 +10,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'TVCI Document Platform — Quản trị & Chuẩn hóa Thể thức Văn bản',
+  title: 'TVCI DocMaster — Hệ thống Soạn thảo & Chuẩn hóa Thể thức Văn bản NĐ 30',
   description:
     'Hệ thống soạn thảo, kiểm tra thể thức Nghị định 30/2020/NĐ-CP, biểu mẫu hành chính và AI trợ lý văn phòng TVCI.',
 };

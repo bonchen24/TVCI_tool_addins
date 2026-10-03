@@ -29,6 +29,28 @@ export type TemplateFieldType =
 
 export type TemplateInjectionMode = 'tier1_full' | 'tier2_fill' | 'insert' | 'fill';
 
+export type TemplateVerificationStatus = 'verified' | 'unverified' | 'quarantined';
+
+export interface AdministrativeTemplateVerification {
+  status: TemplateVerificationStatus;
+  reason: string;
+  canonicalSource: {
+    kind: 'official-canonical-docx';
+    name: string;
+    path: string;
+    id?: string;
+    version?: string;
+    effectiveDate?: string;
+    sha256: string;
+  } | null;
+  runtime: {
+    path: string;
+    sha256: string | null;
+    derivedFromCanonicalSha256?: string;
+    comparison?: 'byte-exact' | 'content-controls-only';
+  };
+}
+
 export interface TemplateFieldOption {
   value: string;
   label: string;
@@ -102,6 +124,7 @@ export interface AdministrativeTemplate {
   initialContent?: JSONContent;
   version: string;
   status: 'active' | 'draft' | 'archived';
+  verification: AdministrativeTemplateVerification;
 }
 
 export interface TemplateEngineResult {

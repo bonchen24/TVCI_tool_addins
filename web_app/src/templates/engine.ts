@@ -14,7 +14,7 @@ import type {
   TemplateFormValue,
   TemplateFormValues,
 } from './types';
-import { getTemplateById } from './catalog';
+import { requireVerifiedTemplate } from './catalog';
 import { getFormSchema } from './form-schema';
 import { formatAdministrativeDate } from './form-validation';
 
@@ -410,60 +410,7 @@ export function renderTemplateToTiptapDoc(
   templateOrId: AdministrativeTemplate | string,
   values: TemplateFormValues = {}
 ): JSONContent {
-  let template: AdministrativeTemplate | undefined;
-
-  if (typeof templateOrId === 'string') {
-    template = getTemplateById(templateOrId);
-    if (!template) {
-      const schema = getFormSchema(templateOrId);
-      if (schema) {
-        template = {
-          id: schema.id,
-          name: schema.name,
-          title: schema.name,
-          category: (schema.category === 'dang' ? 'cong_van' : schema.category === 'noi_bo' ? 'bieu_mau_noi_bo' : schema.id as TemplateCategory) || 'cong_van',
-          vietnameseCategory: schema.name,
-          organization: 'TVCI',
-          fileName: `${schema.id}-template.docx`,
-          description: schema.description || schema.name,
-          schemaId: schema.id,
-          defaultProfile: schema.defaultProfile,
-          keywords: [schema.name],
-          headerSetup: {
-            agencyUpper: 'VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN',
-            agencyLower: 'TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP',
-            documentSymbolPrefix: 'Số: …/TVCI',
-            mottoUpper: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
-            mottoLower: 'Độc lập - Tự do - Hạnh phúc',
-            defaultLocation: 'Hà Nội',
-          },
-          footerSetup: {
-            recipientsTitle: 'Nơi nhận:',
-            defaultRecipients: ['- Như trên;', '- Lưu: VT, VP.'],
-            signerPosition: 'GIÁM ĐỐC',
-            signerName: 'Nguyễn Văn An',
-          },
-          initialBodyParagraphs: [],
-          version: '1.0.0',
-          status: 'active',
-          verification: {
-            status: 'verified',
-            reason: 'Synthesized from form schema',
-            canonicalSource: null,
-            runtime: { path: `${schema.id}-template.docx`, sha256: null },
-          },
-        };
-      } else {
-        throw new Error(`Mẫu biểu không tồn tại trong hệ thống: ${templateOrId}`);
-      }
-    }
-  } else {
-    template = templateOrId;
-  }
-
-  if (!template) {
-    throw new Error(`Mẫu biểu không hợp lệ.`);
-  }
+  const template = requireVerifiedTemplate(templateOrId);
 
   const place = firstTextValue(values, 'place', 'diaDanh') || template.headerSetup.defaultLocation || 'Hà Nội';
   const rawDate = firstTextValue(values, 'NGAY_BAN_HANH', 'date') || new Date();

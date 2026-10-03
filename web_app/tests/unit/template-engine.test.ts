@@ -7,87 +7,23 @@ import {
   replacePlaceholdersInText,
   sanitizeMultilineInput,
 } from '@/templates/engine';
-import { getTemplateById } from '@/templates/catalog';
 import type { JSONContent } from '@tiptap/core';
 
 describe('Unit: 2-Tier Template Engine', () => {
   describe('Tier 1: Full Document AST Generation', () => {
-    it('generates structured Tiptap JSONContent document root for Công văn', () => {
-      const values = {
-        SO_KY_HIEU: '102/TVCI-VP',
-        place: 'Hà Nội',
-        NGAY_BAN_HANH: '2026-09-29',
-        TRICH_YEU: 'V/v thử nghiệm an toàn thiết bị mỏ',
-        KINH_GUI: 'Các đơn vị thành viên',
-        NOI_DUNG: 'Đoạn 1 công văn.\nĐoạn 2 công văn.',
-        signerRole: 'GIÁM ĐỐC',
-        NGUOI_KY: 'Nguyễn Văn An',
-      };
-
-      const doc = renderTemplateToTiptapDoc('tvci-cv', values);
-
-      expect(doc.type).toBe('doc');
-      expect(Array.isArray(doc.content)).toBe(true);
-      expect(doc.content!.length).toBeGreaterThan(2);
-
-      // Verify Header Table (admin-header, 40-60)
-      const headerTable = doc.content![0];
-      expect(headerTable.type).toBe('table');
-      expect(headerTable.attrs?.tableType).toBe('admin-header');
-      expect(headerTable.attrs?.columnRatio).toBe('40-60');
-      expect(headerTable.attrs?.isBorderless).toBe(true);
-
-      const headerRow = headerTable.content![0];
-      const leftCell = headerRow.content![0];
-      const rightCell = headerRow.content![1];
-
-      expect(leftCell.attrs?.cellType).toBe('header-left');
-      expect(leftCell.attrs?.colwidth).toEqual([250]);
-      expect(JSON.stringify(leftCell)).toContain('102/TVCI-VP');
-
-      expect(rightCell.attrs?.cellType).toBe('header-right');
-      expect(rightCell.attrs?.colwidth).toEqual([374]);
-      expect(JSON.stringify(rightCell)).toContain('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM');
-      expect(JSON.stringify(rightCell)).toContain('ngày 29 tháng 9 năm 2026');
-
-      // Verify Footer Table (admin-footer, 50-50)
-      const footerTable = doc.content![doc.content!.length - 1];
-      expect(footerTable.type).toBe('table');
-      expect(footerTable.attrs?.tableType).toBe('admin-footer');
-      expect(footerTable.attrs?.columnRatio).toBe('50-50');
-      expect(footerTable.attrs?.isBorderless).toBe(true);
-
-      const footerRow = footerTable.content![0];
-      const recipientsCell = footerRow.content![0];
-      const signerCell = footerRow.content![1];
-
-      expect(recipientsCell.attrs?.cellType).toBe('footer-recipients');
-      expect(signerCell.attrs?.cellType).toBe('footer-signer');
-      expect(JSON.stringify(signerCell)).toContain('GIÁM ĐỐC');
-      expect(JSON.stringify(signerCell)).toContain('Nguyễn Văn An');
+    it('rejects a bundled Công văn whose canonical DOCX has not been verified', () => {
+      expect(() => renderTemplateToTiptapDoc('tvci-cv', { SO_KY_HIEU: '102/TVCI-VP' }))
+        .toThrow(/canonical|xác minh/i);
     });
 
-    it('generates title and abstract for Quyết định template', () => {
-      const values = {
-        SO_KY_HIEU: '99/QĐ-TKV',
-        TRICH_YEU: 'ban hành quy chế an toàn',
-        CAN_CU: ['Căn cứ Luật Lao động 2019;', 'Xét đề nghị của Ban AT-TKV,'],
-        QUYET_DINH_DIEU: ['Điều 1. Ban hành quy chế.', 'Điều 2. Hiệu lực thi hành.'],
-      };
-
-      const doc = renderTemplateToTiptapDoc('tkv-qd', values);
-      const strDoc = JSON.stringify(doc);
-
-      expect(strDoc).toContain('QUYẾT ĐỊNH');
-      expect(strDoc).toContain('ban hành quy chế an toàn');
-      expect(strDoc).toContain('Điều 1. Ban hành quy chế.');
-      expect(strDoc).toContain('Điều 2. Hiệu lực thi hành.');
+    it('rejects a bundled Quyết định whose canonical DOCX has not been verified', () => {
+      expect(() => renderTemplateToTiptapDoc('tkv-qd', { SO_KY_HIEU: '99/QĐ-TKV' }))
+        .toThrow(/canonical|xác minh/i);
     });
 
-    it('renderTemplateToEditor alias works identically', () => {
-      const doc = renderTemplateToEditor('tvci-cv', { SO_KY_HIEU: '55/TVCI' });
-      expect(doc.type).toBe('doc');
-      expect(JSON.stringify(doc)).toContain('55/TVCI');
+    it('applies the same provenance gate through the editor alias', () => {
+      expect(() => renderTemplateToEditor('tvci-cv', { SO_KY_HIEU: '55/TVCI' }))
+        .toThrow(/canonical|xác minh/i);
     });
 
     it('throws error when template ID is not found in system', () => {

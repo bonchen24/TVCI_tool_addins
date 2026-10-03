@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/Button';
 import type { ValidationIssue } from '@/rules/models';
 import {
   ADMINISTRATIVE_TEMPLATES,
+  isOfficialTemplateVerified,
   searchTemplates,
   getFormSchema,
   getDefaultValuesForSchema,
@@ -190,6 +191,7 @@ export function Sidebar({
   });
 
   const handleSelectTemplate = (template: AdministrativeTemplate) => {
+    if (!isOfficialTemplateVerified(template)) return;
     setSelectedTemplate(template);
     const defaults = getDefaultValuesForSchema(template.schemaId);
     setFormValues({
@@ -247,7 +249,7 @@ export function Sidebar({
 
   // Tier 1: Insert full document template
   const handleInsertFullTemplate = () => {
-    if (!selectedTemplate) return;
+    if (!selectedTemplate || !isOfficialTemplateVerified(selectedTemplate)) return;
 
     try {
       const doc = renderTemplateToTiptapDoc(selectedTemplate, formValues);
@@ -274,7 +276,7 @@ export function Sidebar({
 
   // Tier 2: Dynamic field fill
   const handleFillFieldsOnly = () => {
-    if (!selectedTemplate) return;
+    if (!selectedTemplate || !isOfficialTemplateVerified(selectedTemplate)) return;
 
     try {
       if (editor) {
@@ -638,7 +640,7 @@ export function Sidebar({
               <>
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Kho biểu mẫu TVCI ({ADMINISTRATIVE_TEMPLATES.length} mẫu)
+                    Kho biểu mẫu chính thức đã xác minh ({filteredTemplates.length} mẫu)
                   </div>
                 </div>
 
@@ -714,8 +716,10 @@ export function Sidebar({
                 {/* Template Cards List */}
                 <div className="space-y-2 pt-1">
                   {filteredTemplates.length === 0 ? (
-                    <div className="text-center py-8 text-xs text-slate-400">
-                      Không tìm thấy biểu mẫu phù hợp
+                    <div role="status" data-testid="official-template-empty" className="text-center py-8 text-xs text-slate-500">
+                      <p className="mb-2 font-semibold text-amber-800">Hiện chưa có biểu mẫu chính thức nào được xác minh nguồn canonical.</p>
+                      <p>Các mẫu chưa có nguồn chuẩn hoặc có trạng thái quarantine không thể chọn hay chèn.</p>
+                      {templateSearch && <p className="mt-2 text-slate-400">Không tìm thấy biểu mẫu phù hợp với từ khóa.</p>}
                     </div>
                   ) : (
                     filteredTemplates.map((template) => (
@@ -741,6 +745,10 @@ export function Sidebar({
                         </div>
                         <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
                           {template.description}
+                        </p>
+                        <p className="mt-1 text-[10px] font-medium text-emerald-700">
+                          Đã xác minh • {template.verification.canonicalSource?.name}
+                          {template.verification.canonicalSource?.version ? ` • ${template.verification.canonicalSource.version}` : ''}
                         </p>
                         <div className="mt-2 flex flex-wrap items-center justify-between gap-1 text-[10px] text-slate-400 pt-1 border-t border-slate-100">
                           <span className="min-w-0 break-words bg-slate-50 px-1 rounded">{template.vietnameseCategory}</span>
@@ -776,6 +784,10 @@ export function Sidebar({
 
                 <div className="space-y-0.5">
                   <h4 className="text-xs font-bold text-slate-900">{selectedTemplate.name}</h4>
+                  <p className="mt-1 text-[10px] text-emerald-700">
+                    Đã xác minh • {selectedTemplate.verification.canonicalSource?.name}
+                    {selectedTemplate.verification.canonicalSource?.version ? ` • ${selectedTemplate.verification.canonicalSource.version}` : ''}
+                  </p>
                   <p className="text-[10px] text-slate-500">
                     {selectedTemplate.vietnameseCategory} • {selectedTemplate.defaultProfile}
                   </p>

@@ -1,9 +1,9 @@
 services:
-  tvci-web-app:
+  tvci-docmaster:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: tvci-web-app
+    container_name: tvci-docmaster
     ports:
       - "2350:3000"
     healthcheck:

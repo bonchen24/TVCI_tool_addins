@@ -10,6 +10,10 @@ import {
 } from '@/templates/catalog';
 
 describe('Unit: Template Catalog (22 templates)', () => {
+  it('does not return unverified system templates for official use', () => {
+    expect(searchTemplates('')).toEqual([]);
+    expect(getTemplateById('tvci-cv')).toBeUndefined();
+  });
   it('contains at least 22 template records in the catalog', () => {
     expect(ADMINISTRATIVE_TEMPLATES.length).toBeGreaterThanOrEqual(22);
     expect(CATALOG.length).toBeGreaterThanOrEqual(22);
@@ -61,80 +65,29 @@ describe('Unit: Template Catalog (22 templates)', () => {
     }
   });
 
-  it('retrieves specific template by ID (case-insensitive)', () => {
-    const tvciCv = getTemplateById('tvci-cv');
-    expect(tvciCv).toBeDefined();
-    expect(tvciCv?.name).toContain('Công văn');
-    expect(tvciCv?.organization).toBe('TVCI');
-
-    const tkvQd = getTemplateById('TKV-QD');
-    expect(tkvQd).toBeDefined();
-    expect(tkvQd?.organization).toBe('TKV');
-
-    const dang = getTemplateById('dang-sample');
-    expect(dang).toBeDefined();
-    expect(dang?.organization).toBe('DANG');
-
-    const notFound = getTemplateById('non_existent_xyz');
-    expect(notFound).toBeUndefined();
+  it('does not return candidates by ID until their canonical DOCX is verified', () => {
+    for (const template of ADMINISTRATIVE_TEMPLATES) {
+      expect(getTemplateById(template.id)).toBeUndefined();
+    }
+    expect(getTemplateById('non_existent_xyz')).toBeUndefined();
   });
 
-  it('filters templates by category', () => {
-    const congVanList = getTemplatesByCategory('cong_van');
-    expect(congVanList.length).toBeGreaterThan(0);
-    expect(congVanList.every((t) => t.category === 'cong_van')).toBe(true);
-
-    const quyetDinhList = getTemplatesByCategory('quyet_dinh');
-    expect(quyetDinhList.length).toBeGreaterThan(0);
-    expect(quyetDinhList.every((t) => t.category === 'quyet_dinh')).toBe(true);
-
-    const allList = getTemplatesByCategory('all');
-    expect(allList.length).toBe(ADMINISTRATIVE_TEMPLATES.length);
+  it('keeps category and organization lookups empty while every record is unverified or quarantined', () => {
+    expect(getTemplatesByCategory('cong_van')).toEqual([]);
+    expect(getTemplatesByCategory('quyet_dinh')).toEqual([]);
+    expect(getTemplatesByCategory('all')).toEqual([]);
+    expect(getTemplatesByOrganization('IEMM')).toEqual([]);
+    expect(getTemplatesByOrganization('TVCI')).toEqual([]);
+    expect(getTemplatesByOrganization('all')).toEqual([]);
   });
 
-  it('filters templates by organization', () => {
-    const iemmList = getTemplatesByOrganization('IEMM');
-    expect(iemmList.length).toBeGreaterThan(0);
-    expect(iemmList.every((t) => t.organization === 'IEMM')).toBe(true);
-
-    const tvciList = getTemplatesByOrganization('TVCI');
-    expect(tvciList.length).toBeGreaterThan(0);
-    expect(tvciList.every((t) => t.organization === 'TVCI')).toBe(true);
-  });
-
-  it('performs diacritic-insensitive Vietnamese search (normalizeVietnamese)', () => {
+  it('normalizes Vietnamese search text but never returns an unverified catalog record', () => {
     expect(normalizeVietnamese('Công văn')).toBe('cong van');
     expect(normalizeVietnamese('Quyết định')).toBe('quyet dinh');
     expect(normalizeVietnamese('ĐẢNG BỘ')).toBe('dang bo');
-
-    // Search with diacritics
-    const resultsWithAccent = searchTemplates('công văn');
-    expect(resultsWithAccent.length).toBeGreaterThan(0);
-
-    // Search without diacritics
-    const resultsWithoutAccent = searchTemplates('cong van');
-    expect(resultsWithoutAccent.length).toBeGreaterThan(0);
-    expect(resultsWithoutAccent.length).toBe(resultsWithAccent.length);
-
-    // Search Quyết định
-    const qdResults = searchTemplates('quyet dinh');
-    expect(qdResults.length).toBeGreaterThan(0);
-
-    // Search by ID keyword
-    const idResults = searchTemplates('iemm-01');
-    expect(idResults.length).toBe(1);
-    expect(idResults[0].id).toBe('iemm-01');
-
-    // Search with category and org filter options
-    const filteredSearch = searchTemplates('nghi phep', {
-      organization: 'IEMM',
-      category: 'bieu_mau_noi_bo',
-    });
-    expect(filteredSearch.length).toBeGreaterThan(0);
-    expect(filteredSearch.some((t) => t.id.includes('don-np'))).toBe(true);
-
-    // Non-matching search
-    const noResults = searchTemplates('khong_co_mau_nay_123456');
-    expect(noResults.length).toBe(0);
+    expect(searchTemplates('công văn')).toEqual([]);
+    expect(searchTemplates('cong van')).toEqual([]);
+    expect(searchTemplates('iemm-01')).toEqual([]);
+    expect(searchTemplates('nghi phep', { organization: 'IEMM', category: 'bieu_mau_noi_bo' })).toEqual([]);
   });
 });

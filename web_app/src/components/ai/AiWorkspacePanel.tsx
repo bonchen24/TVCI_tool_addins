@@ -31,6 +31,9 @@ import {
 } from '@/ai';
 import {
   ALL_SCHEMAS,
+  ADMINISTRATIVE_TEMPLATES,
+  isOfficialTemplateVerified,
+  requireVerifiedTemplate,
   renderTemplateToTiptapDoc,
   applyTemplateFieldsToEditor,
 } from '@/templates';
@@ -103,6 +106,9 @@ export function AiWorkspacePanel({ editor, onApplyTemplate, selectedContext, sel
 
   // --- 3. TEMPLATE FILL STATE ---
   const [selectedSchemaId, setSelectedSchemaId] = useState<string>('cong_van');
+  const canApplySelectedTemplate = ADMINISTRATIVE_TEMPLATES.some(
+    (template) => template.schemaId === selectedSchemaId && isOfficialTemplateVerified(template)
+  );
   const [userNotes, setUserNotes] = useState<string>('');
   const [templateFillResult, setTemplateFillResult] = useState<TemplateFillResult | null>(null);
 
@@ -298,6 +304,7 @@ export function AiWorkspacePanel({ editor, onApplyTemplate, selectedContext, sel
     setTemplateFillSuccessMsg(null);
 
     try {
+      requireVerifiedTemplate(selectedSchemaId);
       const report = applyTemplateFieldsToEditor(editor, templateFillResult.fields);
       if (report.replacedPlaceholders > 0 || report.updatedFields.length > 0) {
         setTemplateFillSuccessMsg(`Đã cập nhật ${report.updatedFields.length} trường vào tài liệu!`);
@@ -326,6 +333,7 @@ export function AiWorkspacePanel({ editor, onApplyTemplate, selectedContext, sel
     setTemplateFillSuccessMsg(null);
 
     try {
+      requireVerifiedTemplate(selectedSchemaId);
       const fullDoc = renderTemplateToTiptapDoc(selectedSchemaId, templateFillResult.fields);
       if (editor.commands?.setContent) {
         editor.commands.setContent(fullDoc, { emitUpdate: true });
@@ -764,10 +772,16 @@ export function AiWorkspacePanel({ editor, onApplyTemplate, selectedContext, sel
 
               {/* Action Buttons to Inject/Apply Fields into Editor */}
               <div className="pt-2 flex flex-col gap-2">
+                {!canApplySelectedTemplate && (
+                  <p role="status" data-testid="unverified-template-apply-blocked" className="text-[11px] text-amber-800">
+                    Chưa có biểu mẫu nguồn canonical được xác minh cho loại văn bản này; thao tác áp dụng đang khóa.
+                  </p>
+                )}
                 <Button
                   size="sm"
                   variant="primary"
                   onClick={handleApplyTemplateFill}
+                  disabled={!canApplySelectedTemplate}
                   className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 font-medium shadow-sm"
                   data-testid="btn-apply-template-fill"
                 >
@@ -778,6 +792,7 @@ export function AiWorkspacePanel({ editor, onApplyTemplate, selectedContext, sel
                   size="sm"
                   variant="outline"
                   onClick={handleInsertFullTemplateDoc}
+                  disabled={!canApplySelectedTemplate}
                   className="w-full py-1.5 text-xs text-slate-700 hover:bg-slate-50 gap-1.5 border-slate-300"
                   data-testid="btn-insert-full-template"
                 >
