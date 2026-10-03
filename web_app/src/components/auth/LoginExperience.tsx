@@ -13,21 +13,21 @@ function LoginLogos({ isDark = false }: { isDark?: boolean }) {
       role="group"
       aria-label="Logo IEMM và TVCI"
     >
-      <div className="flex h-16 min-w-0 flex-1 items-center justify-center rounded-xl bg-white p-2 shadow-2xs transition hover:scale-[1.02]">
+      <div className="flex h-16 min-w-0 flex-1 basis-0 items-center justify-center rounded-xl bg-white p-2 shadow-2xs transition hover:scale-[1.02]">
         <Image
           src="/brand/iemm.jpg"
           alt="IEMM"
           width={400}
           height={389}
           unoptimized
-          className="h-full w-full object-contain"
+          className="max-h-12 w-full object-contain"
         />
       </div>
       <div
-        className={`h-8 w-px ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}
+        className={`h-8 w-px shrink-0 ${isDark ? 'bg-white/10' : 'bg-slate-200'}`}
         aria-hidden="true"
       />
-      <div className="flex h-16 min-w-0 flex-[1.4] items-center justify-center rounded-xl bg-white px-3 py-1.5 shadow-2xs transition hover:scale-[1.02]">
+      <div className="flex h-16 min-w-0 flex-1 basis-0 items-center justify-center rounded-xl bg-white p-2 shadow-2xs transition hover:scale-[1.02]">
         <Image
           src="/brand/tvci.png"
           alt="TVCI"
@@ -181,8 +181,8 @@ export function LoginExperience() {
               className="pointer-events-none absolute inset-x-8 -top-px h-px bg-gradient-to-r from-transparent via-indigo-400/60 to-transparent"
             />
 
-            <div className="mb-6">
-              <h1 id="login-heading" className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            <div className="mb-6 text-center">
+              <h1 id="login-heading" className="text-center text-2xl font-bold tracking-tight text-white sm:text-3xl">
                 Đăng nhập
               </h1>
             </div>

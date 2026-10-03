@@ -36,7 +36,7 @@ export function LoginForm() {
   return (
     <form onSubmit={submit} className="space-y-5">
       <div>
-        <label htmlFor="login-username" className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+        <label htmlFor="login-username" className="block text-center text-xs font-semibold uppercase tracking-wider text-slate-300">
           Tên đăng nhập
         </label>
         <div className="group relative mt-1.5 flex items-center">
@@ -57,7 +57,7 @@ export function LoginForm() {
       </div>
 
       <div>
-        <label htmlFor="login-password" className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+        <label htmlFor="login-password" className="block text-center text-xs font-semibold uppercase tracking-wider text-slate-300">
           Mật khẩu
         </label>
         <div className="group relative mt-1.5 flex items-center">
@@ -92,7 +92,7 @@ export function LoginForm() {
       </div>
 
       {error && (
-        <div role="alert" className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-3 text-xs font-medium text-rose-300 animate-in fade-in duration-200">
+        <div role="alert" className="text-center rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-3 text-xs font-medium text-rose-300 animate-in fade-in duration-200">
           {error}
         </div>
       )}
