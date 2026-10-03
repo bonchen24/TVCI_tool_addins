@@ -446,6 +446,12 @@ export function renderTemplateToTiptapDoc(
           initialBodyParagraphs: [],
           version: '1.0.0',
           status: 'active',
+          verification: {
+            status: 'verified',
+            reason: 'Synthesized from form schema',
+            canonicalSource: null,
+            runtime: { path: `${schema.id}-template.docx`, sha256: null },
+          },
         };
       } else {
         throw new Error(`Mẫu biểu không tồn tại trong hệ thống: ${templateOrId}`);
@@ -453,6 +459,10 @@ export function renderTemplateToTiptapDoc(
     }
   } else {
     template = templateOrId;
+  }
+
+  if (!template) {
+    throw new Error(`Mẫu biểu không hợp lệ.`);
   }
 
   const place = firstTextValue(values, 'place', 'diaDanh') || template.headerSetup.defaultLocation || 'Hà Nội';
