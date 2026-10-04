@@ -41,5 +41,6 @@ temp-format-audit/
 test_*.docx
 qa/canonical-template-renders/
 *.tsbuildinfo
+installer/prerequisites/*.exe
 
 
