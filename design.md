@@ -432,3 +432,16 @@ Tuân thủ nghiêm ngặt **Superpowers Engineering Discipline**:
 ---
 
 *Tài liệu này là nguồn chân lý thiết kế (Single Source of Truth) cho dự án TVCI Word Add-in.*
+
+## Template provenance and release invariant
+
+- **Template correctness/provenance is a release-blocking invariant.** Canonical production template may be deterministically generated from versioned, source-backed formatting rules and document-type specifications. External canonical DOCX is optional, not mandatory.
+- A regulation or formatting rule is not a canonical form by itself; canonical forms are generated deterministically from source-backed specs.
+- External source metadata alone is not verified provenance without passing the full QA pipeline.
+- **Nguyên tắc bản quyền & tính chuẩn mực (Vietnamese Explanation):**
+  - Mẫu văn bản chính thức (official canonical template) phục vụ môi trường sản xuất không bắt buộc phải chờ có sẵn file DOCX bên ngoài chuyển giao.
+  - Template canonical chuẩn mực được tạo ra một cách tất định (deterministic) từ hệ thống đặc tả quy cách có phiên bản (`ruleSpecVersion`), bám sát các nguồn quy định pháp lý và quy chế nội bộ (Nghị định 30/2020/NĐ-CP, Quy chế văn thư Viện QĐ 731-2023, Quy chế TKV QĐ 1456/2026).
+  - Một template được công nhận là `verified` khi: (1) có spec và version cụ thể; (2) có danh mục `normativeSources`/`referenceSources`; (3) generator có version và mã băm SHA-256; (4) sinh canonical DOCX thành công; (5) vượt qua Structural QA (kiểm tra XML/khung hình học); (6) vượt qua Semantic QA (ràng buộc cấu trúc theo loại văn bản); (7) vượt qua Visual/Render QA (kiểm tra xuất ảnh/PDF không tràn trang hay đè chữ); (8) runtime DOCX byte-identical hoặc chỉ chứa content controls được phê duyệt; (9) có SHA-256 xác thực.
+  - File DOCX bên ngoài (external canonical DOCX) nếu có chỉ dùng để đối chiếu bổ sung, không phải điều kiện tiên quyết.
+- Canonical masters được lưu trữ độc quyền tại `canonical_templates/generated/` do chính canonical generator sinh ra. Mọi script sửa đổi/legacy tuyệt đối không được ghi đè hay can thiệp vào thư mục này.
+- Trạng thái kiểm soát fail-closed: Chỉ các mẫu có provenance `verified` mới được phép xuất hiện và chèn chính thức trong ứng dụng; các mẫu generic sample (`iemm-sample`, `tvci-sample`, `dang-sample`) tiếp tục bị quarantine (cách ly).

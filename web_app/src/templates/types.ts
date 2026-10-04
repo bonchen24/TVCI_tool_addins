@@ -42,6 +42,19 @@ export interface AdministrativeTemplateVerification {
     version?: string;
     effectiveDate?: string;
     sha256: string;
+  } | {
+    kind: 'generated-canonical';
+    name: string;
+    path: string;
+    sha256: string;
+    version?: string;
+    ruleSpecVersion: string;
+    generatorVersion: string;
+    generatorSha256: string;
+    normativeSources: Array<{ label: string; id: string }>;
+    referenceSources: string[];
+    structuralQa: { status: 'passed' | 'failed' | 'unverified'; reportPath: string; sha256: string };
+    visualQa: { status: 'passed' | 'failed' | 'unverified'; renderer?: string; reportPath: string; sha256: string };
   } | null;
   runtime: {
     path: string;

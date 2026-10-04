@@ -32,6 +32,22 @@ describe("template modal search regression", () => {
       source: { kind: "bundled", path: "/templates/shared.docx" },
       version: "1.0",
       status: "active",
+      verification: {
+        status: "verified",
+        reason: "Test-only provenance fixture.",
+        canonicalSource: {
+          kind: "official-canonical-docx",
+          name: "Test canonical DOCX",
+          path: "/canonical_templates/tests/shared-search-record.docx",
+          sha256: "a".repeat(64),
+        },
+        runtime: {
+          path: "/templates/shared.docx",
+          sha256: "a".repeat(64),
+          derivedFromCanonicalSha256: "a".repeat(64),
+          comparison: "byte-exact",
+        },
+      },
     };
 
     for (const query of ["phieu yeu cau", "kiem dinh", "bao cao", "quyet dinh", "cong van"]) {

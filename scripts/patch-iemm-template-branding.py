@@ -1,4 +1,5 @@
 from __future__ import annotations
+from template_path_safety import assert_mutable_runtime_path, filter_runtime_docx
 
 import os
 import sys
@@ -29,6 +30,7 @@ NEW_LABEL = "Mẫu văn bản IEMM".encode("utf-8")
 
 
 def patch_footer_branding(path: Path) -> int:
+    assert_mutable_runtime_path(path)
     with ZipFile(path, "r") as source:
         entries = [(info, source.read(info.filename)) for info in source.infolist()]
 
@@ -62,7 +64,7 @@ def patch_footer_branding(path: Path) -> int:
 
 def main() -> int:
     template_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("templates/iemm")
-    actual_files = {path.name for path in template_dir.glob("*.docx")}
+    actual_files = {path.name for path in filter_runtime_docx(template_dir.glob("*.docx"))}
     if actual_files != EXPECTED_FILES:
         missing = sorted(EXPECTED_FILES - actual_files)
         unexpected = sorted(actual_files - EXPECTED_FILES)

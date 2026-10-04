@@ -1,3 +1,4 @@
+from template_path_safety import assert_mutable_runtime_path, filter_runtime_docx
 import glob
 import os
 import re
@@ -139,6 +140,7 @@ TVCI_SAMPLE_HEADER_TABLE = f"""<w:tbl>
 </w:tbl>"""
 
 def clean_and_standardize_template(docx_path: str) -> bool:
+    assert_mutable_runtime_path(docx_path)
     with zipfile.ZipFile(docx_path, "r") as z_in:
         entries = [(info, z_in.read(info.filename)) for info in z_in.infolist() if "customXml" not in info.filename]
 
@@ -278,9 +280,10 @@ def main():
     src_08 = os.path.join(templates_dir, "iemm", "08-to-trinh-cua-don-vi-gui-vien.docx")
     dst_to_trinh = os.path.join(templates_dir, "iemm-to-trinh-noi-bo-template.docx")
     if os.path.exists(src_08):
+        assert_mutable_runtime_path(dst_to_trinh)
         shutil.copyfile(src_08, dst_to_trinh)
 
-    files = [f for f in glob.glob(os.path.join(templates_dir, "**", "*.docx"), recursive=True) if not os.path.basename(f).startswith("~$")]
+    files = [str(path) for path in filter_runtime_docx(glob.glob(os.path.join(templates_dir, "**", "*.docx"), recursive=True)) if not os.path.basename(path).startswith("~$")]
     print(f"Standardizing {len(files)} templates in templates/ ...")
     
     count = 0
@@ -290,9 +293,8 @@ def main():
             count += 1
             
     print(f"\nSyncing to {dist_templates_dir} ...")
-    if os.path.exists(dist_templates_dir):
-        shutil.rmtree(dist_templates_dir)
-    shutil.copytree(templates_dir, dist_templates_dir)
+    assert_mutable_runtime_path(dist_templates_dir)
+    shutil.copytree(templates_dir, dist_templates_dir, dirs_exist_ok=True, ignore=shutil.ignore_patterns("canonical"))
     print(f"Sync complete: {count}/{len(files)} templates standardized.")
 
 if __name__ == "__main__":

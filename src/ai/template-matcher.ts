@@ -1,4 +1,4 @@
-import type { TemplateRecord } from "../templates/library";
+import { isTemplateSelectable, type TemplateRecord } from "../templates/library";
 import type { TemplateFormSchema, TemplateFormValues } from "../templates/form-schema";
 
 export type DraftSectionKind =
@@ -36,14 +36,15 @@ export interface ParsedDraftSections {
 }
 
 export function suggestMatchingTemplates(text: string, templates: TemplateRecord[]): TemplateRecord[] {
-  if (!text || !templates.length) return templates.slice(0, 5);
+  const availableTemplates = templates.filter(isTemplateSelectable);
+  if (!text || !availableTemplates.length) return availableTemplates.slice(0, 5);
 
   const lower = text.toLowerCase();
 
   // Keyword scoring map
   const scores = new Map<string, number>();
 
-  for (const t of templates) {
+  for (const t of availableTemplates) {
     let score = 0;
     const docType = t.documentType.toLowerCase();
     const name = t.name.toLowerCase();
@@ -86,12 +87,12 @@ export function suggestMatchingTemplates(text: string, templates: TemplateRecord
   }
 
   // Sort by score descending
-  const sorted = [...templates].sort((a, b) => (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0));
+  const sorted = [...availableTemplates].sort((a, b) => (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0));
 
   // If top score is 0, return all templates in catalog order
   const topScore = scores.get(sorted[0]?.id ?? "") ?? 0;
   if (topScore === 0) {
-    return templates;
+    return availableTemplates;
   }
 
   return sorted;

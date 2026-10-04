@@ -1,0 +1,2164 @@
+{
+  "ruleSpecVersion": "1.0.0",
+  "generatorVersion": "1.0.0",
+  "sources": [
+    {
+      "key": "nd30",
+      "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+      "authority": "Chính phủ",
+      "reference": "30/2020/NĐ-CP",
+      "url": "https://vanban.chinhphu.vn/default.aspx?docid=199378&pageid=27160",
+      "driveFileId": null,
+      "priority": 1,
+      "scope": "Common administrative document format; NĐ30 is the technical baseline."
+    },
+    {
+      "key": "iemm-q731",
+      "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+      "authority": "Viện Cơ khí Năng lượng và Mỏ - Vinacomin",
+      "reference": "QĐ 731-2023",
+      "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+      "priority": 2,
+      "scope": "IEMM correspondence rules and internal document governance. Source binary was not available in this workspace."
+    },
+    {
+      "key": "iemm-plvii",
+      "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+      "authority": "Viện Cơ khí Năng lượng và Mỏ - Vinacomin",
+      "reference": "QĐ 731-2023, Phụ lục VII",
+      "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+      "priority": 2,
+      "scope": "Document-type mapping and forms, recorded as external source metadata."
+    },
+    {
+      "key": "iemm-pliv",
+      "label": "3. Phu luc IV Chi tiet mau chu- Quy che van thu Vien.doc",
+      "authority": "Viện Cơ khí Năng lượng và Mỏ - Vinacomin",
+      "reference": "QĐ 731-2023, Phụ lục IV",
+      "driveFileId": "1hqwE4JeEf9pnlHupr4-t3wiiE7Q26vTJ",
+      "priority": 2,
+      "scope": "Institute typography reference; exact binary was not available in this workspace."
+    },
+    {
+      "key": "iemm-main-doc",
+      "label": "1. Quy che Chinh ve Cong tac van thu cua Vien.doc",
+      "authority": "Viện Cơ khí Năng lượng và Mỏ - Vinacomin",
+      "reference": "QĐ 731-2023",
+      "driveFileId": "1j0XbWVFTUzUCmRNIt2a-o7_pSlx1S2Qt",
+      "priority": 2,
+      "scope": "Institute correspondence rules."
+    },
+    {
+      "key": "iemm-specific-rules",
+      "label": "4. Quy dinh rieng ve Van ban cua Vien.ppt",
+      "authority": "Viện Cơ khí Năng lượng và Mỏ - Vinacomin",
+      "reference": "Quy định riêng về văn bản của Viện",
+      "driveFileId": null,
+      "priority": 2,
+      "scope": "Includes the catalog-recorded TVCI letter code /VCNM-TTTN and notice code /TB-VCNM. Drive ID is not present in supplied metadata."
+    },
+    {
+      "key": "iemm-type-guide",
+      "label": "5. Van ban- Van thu (HD cu the tung loai van ban).ppt",
+      "authority": "Viện Cơ khí Năng lượng và Mỏ - Vinacomin",
+      "reference": "Hướng dẫn từng loại văn bản",
+      "driveFileId": null,
+      "priority": 2,
+      "scope": "Type-specific guidance referenced by the existing catalog; Drive ID is not present in supplied metadata."
+    },
+    {
+      "key": "tkv-1456",
+      "label": "Quy chế quản lý công tác Văn thư, Lưu trữ TKV ban hành theo QĐ 1456/QĐ-TKV năm 2026",
+      "authority": "Tập đoàn Công nghiệp Than - Khoáng sản Việt Nam",
+      "reference": "1456/QĐ-TKV (2026)",
+      "driveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+      "priority": 2,
+      "scope": "Current TKV governance source; exact binary was not available in this workspace."
+    },
+    {
+      "key": "tkv-1456-app-1",
+      "label": "Phụ lục 1 của QĐ 1456/QĐ-TKV năm 2026",
+      "authority": "Tập đoàn Công nghiệp Than - Khoáng sản Việt Nam",
+      "reference": "1456/QĐ-TKV, Phụ lục 1",
+      "driveFileId": null,
+      "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+      "priority": 2,
+      "scope": "Drive file ID was not supplied and is not inferred."
+    },
+    {
+      "key": "tkv-1456-app-2",
+      "label": "Phụ lục 2 của QĐ 1456/QĐ-TKV năm 2026",
+      "authority": "Tập đoàn Công nghiệp Than - Khoáng sản Việt Nam",
+      "reference": "1456/QĐ-TKV, Phụ lục 2",
+      "driveFileId": null,
+      "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+      "priority": 2,
+      "scope": "Drive file ID was not supplied and is not inferred."
+    },
+    {
+      "key": "tkv-1456-app-3",
+      "label": "Phụ lục 3 của QĐ 1456/QĐ-TKV năm 2026",
+      "authority": "Tập đoàn Công nghiệp Than - Khoáng sản Việt Nam",
+      "reference": "1456/QĐ-TKV, Phụ lục 3",
+      "driveFileId": null,
+      "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+      "priority": 2,
+      "scope": "Drive file ID was not supplied and is not inferred."
+    },
+    {
+      "key": "tkv-1456-app-4",
+      "label": "Phụ lục 4 của QĐ 1456/QĐ-TKV năm 2026",
+      "authority": "Tập đoàn Công nghiệp Than - Khoáng sản Việt Nam",
+      "reference": "1456/QĐ-TKV, Phụ lục 4",
+      "driveFileId": null,
+      "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+      "priority": 2,
+      "scope": "Drive file ID was not supplied and is not inferred."
+    },
+    {
+      "key": "tkv-586-2021",
+      "label": "Hướng dẫn về văn bản của TKV số 586/2021",
+      "authority": "Tập đoàn Công nghiệp Than - Khoáng sản Việt Nam",
+      "reference": "586/2021",
+      "driveFileId": "1imdd_8aeS-WYJXYkRhiZlwtbqOjxiGUi",
+      "priority": 3,
+      "scope": "Applies only where not superseded by QĐ 1456/2026."
+    },
+    {
+      "key": "tkv-history-2018",
+      "label": "The thuc Van ban TKV-2018(Final).docx",
+      "authority": "Tập đoàn Công nghiệp Than - Khoáng sản Việt Nam",
+      "reference": "Historical layout reference (2018)",
+      "driveFileId": "1lKEgbA1VScYtmDznZ3QmhSFeJdn4hyl4",
+      "priority": 4,
+      "scope": "Historical presentation reference only; never overrides QĐ 1456/2026."
+    },
+    {
+      "key": "web-template-schemas",
+      "label": "Existing web app document-type field schemas",
+      "authority": "TVCI DocMaster application",
+      "reference": "web_app/src/templates/form-schema.ts",
+      "driveFileId": null,
+      "priority": 5,
+      "scope": "Internal field/type inventory for types without a supplied regulation-specific form."
+    },
+    {
+      "key": "internal-leave-request",
+      "label": "System-defined internal leave request form",
+      "authority": "TVCI Word Add-in",
+      "reference": "Internally-defined",
+      "driveFileId": null,
+      "priority": 5,
+      "scope": "Internal application form; not claimed as a statutory template."
+    }
+  ],
+  "placeholders": [
+    "{SO_VAN_BAN}",
+    "{KY_HIEU}",
+    "{DIA_DANH}",
+    "{NGAY_THANG}",
+    "{TRICH_YEU}",
+    "{NOI_DUNG}",
+    "{CHUC_VU_NGUOI_KY}",
+    "{HO_TEN_NGUOI_KY}",
+    "{NOI_NHAN}",
+    "{CAN_CU_1}",
+    "{CAN_CU_2}",
+    "{DIEU_1}",
+    "{DIEU_2}",
+    "{DIEU_3}",
+    "{TEN_VAN_BAN}",
+    "{DON_VI_CHU_TRI}",
+    "{THOI_GIAN}",
+    "{DIA_DIEM}",
+    "{CHU_TRI}",
+    "{THU_KY}",
+    "{NGUOI_DU_HOP}",
+    "{LY_DO}",
+    "{NGAY_BAT_DAU}",
+    "{NGAY_KET_THUC}",
+    "{SO_NGAY}",
+    "{NGUOI_BAN_GIAO}",
+    "{SAI_NOI_DUNG}",
+    "{DUNG_NOI_DUNG}",
+    "{VAN_BAN_GOC}",
+    "{DON_VI_NHAN}",
+    "{DON_VI_CAM_KET}",
+    "{LOAI_VAN_BAN}",
+    "{CO_QUAN_CHU_QUAN}"
+  ],
+  "commonStyle": {
+    "page": {
+      "paper": "A4",
+      "orientation": "portrait",
+      "widthMm": 210,
+      "heightMm": 297,
+      "marginsMm": {
+        "top": 20,
+        "bottom": 20,
+        "left": 30,
+        "right": 15
+      }
+    },
+    "font": {
+      "name": "Times New Roman",
+      "unicode": true,
+      "color": "000000",
+      "bodyPt": 13
+    },
+    "body": {
+      "alignment": "justify",
+      "spaceBeforePt": 2,
+      "spaceAfterPt": 2,
+      "firstLineIndentMm": 10,
+      "lineSpacingMultiple": 1.2
+    },
+    "headerGrid": {
+      "columns": 2,
+      "leftWidthRatio": 0.5,
+      "rightWidthRatio": 0.5,
+      "autofit": false,
+      "borders": "none",
+      "bottomRules": true,
+      "fixedHeight": false
+    },
+    "organizationParent": {
+      "fontPt": 12,
+      "uppercase": true,
+      "bold": false,
+      "alignment": "center",
+      "bottomRule": false
+    },
+    "organizationIssuer": {
+      "fontPt": 12,
+      "uppercase": true,
+      "bold": true,
+      "alignment": "center",
+      "bottomRule": true
+    },
+    "organizationDepartment": {
+      "fontPt": 11,
+      "uppercase": true,
+      "bold": false,
+      "alignment": "center"
+    },
+    "nationalHeading": {
+      "text": "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM",
+      "fontPt": 12,
+      "uppercase": true,
+      "bold": true,
+      "alignment": "center"
+    },
+    "nationalMotto": {
+      "text": "Độc lập - Tự do - Hạnh phúc",
+      "fontPt": 13,
+      "bold": true,
+      "alignment": "center",
+      "bottomRule": true
+    },
+    "symbol": {
+      "fontPt": 13,
+      "alignment": "left",
+      "bold": false
+    },
+    "placeDate": {
+      "fontPt": 13,
+      "alignment": "right",
+      "italic": true
+    },
+    "documentTitle": {
+      "fontPt": 13,
+      "uppercase": true,
+      "bold": true,
+      "alignment": "center",
+      "spaceBeforePt": 8,
+      "spaceAfterPt": 2
+    },
+    "subject": {
+      "fontPt": 13,
+      "bold": false,
+      "italic": false,
+      "alignment": "center",
+      "spaceBeforePt": 2,
+      "spaceAfterPt": 4
+    },
+    "subjectBold": {
+      "fontPt": 13,
+      "bold": true,
+      "italic": false,
+      "alignment": "center",
+      "spaceBeforePt": 2,
+      "spaceAfterPt": 4,
+      "bottomRule": true
+    },
+    "bodyParagraph": {
+      "fontPt": 13,
+      "alignment": "justify",
+      "spaceBeforePt": 2,
+      "spaceAfterPt": 2,
+      "firstLineIndentMm": 10,
+      "lineSpacingMultiple": 1.2
+    },
+    "bodyLabel": {
+      "fontPt": 13,
+      "bold": true,
+      "alignment": "left",
+      "spaceBeforePt": 4,
+      "spaceAfterPt": 1
+    },
+    "recipientHeading": {
+      "fontPt": 12,
+      "bold": true,
+      "italic": true,
+      "alignment": "left"
+    },
+    "recipientBody": {
+      "fontPt": 11,
+      "alignment": "left",
+      "firstLineIndentMm": 0
+    },
+    "signatureRole": {
+      "fontPt": 13,
+      "uppercase": true,
+      "bold": true,
+      "alignment": "center"
+    },
+    "signatureName": {
+      "fontPt": 13,
+      "bold": true,
+      "alignment": "center",
+      "spaceBeforePt": 24
+    },
+    "copyCertification": {
+      "fontPt": 11,
+      "alignment": "center",
+      "bold": true
+    },
+    "pageNumber": {
+      "fontPt": 13,
+      "position": "top-center",
+      "suppressFirstPage": true
+    },
+    "recipientLine": {
+      "fontPt": 13,
+      "alignment": "left",
+      "bold": false,
+      "firstLineIndentMm": 0,
+      "spaceBeforePt": 2,
+      "spaceAfterPt": 2
+    },
+    "headerFooter": {
+      "headerDistanceMm": 8,
+      "footerDistanceMm": 10
+    },
+    "horizontalRule": {
+      "style": "single",
+      "color": "000000",
+      "sizeEighthPt": 4,
+      "spacePt": 2
+    },
+    "tableCellMarginsMm": {
+      "top": 0,
+      "start": 0,
+      "bottom": 0,
+      "end": 0
+    }
+  },
+  "organizations": {
+    "IEMM": {
+      "parentAgency": "TẬP ĐOÀN CÔNG NGHIỆP THAN - KHOÁNG SẢN VIỆT NAM",
+      "issuingAgency": "VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN",
+      "department": null,
+      "sourceNotes": [
+        "The issuing-agency string is copied exactly from src/templates/catalog.ts and web_app/src/templates/form-schema.ts.",
+        "The parent-agency string comes from the existing web_app TwoColumnHeaderConfig example; confirm against the source rule document before treating the legal hierarchy as source-verified."
+      ]
+    },
+    "TVCI": {
+      "parentAgency": "TẬP ĐOÀN CÔNG NGHIỆP THAN - KHOÁNG SẢN VIỆT NAM",
+      "issuingAgency": "VIỆN CƠ KHÍ NĂNG LƯỢNG VÀ MỎ - VINACOMIN",
+      "department": "TRUNG TÂM THỬ NGHIỆM - KIỂM ĐỊNH CÔNG NGHIỆP",
+      "sourceNotes": [
+        "All three strings are present in existing code/catalog records. Office catalog metadata states that TVCI Công văn is prepared by the Center and issued in the Institute's name, with symbol /VCNM-TTTN.",
+        "The exact printed department line must be confirmed from QĐ 1456/2026 and the Institute's internal rules when source binaries are available."
+      ]
+    },
+    "TKV": {
+      "parentAgency": "{CO_QUAN_CHU_QUAN}",
+      "issuingAgency": "TẬP ĐOÀN CÔNG NGHIỆP THAN - KHOÁNG SẢN VIỆT NAM",
+      "department": null,
+      "sourceNotes": [
+        "The issuer string is copied from the existing web_app TwoColumnHeaderConfig example; the superior agency is not specified in current catalog metadata and remains a visible placeholder."
+      ]
+    }
+  },
+  "documentTypes": {
+    "decision_individual": {
+      "requiredLabels": [
+        "QUYẾT ĐỊNH",
+        "Về việc:",
+        "Căn cứ",
+        "QUYẾT ĐỊNH:",
+        "Điều 1.",
+        "Điều 2.",
+        "Điều 3.",
+        "Nơi nhận:"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "QUYẾT ĐỊNH"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subject"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Căn cứ {CAN_CU_1}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Căn cứ {CAN_CU_2}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Theo đề nghị của {DON_VI_CHU_TRI},",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "QUYẾT ĐỊNH:"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 1. {DIEU_1}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 2. {DIEU_2}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 3. {DIEU_3}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "decision_issue": {
+      "requiredLabels": [
+        "QUYẾT ĐỊNH",
+        "Về việc ban hành hoặc phê duyệt",
+        "Căn cứ",
+        "QUYẾT ĐỊNH:",
+        "Điều 1.",
+        "Điều 2.",
+        "Điều 3.",
+        "Nơi nhận:"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "QUYẾT ĐỊNH"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc ban hành hoặc phê duyệt {TEN_VAN_BAN}",
+          "style": "subject"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Căn cứ {CAN_CU_1}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Theo đề nghị của {DON_VI_CHU_TRI},",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "QUYẾT ĐỊNH:"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 1. Ban hành kèm theo Quyết định này {TEN_VAN_BAN}.",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 2. Trách nhiệm tổ chức thực hiện: {DIEU_2}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 3. Quyết định này có hiệu lực kể từ ngày ký. {DIEU_3}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "regulation": {
+      "requiredLabels": [
+        "QUY CHẾ / QUY ĐỊNH",
+        "I. Phạm vi",
+        "II. Quy định",
+        "III. Tổ chức thực hiện",
+        "Điều 1."
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "QUY CHẾ / QUY ĐỊNH"
+        },
+        {
+          "kind": "subject",
+          "text": "Ban hành kèm theo Quyết định số {SO_VAN_BAN}/{KY_HIEU}",
+          "style": "subject"
+        },
+        {
+          "kind": "label",
+          "text": "Chương I. QUY ĐỊNH CHUNG"
+        },
+        {
+          "kind": "label",
+          "text": "I. Phạm vi, đối tượng áp dụng"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 1. Phạm vi điều chỉnh và đối tượng áp dụng: {NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "Chương II. QUY ĐỊNH CỤ THỂ"
+        },
+        {
+          "kind": "label",
+          "text": "II. Quy định"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 2. {NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "Chương III. TỔ CHỨC THỰC HIỆN"
+        },
+        {
+          "kind": "label",
+          "text": "III. Tổ chức thực hiện"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 3. Trách nhiệm thi hành: {NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "signature"
+        }
+      ]
+    },
+    "accompanying_document": {
+      "requiredLabels": [
+        "{TEN_VAN_BAN}",
+        "Mục tiêu",
+        "Nội dung",
+        "Tiến độ thực hiện",
+        "Tổ chức thực hiện"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "{TEN_VAN_BAN}"
+        },
+        {
+          "kind": "subject",
+          "text": "Ban hành kèm theo Quyết định số {SO_VAN_BAN}/{KY_HIEU}",
+          "style": "subject"
+        },
+        {
+          "kind": "label",
+          "text": "1. Mục tiêu, yêu cầu"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "2. Nội dung"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "3. Tiến độ thực hiện"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{THOI_GIAN} — {DON_VI_CHU_TRI}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "4. Tổ chức thực hiện"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "signature"
+        }
+      ]
+    },
+    "official_letter": {
+      "requiredLabels": [
+        "V/v",
+        "Kính gửi:",
+        "Nơi nhận:"
+      ],
+      "forbiddenLabels": [
+        "CÔNG VĂN"
+      ],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "subject",
+          "text": "V/v {TRICH_YEU}",
+          "style": "subject"
+        },
+        {
+          "kind": "recipient"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Trân trọng đề nghị phối hợp thực hiện./.",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "internal_notice": {
+      "requiredLabels": [
+        "THÔNG BÁO",
+        "Về việc:",
+        "Nơi nhận:"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "THÔNG BÁO"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subjectBold"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "Tổ chức thực hiện"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{DON_VI_CHU_TRI} có trách nhiệm thông tin và tổ chức thực hiện nội dung thông báo này.",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "proposal_institute": {
+      "requiredLabels": [
+        "TỜ TRÌNH",
+        "Kính gửi:",
+        "Sự cần thiết",
+        "Đề xuất, kiến nghị",
+        "Kính trình"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "TỜ TRÌNH"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subjectBold"
+        },
+        {
+          "kind": "recipient"
+        },
+        {
+          "kind": "label",
+          "text": "1. Sự cần thiết và căn cứ"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{CAN_CU_1} {NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "2. Nội dung đề xuất"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "3. Đề xuất, kiến nghị"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Kính trình {NOI_NHAN} xem xét, quyết định./.",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "proposal_unit": {
+      "requiredLabels": [
+        "TỜ TRÌNH",
+        "Kính gửi:",
+        "Nội dung đề xuất",
+        "Kiến nghị"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "TỜ TRÌNH"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subjectBold"
+        },
+        {
+          "kind": "recipient"
+        },
+        {
+          "kind": "label",
+          "text": "1. Tình hình và căn cứ đề xuất"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{CAN_CU_1} {NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "2. Nội dung đề xuất"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "3. Kiến nghị"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "minutes": {
+      "requiredLabels": [
+        "BIÊN BẢN",
+        "Thời gian:",
+        "Địa điểm:",
+        "Thành phần:",
+        "Diễn biến",
+        "Kết luận"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "BIÊN BẢN"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subjectBold"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Thời gian: {THOI_GIAN}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Địa điểm: {DIA_DIEM}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Chủ trì: {CHU_TRI}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Thư ký: {THU_KY}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "Thành phần:"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NGUOI_DU_HOP}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "Diễn biến"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "Kết luận"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "meeting_signatures"
+        }
+      ]
+    },
+    "general_titled_document": {
+      "requiredLabels": [
+        "{TEN_VAN_BAN}",
+        "Về việc:",
+        "Nội dung",
+        "Tổ chức thực hiện"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "{TEN_VAN_BAN}"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subjectBold"
+        },
+        {
+          "kind": "label",
+          "text": "I. Nội dung"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "II. Tổ chức thực hiện"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "certified_copy": {
+      "requiredLabels": [
+        "BẢN SAO",
+        "Số:",
+        "SAO Y BẢN CHÍNH",
+        "Ngày:",
+        "Nơi nhận:"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "BẢN SAO"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Văn bản được sao: {VAN_BAN_GOC}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Hình thức sao: {TRICH_YEU}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "copy_certification"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "meeting_invitation": {
+      "requiredLabels": [
+        "THƯ MỜI",
+        "Kính gửi:",
+        "Thời gian:",
+        "Địa điểm:",
+        "Chủ trì:"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "THƯ MỜI"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subject"
+        },
+        {
+          "kind": "recipient"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Trân trọng kính mời tham dự cuộc họp với thông tin sau:",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Thời gian: {THOI_GIAN}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Địa điểm: {DIA_DIEM}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Chủ trì: {CHU_TRI}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Đề nghị chuẩn bị: {NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "meeting_postponement": {
+      "requiredLabels": [
+        "THƯ BÁO HOÃN HỌP",
+        "Kính gửi:",
+        "Cuộc họp dự kiến:",
+        "Lịch mới:"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "THƯ BÁO HOÃN HỌP"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subject"
+        },
+        {
+          "kind": "recipient"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Cuộc họp dự kiến: {THOI_GIAN} tại {DIA_DIEM}.",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Lý do thay đổi: {LY_DO}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Lịch mới: {THOI_GIAN}. Trường hợp chưa có lịch mới, đơn vị sẽ thông báo sau.",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "correction_letter": {
+      "requiredLabels": [
+        "V/v đính chính",
+        "Kính gửi:",
+        "Văn bản gốc:",
+        "Nội dung đã ghi:",
+        "Nội dung đúng:"
+      ],
+      "forbiddenLabels": [
+        "CÔNG VĂN ĐÍNH CHÍNH"
+      ],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "subject",
+          "text": "V/v đính chính {TRICH_YEU}",
+          "style": "subject"
+        },
+        {
+          "kind": "recipient"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Văn bản gốc: {VAN_BAN_GOC}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Nội dung đã ghi: {SAI_NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Nội dung đúng: {DUNG_NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "report": {
+      "requiredLabels": [
+        "BÁO CÁO",
+        "Về việc:",
+        "I. Kết quả",
+        "II. Đánh giá",
+        "IV. Kiến nghị"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "BÁO CÁO"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subjectBold"
+        },
+        {
+          "kind": "label",
+          "text": "I. Kết quả thực hiện"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "II. Đánh giá"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "III. Khó khăn, nguyên nhân"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "IV. Kiến nghị"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "plan": {
+      "requiredLabels": [
+        "KẾ HOẠCH",
+        "Về việc:",
+        "I. Mục tiêu",
+        "II. Nội dung và tiến độ",
+        "III. Phân công",
+        "IV. Tổ chức thực hiện"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "KẾ HOẠCH"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subjectBold"
+        },
+        {
+          "kind": "label",
+          "text": "I. Mục tiêu, yêu cầu"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "II. Nội dung và tiến độ"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Thời gian: {THOI_GIAN}. Công việc: {NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "III. Phân công thực hiện"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{DON_VI_CHU_TRI}: {NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "IV. Tổ chức thực hiện"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "leave_request": {
+      "requiredLabels": [
+        "ĐƠN XIN NGHỈ PHÉP",
+        "Kính gửi:",
+        "Thời gian nghỉ:",
+        "Lý do:",
+        "Người bàn giao công việc:"
+      ],
+      "forbiddenLabels": [
+        "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM"
+      ],
+      "blocks": [
+        {
+          "kind": "place_date"
+        },
+        {
+          "kind": "title",
+          "text": "ĐƠN XIN NGHỈ PHÉP"
+        },
+        {
+          "kind": "recipient"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Họ và tên: {HO_TEN_NGUOI_KY}    Đơn vị: {DON_VI_CHU_TRI}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Thời gian nghỉ: từ {NGAY_BAT_DAU} đến {NGAY_KET_THUC} ({SO_NGAY} ngày).",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Lý do: {LY_DO}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Người bàn giao công việc: {NGUOI_BAN_GIAO}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "leave_signatures"
+        }
+      ],
+      "headerMode": "internal"
+    },
+    "work_program": {
+      "requiredLabels": [
+        "CHƯƠNG TRÌNH CÔNG TÁC",
+        "Mục đích",
+        "Thời gian",
+        "Nội dung chương trình",
+        "Phân công"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "CHƯƠNG TRÌNH CÔNG TÁC"
+        },
+        {
+          "kind": "subject",
+          "text": "{TRICH_YEU}",
+          "style": "subjectBold"
+        },
+        {
+          "kind": "label",
+          "text": "1. Mục đích, yêu cầu"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "2. Thời gian, địa điểm"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{THOI_GIAN} — {DIA_DIEM}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "3. Nội dung chương trình"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "4. Phân công"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{DON_VI_CHU_TRI}: {NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "introduction_letter": {
+      "requiredLabels": [
+        "GIẤY GIỚI THIỆU",
+        "Kính gửi:",
+        "Cử ông/bà:",
+        "Đến liên hệ về việc:",
+        "Có giá trị đến:"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "GIẤY GIỚI THIỆU"
+        },
+        {
+          "kind": "recipient"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Cử ông/bà: {HO_TEN_NGUOI_KY}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Chức vụ/đơn vị: {CHUC_VU_NGUOI_KY} — {DON_VI_CHU_TRI}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Đến liên hệ về việc: {TRICH_YEU}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Có giá trị đến: {NGAY_KET_THUC}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "signature"
+        }
+      ]
+    },
+    "commitment": {
+      "requiredLabels": [
+        "BẢN CAM KẾT",
+        "Nội dung cam kết",
+        "Người cam kết",
+        "XÁC NHẬN CỦA ĐƠN VỊ"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "place_date"
+        },
+        {
+          "kind": "title",
+          "text": "BẢN CAM KẾT"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subject"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Người cam kết: {HO_TEN_NGUOI_KY} — {DON_VI_CAM_KET}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "Nội dung cam kết"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Thời hạn thực hiện: {NGAY_KET_THUC}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "commitment_signatures"
+        }
+      ],
+      "headerMode": "internal"
+    },
+    "tvci_official_letter": {
+      "requiredLabels": [
+        "V/v",
+        "Kính gửi:",
+        "/VCNM-TTTN",
+        "Nơi nhận:"
+      ],
+      "forbiddenLabels": [
+        "CÔNG VĂN"
+      ],
+      "blocks": [
+        {
+          "kind": "number_date",
+          "symbolSuffix": "/VCNM-TTTN"
+        },
+        {
+          "kind": "subject",
+          "text": "V/v {TRICH_YEU}",
+          "style": "subject"
+        },
+        {
+          "kind": "recipient"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Trân trọng đề nghị phối hợp thực hiện./.",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "tvci_notice": {
+      "requiredLabels": [
+        "THÔNG BÁO",
+        "/TB-VCNM",
+        "Nơi nhận:"
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date",
+          "symbolSuffix": "/TB-VCNM"
+        },
+        {
+          "kind": "title",
+          "text": "THÔNG BÁO"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subjectBold"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{NOI_DUNG}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "Tổ chức thực hiện"
+        },
+        {
+          "kind": "paragraph",
+          "text": "{DON_VI_CHU_TRI} có trách nhiệm tổ chức thực hiện và thông tin kết quả.",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    },
+    "tkv_decision": {
+      "requiredLabels": [
+        "QUYẾT ĐỊNH",
+        "Về việc:",
+        "QUYẾT ĐỊNH:",
+        "Điều 1.",
+        "Điều 2.",
+        "Điều 3."
+      ],
+      "forbiddenLabels": [],
+      "blocks": [
+        {
+          "kind": "number_date"
+        },
+        {
+          "kind": "title",
+          "text": "QUYẾT ĐỊNH"
+        },
+        {
+          "kind": "subject",
+          "text": "Về việc: {TRICH_YEU}",
+          "style": "subject"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Căn cứ {CAN_CU_1}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Theo đề nghị của {DON_VI_CHU_TRI},",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "label",
+          "text": "QUYẾT ĐỊNH:"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 1. {DIEU_1}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 2. {DIEU_2}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "paragraph",
+          "text": "Điều 3. {DIEU_3}",
+          "style": "bodyParagraph"
+        },
+        {
+          "kind": "recipients_signature"
+        }
+      ]
+    }
+  },
+  "templates": [
+    {
+      "key": "iemm-quyet-dinh-ca-biet",
+      "name": "Quyết định cá biệt của Viện",
+      "organization": "IEMM",
+      "typeSchema": "decision_individual",
+      "canonicalFile": "iemm/01-quyet-dinh-ca-biet.docx",
+      "runtimePath": "/templates/iemm/01-quyet-dinh-ca-biet.docx",
+      "catalogIds": [
+        "iemm-qd-001",
+        "web:iemm-01"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii",
+        "iemm-pliv",
+        "iemm-type-guide"
+      ],
+      "sourceNotes": [
+        "Existing catalog specifies a centered bold document type and subject and an Articles structure."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/Q?-VCNM"
+    },
+    {
+      "key": "iemm-quyet-dinh-ban-hanh",
+      "name": "Quyết định ban hành hoặc phê duyệt văn bản của Viện",
+      "organization": "IEMM",
+      "typeSchema": "decision_issue",
+      "canonicalFile": "iemm/02-quyet-dinh-ban-hanh-van-ban.docx",
+      "runtimePath": "/templates/iemm/02-quyet-dinh-ban-hanh-van-ban.docx",
+      "catalogIds": [
+        "iemm-qd-ban-hanh-001",
+        "web:iemm-02"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii",
+        "iemm-type-guide"
+      ],
+      "sourceNotes": [
+        "Includes a separate Article for the attached/approved text and a final responsibility/effect clause."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/Q?-VCNM"
+    },
+    {
+      "key": "iemm-quy-che",
+      "name": "Quy chế, quy định của Viện",
+      "organization": "IEMM",
+      "typeSchema": "regulation",
+      "canonicalFile": "iemm/03-quy-che-quy-dinh.docx",
+      "runtimePath": "/templates/iemm/03-quy-che-quy-dinh.docx",
+      "catalogIds": [
+        "iemm-quy-che-001"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii"
+      ],
+      "sourceNotes": [
+        "Uses chapters, articles, scope and implementation sections as the application catalog describes."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/{KY_HIEU}"
+    },
+    {
+      "key": "iemm-van-ban-kem-quyet-dinh",
+      "name": "Văn bản ban hành kèm theo quyết định",
+      "organization": "IEMM",
+      "typeSchema": "accompanying_document",
+      "canonicalFile": "iemm/04-van-ban-ban-hanh-kem-theo-quyet-dinh.docx",
+      "runtimePath": "/templates/iemm/04-van-ban-ban-hanh-kem-theo-quyet-dinh.docx",
+      "catalogIds": [
+        "iemm-van-ban-kem-quyet-dinh-001"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii"
+      ],
+      "sourceNotes": [
+        "Separate attached document frame, with objectives, content, timing and implementation blocks."
+      ],
+      "symbolPattern": "V?n b?n k?m theo Quy?t ??nh s? {SO_VAN_BAN}/Q?-VCNM"
+    },
+    {
+      "key": "iemm-cong-van",
+      "name": "Công văn hành chính của Viện",
+      "organization": "IEMM",
+      "typeSchema": "official_letter",
+      "canonicalFile": "iemm/05-cong-van-hanh-chinh.docx",
+      "runtimePath": "/templates/iemm/05-cong-van-hanh-chinh.docx",
+      "catalogIds": [
+        "iemm-cv-001",
+        "web:iemm-03"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii",
+        "iemm-pliv",
+        "iemm-main-doc",
+        "iemm-specific-rules"
+      ],
+      "sourceNotes": [
+        "No Công văn title. Subject uses V/v; the code does not add CV to the document symbol."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/VCNM-{DON_VI_CHU_TRI}"
+    },
+    {
+      "key": "iemm-thong-bao",
+      "name": "Thông báo nội bộ của Viện",
+      "organization": "IEMM",
+      "typeSchema": "internal_notice",
+      "canonicalFile": "iemm/06-thong-bao-noi-bo-vien.docx",
+      "runtimePath": "/templates/iemm/06-thong-bao-noi-bo-vien.docx",
+      "catalogIds": [
+        "iemm-tb-001",
+        "web:iemm-05"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii",
+        "iemm-pliv",
+        "iemm-type-guide"
+      ],
+      "sourceNotes": [
+        "Notice title is distinct; subject is bold, centered and ruled. Symbol does not include a drafting unit."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/TB-VCNM"
+    },
+    {
+      "key": "iemm-to-trinh-vien",
+      "name": "Tờ trình của Viện gửi cấp trên",
+      "organization": "IEMM",
+      "typeSchema": "proposal_institute",
+      "canonicalFile": "iemm/07-to-trinh-cua-vien.docx",
+      "runtimePath": "/templates/iemm/07-to-trinh-cua-vien.docx",
+      "catalogIds": [
+        "iemm-tt-001",
+        "web:iemm-04"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii",
+        "iemm-type-guide"
+      ],
+      "sourceNotes": [
+        "Includes necessity/basis, proposal content, recommendation and recipient blocks."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/TTr-VCNM"
+    },
+    {
+      "key": "iemm-to-trinh-don-vi",
+      "name": "Tờ trình của đơn vị gửi Viện",
+      "organization": "IEMM",
+      "typeSchema": "proposal_unit",
+      "canonicalFile": "iemm/08-to-trinh-cua-don-vi-gui-vien.docx",
+      "runtimePath": "/templates/iemm/08-to-trinh-cua-don-vi-gui-vien.docx",
+      "catalogIds": [
+        "iemm-to-trinh-noi-bo-001",
+        "web:iemm-tt-nb"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii"
+      ],
+      "sourceNotes": [
+        "Internal unit sender is represented in content fields; exact sender name remains user-supplied."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/{KY_HIEU}"
+    },
+    {
+      "key": "iemm-bien-ban",
+      "name": "Biên bản của Viện",
+      "organization": "IEMM",
+      "typeSchema": "minutes",
+      "canonicalFile": "iemm/09-bien-ban.docx",
+      "runtimePath": "/templates/iemm/09-bien-ban.docx",
+      "catalogIds": [
+        "iemm-bb-001",
+        "web:iemm-06"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii"
+      ],
+      "sourceNotes": [
+        "Meeting time/place, participants, proceedings, conclusion and separate chair/secretary signatures are explicit."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/{KY_HIEU}"
+    },
+    {
+      "key": "iemm-van-ban-co-ten-loai",
+      "name": "Văn bản hành chính có tên loại của Viện",
+      "organization": "IEMM",
+      "typeSchema": "general_titled_document",
+      "canonicalFile": "iemm/10-van-ban-co-ten-loai.docx",
+      "runtimePath": "/templates/iemm/10-van-ban-co-ten-loai.docx",
+      "catalogIds": [
+        "iemm-van-ban-co-ten-loai-001"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii",
+        "iemm-pliv"
+      ],
+      "sourceNotes": [
+        "A distinct titled frame. Báo cáo and Kế hoạch have separate canonical files and schemas."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/{LOAI_VAN_BAN}-VCNM"
+    },
+    {
+      "key": "iemm-ban-sao",
+      "name": "Bản sao văn bản của Viện",
+      "organization": "IEMM",
+      "typeSchema": "certified_copy",
+      "canonicalFile": "iemm/11-ban-sao-van-ban.docx",
+      "runtimePath": "/templates/iemm/11-ban-sao-van-ban.docx",
+      "catalogIds": [
+        "iemm-ban-sao-001"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii"
+      ],
+      "sourceNotes": [
+        "Includes source-document identity, copy form, certification/signature and distribution areas."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/{KY_HIEU}"
+    },
+    {
+      "key": "iemm-thu-moi",
+      "name": "Thư mời họp của Viện",
+      "organization": "IEMM",
+      "typeSchema": "meeting_invitation",
+      "canonicalFile": "iemm/12-thu-moi-hop.docx",
+      "runtimePath": "/templates/iemm/12-thu-moi-hop.docx",
+      "catalogIds": [
+        "iemm-thu-moi-001",
+        "web:iemm-10",
+        "web:iemm-thu-moi"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii"
+      ],
+      "sourceNotes": [
+        "Distinct meeting invitation with recipient, time, place, chair and preparation request."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/MH-VCNM"
+    },
+    {
+      "key": "iemm-thu-hoan-hop",
+      "name": "Thư báo hoãn họp của Viện",
+      "organization": "IEMM",
+      "typeSchema": "meeting_postponement",
+      "canonicalFile": "iemm/13-thu-bao-hoan-hop.docx",
+      "runtimePath": "/templates/iemm/13-thu-bao-hoan-hop.docx",
+      "catalogIds": [
+        "iemm-thu-hoan-hop-001"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii"
+      ],
+      "sourceNotes": [
+        "References the original meeting and provides a new schedule field without inventing a date."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/{KY_HIEU}"
+    },
+    {
+      "key": "iemm-cong-van-dinh-chinh",
+      "name": "Công văn đính chính văn bản của Viện",
+      "organization": "IEMM",
+      "typeSchema": "correction_letter",
+      "canonicalFile": "iemm/14-cong-van-dinh-chinh.docx",
+      "runtimePath": "/templates/iemm/14-cong-van-dinh-chinh.docx",
+      "catalogIds": [
+        "iemm-cong-van-dinh-chinh-001",
+        "web:iemm-14"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii",
+        "iemm-main-doc"
+      ],
+      "sourceNotes": [
+        "Uses the official-letter layout with old/correct text; does not add a document-type title."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/VCNM-{DON_VI_CHU_TRI}"
+    },
+    {
+      "key": "iemm-bao-cao",
+      "name": "Báo cáo của Viện",
+      "organization": "IEMM",
+      "typeSchema": "report",
+      "canonicalFile": "iemm/15-bao-cao.docx",
+      "runtimePath": "/templates/iemm/15-bao-cao.docx",
+      "catalogIds": [
+        "iemm-bao-cao-001",
+        "web:iemm-07"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii",
+        "iemm-pliv"
+      ],
+      "sourceNotes": [
+        "Report-specific result, assessment, cause and recommendation sections; no invented statistics."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/BC-VCNM"
+    },
+    {
+      "key": "iemm-ke-hoach",
+      "name": "Kế hoạch của Viện",
+      "organization": "IEMM",
+      "typeSchema": "plan",
+      "canonicalFile": "iemm/16-ke-hoach.docx",
+      "runtimePath": "/templates/iemm/16-ke-hoach.docx",
+      "catalogIds": [
+        "iemm-ke-hoach-001",
+        "web:iemm-08"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-plvii",
+        "iemm-pliv"
+      ],
+      "sourceNotes": [
+        "Plan-specific objective, timeline, assignment and implementation sections; not shared with report/general titled documents."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/KH-VCNM"
+    },
+    {
+      "key": "iemm-don-xin-nghi-phep",
+      "name": "Đơn xin nghỉ phép của Viện",
+      "organization": "IEMM",
+      "typeSchema": "leave_request",
+      "canonicalFile": "iemm/17-don-xin-nghi-phep.docx",
+      "runtimePath": "/templates/iemm/17-don-xin-nghi-phep.docx",
+      "catalogIds": [
+        "iemm-nghi-phep-001",
+        "web:iemm-12",
+        "web:iemm-don-np"
+      ],
+      "normativeSources": [
+        "nd30"
+      ],
+      "referenceSources": [
+        "internal-leave-request"
+      ],
+      "sourceClassification": "internally-defined",
+      "sourceNotes": [
+        "Internal system form, not a statutory form. The source reference is recorded only as historical context."
+      ],
+      "symbolPattern": null
+    },
+    {
+      "key": "iemm-chuong-trinh",
+      "name": "Chương trình công tác",
+      "organization": "IEMM",
+      "typeSchema": "work_program",
+      "canonicalFile": "iemm/18-chuong-trinh-cong-tac.docx",
+      "runtimePath": "/templates/iemm/18-chuong-trinh-cong-tac.docx",
+      "catalogIds": [
+        "web:iemm-09"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "iemm-type-guide",
+        "web-template-schemas"
+      ],
+      "sourceNotes": [
+        "Web catalog type has a separate purpose and schema; not merged into the general titled document."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/{KY_HIEU}"
+    },
+    {
+      "key": "iemm-giay-gioi-thieu",
+      "name": "Giấy giới thiệu",
+      "organization": "IEMM",
+      "typeSchema": "introduction_letter",
+      "canonicalFile": "iemm/19-giay-gioi-thieu.docx",
+      "runtimePath": "/templates/iemm/19-giay-gioi-thieu.docx",
+      "catalogIds": [
+        "web:iemm-11"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "web-template-schemas"
+      ],
+      "sourceNotes": [
+        "Type is present in the web app catalog; authority-specific fields remain caller-provided."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/{KY_HIEU}"
+    },
+    {
+      "key": "iemm-ban-cam-ket",
+      "name": "Bản cam kết",
+      "organization": "IEMM",
+      "typeSchema": "commitment",
+      "canonicalFile": "iemm/20-ban-cam-ket.docx",
+      "runtimePath": "/templates/iemm/20-ban-cam-ket.docx",
+      "catalogIds": [
+        "web:iemm-13"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731"
+      ],
+      "referenceSources": [
+        "web-template-schemas"
+      ],
+      "sourceNotes": [
+        "Type is present in the web app catalog; the commitment statement itself is user-supplied."
+      ],
+      "symbolPattern": null
+    },
+    {
+      "key": "tvci-cong-van",
+      "name": "Công văn của Trung tâm Thử nghiệm - Kiểm định Công nghiệp",
+      "organization": "TVCI",
+      "typeSchema": "tvci_official_letter",
+      "canonicalFile": "tvci-cong-van.docx",
+      "runtimePath": "/templates/tvci-cong-van-template.docx",
+      "catalogIds": [
+        "tvci-cv-001",
+        "web:tvci-cv"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731",
+        "tkv-1456"
+      ],
+      "referenceSources": [
+        "iemm-specific-rules",
+        "iemm-plvii",
+        "iemm-pliv",
+        "iemm-main-doc",
+        "tkv-1456-app-1",
+        "tkv-1456-app-2",
+        "tkv-1456-app-3",
+        "tkv-1456-app-4",
+        "tkv-586-2021",
+        "tkv-history-2018"
+      ],
+      "sourceNotes": [
+        "Catalog metadata says this letter is prepared by TVCI but issued under the Institute's name with /VCNM-TTTN. QĐ1456/2026 takes precedence over older TKV guidance when different."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/VCNM-TTTN"
+    },
+    {
+      "key": "tvci-thong-bao",
+      "name": "Thông báo của Trung tâm Thử nghiệm - Kiểm định Công nghiệp",
+      "organization": "TVCI",
+      "typeSchema": "tvci_notice",
+      "canonicalFile": "tvci-thong-bao.docx",
+      "runtimePath": "/templates/tvci-thong-bao-template.docx",
+      "catalogIds": [
+        "tvci-tb-001",
+        "web:tvci-tb"
+      ],
+      "normativeSources": [
+        "nd30",
+        "iemm-q731",
+        "tkv-1456"
+      ],
+      "referenceSources": [
+        "iemm-specific-rules",
+        "iemm-plvii",
+        "iemm-pliv",
+        "tkv-1456-app-1",
+        "tkv-1456-app-2",
+        "tkv-1456-app-3",
+        "tkv-1456-app-4",
+        "tkv-586-2021",
+        "tkv-history-2018"
+      ],
+      "sourceNotes": [
+        "Catalog specifies /TB-VCNM and says the notice uses the Institute's form; no drafting-unit code is added."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/TB-VCNM"
+    },
+    {
+      "key": "tkv-quyet-dinh",
+      "name": "Quyết định Tập đoàn TKV",
+      "organization": "TKV",
+      "typeSchema": "tkv_decision",
+      "canonicalFile": "tkv-quyet-dinh.docx",
+      "runtimePath": "/templates/tkv-quyet-dinh-template.docx",
+      "catalogIds": [
+        "web:tkv-qd"
+      ],
+      "normativeSources": [
+        "nd30",
+        "tkv-1456"
+      ],
+      "referenceSources": [
+        "tkv-1456-app-1",
+        "tkv-1456-app-2",
+        "tkv-1456-app-3",
+        "tkv-1456-app-4",
+        "tkv-586-2021",
+        "tkv-history-2018"
+      ],
+      "sourceNotes": [
+        "Uses NĐ30 common geometry and the existing catalog decision schema while QĐ1456/2026 content is unavailable; organization hierarchy and TKV-specific overrides remain source notes, not inferred rules."
+      ],
+      "symbolPattern": "S?: {SO_VAN_BAN}/{KY_HIEU}"
+    }
+  ]
+}

@@ -1,0 +1,818 @@
+{
+  "renderer": {
+    "executable": "C:\\Program Files\\LibreOffice\\program\\soffice.exe",
+    "name": "LibreOffice",
+    "version": "26.2.5.2"
+  },
+  "representativeSet": [
+    "iemm-quyet-dinh-ca-biet",
+    "iemm-quyet-dinh-ban-hanh",
+    "iemm-quy-che",
+    "iemm-van-ban-kem-quyet-dinh",
+    "iemm-cong-van",
+    "iemm-thong-bao",
+    "iemm-to-trinh-vien",
+    "iemm-to-trinh-don-vi",
+    "iemm-bien-ban",
+    "iemm-van-ban-co-ten-loai",
+    "iemm-ban-sao",
+    "iemm-thu-moi",
+    "iemm-thu-hoan-hop",
+    "iemm-cong-van-dinh-chinh",
+    "iemm-bao-cao",
+    "iemm-ke-hoach",
+    "iemm-don-xin-nghi-phep",
+    "iemm-chuong-trinh",
+    "iemm-giay-gioi-thieu",
+    "iemm-ban-cam-ket",
+    "tvci-cong-van",
+    "tvci-thong-bao",
+    "tkv-quyet-dinh"
+  ],
+  "ruleSpecVersion": "1.0.0",
+  "status": "passed",
+  "templates": [
+    {
+      "canonicalFile": "iemm/01-quyet-dinh-ca-biet.docx",
+      "canonicalSha256": "356660eeac557853e53e5d549c83116c5851a443bd372392eba685c17e0aaa46",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-quyet-dinh-ca-biet-page-1.png",
+          "sha256": "291ac15e7c8a13712143f8f60f1b54b6ff1d4a0243635d291bab92f69ebc4872",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 22,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/01-quyet-dinh-ca-biet.pdf",
+      "pdfSha256": "65ec086c871734dbb795946ca993242eafe13fa60881a6ab7daf7b91749b39f5",
+      "status": "passed",
+      "templateKey": "iemm-quyet-dinh-ca-biet",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/02-quyet-dinh-ban-hanh-van-ban.docx",
+      "canonicalSha256": "cef8ca42e6ebffc4b995c025ace5d32168a52f0504ee22f91c27e59a8bb0d549",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-quyet-dinh-ban-hanh-page-1.png",
+          "sha256": "8e2eaf39bc728b7814bdaa647209197e19d182d42e244d70df6d43697428371e",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 21,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/02-quyet-dinh-ban-hanh-van-ban.pdf",
+      "pdfSha256": "34ac569eca674e85659f6ea23804b54c4aafeec33ea51564945f8a612351eb50",
+      "status": "passed",
+      "templateKey": "iemm-quyet-dinh-ban-hanh",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/03-quy-che-quy-dinh.docx",
+      "canonicalSha256": "d3bd1802472a80c12f71e1e9c72e662a9e62b889a387ceb81c1f40679e8ca05c",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-quy-che-page-1.png",
+          "sha256": "20f76d023e4f794ebfe45f29c154490b6e66b1d47e985510508ccb5806377aa0",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 22,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/03-quy-che-quy-dinh.pdf",
+      "pdfSha256": "6d842d14bc5aa82116d857add0b508bb2c905269cf08bd1615e0afb8aa096a7f",
+      "status": "passed",
+      "templateKey": "iemm-quy-che",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/04-van-ban-ban-hanh-kem-theo-quyet-dinh.docx",
+      "canonicalSha256": "dfb7468ea035b2143287037053b42e9fd0d344cb45a0a7d8ee7ca02143afb20a",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-van-ban-kem-quyet-dinh-page-1.png",
+          "sha256": "37987834eb88ea972ed4fff539d51cc20f7b9ec79994ff8104f1429433a718e6",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 22,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/04-van-ban-ban-hanh-kem-theo-quyet-dinh.pdf",
+      "pdfSha256": "6d230a943f887331cab9256eedd554d64b6ab1596dad910896b43d6bb57b1d41",
+      "status": "passed",
+      "templateKey": "iemm-van-ban-kem-quyet-dinh",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/05-cong-van-hanh-chinh.docx",
+      "canonicalSha256": "a7b083027fed4b719f0947b28ac7d8bb83a948e4bc9bdaf0a1784e8504d5cbb2",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-cong-van-page-1.png",
+          "sha256": "a95ccb0aac2cbf3c030e3a1703686c795786a77644f09401aa9eb7d3a0125931",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 18,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/05-cong-van-hanh-chinh.pdf",
+      "pdfSha256": "63eb4cd5f9a2fa388b81cd63f5fb2bc8f838897c907dd24fa3abeb20f5e41aa3",
+      "status": "passed",
+      "templateKey": "iemm-cong-van",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/06-thong-bao-noi-bo-vien.docx",
+      "canonicalSha256": "ed63eb668ceb7db1570c8de849c4b503ee0cc1f282e2e52d90b9d262f8d7a68c",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-thong-bao-page-1.png",
+          "sha256": "a198f6304409569fb445552084aaa45d95891dd1568596561a21d6aa0101465d",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 19,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/06-thong-bao-noi-bo-vien.pdf",
+      "pdfSha256": "b1a44cea60882e11adb8d83feff568a9818013230722530ac8c39309fc04af06",
+      "status": "passed",
+      "templateKey": "iemm-thong-bao",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/07-to-trinh-cua-vien.docx",
+      "canonicalSha256": "5f1e0ae5884839338db60a3dc226be0118ef376c03bc539472a238470bb5a261",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-to-trinh-vien-page-1.png",
+          "sha256": "54f8256628417d9ac6ffdc6b903f148c4faaae336e99ea92ec5f163c52b018ab",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 23,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/07-to-trinh-cua-vien.pdf",
+      "pdfSha256": "7a8a129d6ada477379774022ff5a62a300543dde31b670286707a27477909e88",
+      "status": "passed",
+      "templateKey": "iemm-to-trinh-vien",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/08-to-trinh-cua-don-vi-gui-vien.docx",
+      "canonicalSha256": "cebd1dc9c7a5cd4128de5ea31c18e304bc2dcb425e1d74c9ff683bb664bab8b1",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-to-trinh-don-vi-page-1.png",
+          "sha256": "69006984f266a84073dea7ca192ed53942474b8dd3b66dd3f1785ac51d2ea4f1",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 22,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/08-to-trinh-cua-don-vi-gui-vien.pdf",
+      "pdfSha256": "d1e40678708738f41cf227f313fcd786d1da5f1f5a2153a0eb90495c64e8c0b5",
+      "status": "passed",
+      "templateKey": "iemm-to-trinh-don-vi",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/09-bien-ban.docx",
+      "canonicalSha256": "0aed59a14ff2be518f64aaaed70131a48286ab0acf2d0b2ae9d168bcea7986e6",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-bien-ban-page-1.png",
+          "sha256": "a78fb69721e5e6cab52f84606b71132a5d591656462ad0fd29219fe77fcc71e6",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 25,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/09-bien-ban.pdf",
+      "pdfSha256": "afcde974786887d57cf9e7ed3f332f5c6519667413732e8fc5a315ed73654b4c",
+      "status": "passed",
+      "templateKey": "iemm-bien-ban",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/10-van-ban-co-ten-loai.docx",
+      "canonicalSha256": "13b26437da913013110a577a210edc82dc25611954a51d0ce2fe052af1500709",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-van-ban-co-ten-loai-page-1.png",
+          "sha256": "7ee95cb212e4cc2f0ad24ac41164427e2ec678ed774a9782be61b25efad0a672",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 21,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/10-van-ban-co-ten-loai.pdf",
+      "pdfSha256": "7e62d2f5dd43fbd5ae747f3a877b6abae368fda3632e44b0d727ef021091e2b4",
+      "status": "passed",
+      "templateKey": "iemm-van-ban-co-ten-loai",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/11-ban-sao-van-ban.docx",
+      "canonicalSha256": "03b676edceaa19c04646ee4ef19d611dc47cc6a0fe85bfc45e177b72eccb7a7e",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-ban-sao-page-1.png",
+          "sha256": "0397f0c1efde51fd9f73a8f07e3a2b51e9102f92d775c4b5cf210e8976a0bf55",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 20,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/11-ban-sao-van-ban.pdf",
+      "pdfSha256": "5e9d4f87b88b7051cb3d8e8f7d17f4af4a70083041c33fda7bebc53644862a25",
+      "status": "passed",
+      "templateKey": "iemm-ban-sao",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/12-thu-moi-hop.docx",
+      "canonicalSha256": "9b4dd78ea6bf13b053da5f4a459a40686b427ffd7faed4ad7ff558bf895ebc3a",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-thu-moi-page-1.png",
+          "sha256": "5412cb2acbcb3caba399675f3f4d8fee84abc9983e02b54d5154fa986e33dbc7",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 21,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/12-thu-moi-hop.pdf",
+      "pdfSha256": "46976b166aa0400254b4297b87a9d610c13df10812ec55fa2bec1f8696617485",
+      "status": "passed",
+      "templateKey": "iemm-thu-moi",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/13-thu-bao-hoan-hop.docx",
+      "canonicalSha256": "27e00b8419750133defcef66085da847eae5dc658dd7d9e2ddf5721628760e8a",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-thu-hoan-hop-page-1.png",
+          "sha256": "cc71e40ec2372370b6058e5bc022ce97e155ddf288655a5d33178ede9d585e6c",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 19,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/13-thu-bao-hoan-hop.pdf",
+      "pdfSha256": "92a41c1348677e5a625febb6bb38a488d28808b8fbee01ecdfd05546343b9a10",
+      "status": "passed",
+      "templateKey": "iemm-thu-hoan-hop",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/14-cong-van-dinh-chinh.docx",
+      "canonicalSha256": "56ea2d0da49a1b7b2a2a4b3558e1c045ad3fbf00ca5da20e00937e5d805ded57",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-cong-van-dinh-chinh-page-1.png",
+          "sha256": "2beab904442f1f25995b5efe04d0acfc0cd7427161e8a838fa1e4181991d184a",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 19,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/14-cong-van-dinh-chinh.pdf",
+      "pdfSha256": "c0c9ccdf83a3b3059a9c46895ddb153ddf4c740c3a89faf2a8240a23316c2e35",
+      "status": "passed",
+      "templateKey": "iemm-cong-van-dinh-chinh",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/15-bao-cao.docx",
+      "canonicalSha256": "0e06faa9cdb8c51722e8ce6c1469f29e11a1956bfa1b6e058b1d5625ff9b0a85",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-bao-cao-page-1.png",
+          "sha256": "dc1705b2ad478fd792cc9bc42f5adc6a64fafd03766f9768427fe39ad6f7d951",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 23,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/15-bao-cao.pdf",
+      "pdfSha256": "4af23451401b6556fea0c0eb4cade0de7e642a9cf8dd91f8d59f2222920bf0e0",
+      "status": "passed",
+      "templateKey": "iemm-bao-cao",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/16-ke-hoach.docx",
+      "canonicalSha256": "b6b147cdf0aedd75197ab87797fcdec94c1a35079020ae1f14564e1685577af0",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-ke-hoach-page-1.png",
+          "sha256": "367a593119cd2fee1e16fe1cb8b30d16ad09e08a03987a4fc0403d5c7141b9bd",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 23,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/16-ke-hoach.pdf",
+      "pdfSha256": "29a98220bd1e6d5ecdeebd2127ff7b2bcc1226c49b2d93229e4615ca5f38cf79",
+      "status": "passed",
+      "templateKey": "iemm-ke-hoach",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/17-don-xin-nghi-phep.docx",
+      "canonicalSha256": "1b2fa13632e67f2da751261787b39f71358a7be92ab99eea396676116523ab9d",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-don-xin-nghi-phep-page-1.png",
+          "sha256": "8011ed4915a051d5b010bc2d4785b3eea9ee09077e22dc65dd40d1ad9474889e",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 18,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/17-don-xin-nghi-phep.pdf",
+      "pdfSha256": "45f9dab628059d36a9cd6294736f2ba27939083cc06def41ef7da16642dd1872",
+      "status": "passed",
+      "templateKey": "iemm-don-xin-nghi-phep",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/18-chuong-trinh-cong-tac.docx",
+      "canonicalSha256": "7657423ad5ba4dd262be2c9b546ba9225edaaacc0a8e9c04d8d73a739331c823",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-chuong-trinh-page-1.png",
+          "sha256": "4b2ff62fadb806669a2fc09fcd7763400824cee95c2ca55de870b173d2cd8d8d",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 23,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/18-chuong-trinh-cong-tac.pdf",
+      "pdfSha256": "6a117cd96f8e3a3ebbfb463b4618e0fa3d39538470c26b112f798a59e7c7771b",
+      "status": "passed",
+      "templateKey": "iemm-chuong-trinh",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/19-giay-gioi-thieu.docx",
+      "canonicalSha256": "feac7314b65b1e9ffb2bb75d521764cb566871d42d78a3eadb3d6c68fbfdbe04",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-giay-gioi-thieu-page-1.png",
+          "sha256": "fab99bcf2e7ca50f9ddf2ef52217879c2f6a2e5fb84f65e23f422281fb3fff05",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 17,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/19-giay-gioi-thieu.pdf",
+      "pdfSha256": "64010af4c927f5527b7c2cd2e064478326a637371c05e464b64cb9c61ecd7d9f",
+      "status": "passed",
+      "templateKey": "iemm-giay-gioi-thieu",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/20-ban-cam-ket.docx",
+      "canonicalSha256": "3c5a541a844557a3edf8bb981896e07d22422ffc7ce0f7c207ba2a4c3bd0fc0f",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/iemm-ban-cam-ket-page-1.png",
+          "sha256": "6cd0c9829a8b80c1c638841743024b363622b586c698df0a401cc1d508ac3b49",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 15,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/20-ban-cam-ket.pdf",
+      "pdfSha256": "fb08e22747eaf9a86a6b712564fe0b787db17ed11f8a009b622a58362dd52c27",
+      "status": "passed",
+      "templateKey": "iemm-ban-cam-ket",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "tvci-cong-van.docx",
+      "canonicalSha256": "7af281c6ffcfe8788aa57a07efc6fade5d46fe3734b58dc28a264218d8a6e203",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/tvci-cong-van-page-1.png",
+          "sha256": "4474f9d1d45d38b3ccd78091375025e4b4302c0b98d85e753fc65bd0179d5e66",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 19,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/tvci-cong-van.pdf",
+      "pdfSha256": "ca2e118f16a087783db03c152dbde75e52cd522d7514895d14185c127637f9df",
+      "status": "passed",
+      "templateKey": "tvci-cong-van",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "tvci-thong-bao.docx",
+      "canonicalSha256": "29048d3affab370a8ee60c58a0a6c4d988152bc0682f9959932e12a61ae33a33",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/tvci-thong-bao-page-1.png",
+          "sha256": "1886421fc3c676c6f0b240c6f5a0af9a65b781667cc63b17f7b3dd66ed13c143",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 20,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/tvci-thong-bao.pdf",
+      "pdfSha256": "9ba73d6de504a81e3905af7568a76187b6bdad79b852493396e5e620aeaaf17e",
+      "status": "passed",
+      "templateKey": "tvci-thong-bao",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "tkv-quyet-dinh.docx",
+      "canonicalSha256": "8c9e310b0fa4b6262dd462f369bf5c907d8abae6e859301525c2a1decf4b36dd",
+      "findings": [],
+      "pageImages": [
+        {
+          "height": 1263,
+          "path": "images/tkv-quyet-dinh-page-1.png",
+          "sha256": "a944feaec5657678f062e070c475d65be246db1435c95475e735805b60baed44",
+          "width": 893
+        }
+      ],
+      "pages": [
+        {
+          "geometryFindings": [],
+          "heightMm": 297.0,
+          "number": 1,
+          "pageNumberAtTopCenter": null,
+          "textBlockCount": 20,
+          "widthMm": 210.01
+        }
+      ],
+      "pdfPath": "pdf/tkv-quyet-dinh.pdf",
+      "pdfSha256": "7f6db1e0a4cd1707830328e971f6f76b281ec7731296c7a466002289d0a6ec7c",
+      "status": "passed",
+      "templateKey": "tkv-quyet-dinh",
+      "visualQa": {
+        "renderer": "LibreOffice",
+        "rendererVersion": "26.2.5.2",
+        "reportPath": null,
+        "sha256": null,
+        "status": "passed"
+      }
+    }
+  ]
+}

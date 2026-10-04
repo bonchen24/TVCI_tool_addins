@@ -1,4 +1,5 @@
 from __future__ import annotations
+from template_path_safety import assert_mutable_runtime_path, filter_runtime_docx
 
 import argparse
 import re
@@ -45,7 +46,7 @@ def remove_signer_guidance(xml: bytes) -> tuple[bytes, int]:
 
 
 def template_paths(root: Path) -> list[Path]:
-    return sorted(root.glob("**/*.docx"))
+    return sorted(filter_runtime_docx(root.glob("**/*.docx")))
 
 
 def check_templates(paths: list[Path]) -> int:
@@ -64,6 +65,7 @@ def check_templates(paths: list[Path]) -> int:
 
 
 def apply_template(path: Path) -> int:
+    assert_mutable_runtime_path(path)
     with zipfile.ZipFile(path, "r") as source:
         entries = [(info, source.read(info.filename)) for info in source.infolist()]
     changed = 0
@@ -89,6 +91,7 @@ def apply_template(path: Path) -> int:
 
 
 def normalize_template_prefixes(path: Path) -> None:
+    assert_mutable_runtime_path(path)
     with zipfile.ZipFile(path, "r") as source:
         entries = [(info, source.read(info.filename)) for info in source.infolist()]
     updated: list[tuple[zipfile.ZipInfo, bytes]] = []

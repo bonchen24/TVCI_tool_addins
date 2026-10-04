@@ -1,3 +1,4 @@
+from template_path_safety import assert_mutable_runtime_path, filter_runtime_docx
 from copy import deepcopy
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -249,6 +250,7 @@ def patch_document(data, controls):
 
 
 def patch_package(path, controls):
+    assert_mutable_runtime_path(path)
     with ZipFile(path) as source:
         document = patch_document(source.read("word/document.xml"), controls)
         with NamedTemporaryFile(prefix="template-form-", suffix=".docx", dir=path.parent, delete=False) as temp:

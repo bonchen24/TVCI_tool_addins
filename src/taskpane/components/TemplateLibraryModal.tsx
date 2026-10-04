@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { searchTemplates, type TemplateOrganization, type TemplateRecord } from "../../templates/library";
+import { isTemplateSelectable, searchTemplates, selectSelectableTemplatesById, type TemplateOrganization, type TemplateRecord } from "../../templates/library";
 import type { UserTemplateUpdateInput } from "../../templates/user-template";
 import { getRecentTemplateIds, getFavoriteTemplateIds, toggleFavoriteTemplate } from "../../templates/recent-favorites";
 import { getTemplateFormSchema } from "../../templates/form-schema";
@@ -39,9 +39,12 @@ export function TemplateLibraryModal({
   if (!isOpen) return null;
 
   const recentIds = getRecentTemplateIds();
+  const selectableRecentIds = new Set(selectSelectableTemplatesById(templates, recentIds).map((template) => template.id));
+  const selectableFavoriteIds = new Set(selectSelectableTemplatesById(templates, favorites).map((template) => template.id));
 
   // Distinct document types
-  const documentTypes = Array.from(new Set(templates.map((t) => t.documentType).filter(Boolean))).sort();
+  const selectableTemplates = templates.filter(isTemplateSelectable);
+  const documentTypes = Array.from(new Set(selectableTemplates.map((t) => t.documentType).filter(Boolean))).sort();
 
   const handleToggleFav = (templateId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -55,13 +58,13 @@ export function TemplateLibraryModal({
     documentType: selectedType === "all" ? undefined : selectedType,
     includeHidden: true,
   }).filter((t) => {
-    if (activeTab === "recent" && !recentIds.includes(t.id)) return false;
-    if (activeTab === "favorite" && !favorites.includes(t.id)) return false;
+    if (activeTab === "recent" && !selectableRecentIds.has(t.id)) return false;
+    if (activeTab === "favorite" && !selectableFavoriteIds.has(t.id)) return false;
     return true;
   });
 
   // Active selected template for detail view
-  const selectedTemplate = templates.find((t) => t.id === selectedTemplateId) || filtered[0] || null;
+  const selectedTemplate = filtered.find((t) => t.id === selectedTemplateId) || filtered[0] || null;
   const activeSchema = selectedTemplate ? getTemplateFormSchema(selectedTemplate) : null;
   const editingTemplate = editingTemplateId ? templates.find((template) => template.id === editingTemplateId) ?? null : null;
 
@@ -84,7 +87,7 @@ export function TemplateLibraryModal({
           <div>
             <div style={{ fontWeight: 700, fontSize: 12.5, color: "#0f3f67", letterSpacing: "0.2px" }}>KHO BIỂU MẪU HÀNH CHÍNH &amp; CHUYÊN MÔN</div>
             <div style={{ fontSize: 10, color: "#64748b" }}>
-              Áp dụng mẫu chuẩn của Trung tâm TVCI &amp; Viện IEMM - Vinacomin
+              Chỉ hiển thị mẫu có nguồn canonical đã xác minh; mẫu cá nhân được ghi nhãn riêng.
             </div>
           </div>
         </div>
@@ -167,7 +170,7 @@ export function TemplateLibraryModal({
             }}
             onClick={() => setActiveTab("recent")}
           >
-            Gần đây ({recentIds.length})
+            Gần đây ({selectableRecentIds.size})
           </button>
           <button
             type="button"
@@ -184,7 +187,7 @@ export function TemplateLibraryModal({
             }}
             onClick={() => setActiveTab("favorite")}
           >
-            Yêu thích ({favorites.length})
+            Yêu thích ({selectableFavoriteIds.size})
           </button>
         </div>
 
@@ -220,7 +223,12 @@ export function TemplateLibraryModal({
         {/* Left Column: Template List */}
         <div style={{ width: 300, minWidth: 300, borderRight: "1px solid #e2e8f0", overflowY: "auto", background: "#ffffff", padding: "4px" }}>
           {filtered.length === 0 ? (
-            <div style={{ padding: "24px 12px", textAlign: "center", color: "#64748b", fontSize: 11 }}>
+            <div role="status" data-testid="template-library-empty" style={{ padding: "24px 12px", textAlign: "center", color: "#64748b", fontSize: 11 }}>
+              {selectableTemplates.length === 0 && (
+                <p style={{ marginBottom: 6, color: "#9a3412", fontWeight: 600 }}>
+                  Hiện chưa có biểu mẫu chính thức nào được xác minh nguồn canonical. Các mẫu chưa có nguồn chuẩn đã bị khóa khỏi danh sách sử dụng.
+                </p>
+              )}
               Không tìm thấy biểu mẫu phù hợp.
             </div>
           ) : (
@@ -272,6 +280,11 @@ export function TemplateLibraryModal({
                   <div className="templateCardDesc" style={{ fontSize: 10, color: "#64748b", marginTop: 1 }}>
                     {t.documentType}
                   </div>
+                  <div style={{ fontSize: 9, color: t.source.kind === "user" ? "#475569" : "#166534", marginTop: 2 }}>
+                    {t.source.kind === "user"
+                      ? "Mẫu cá nhân"
+                      : `Đã xác minh • ${t.verification?.canonicalSource?.name ?? "Nguồn canonical"}${t.verification?.canonicalSource?.version ? ` • ${t.verification.canonicalSource.version}` : ""}`}
+                  </div>
                   {/* Keep compatibility classes for QA assertions */}
                   <div className="templateCardActions" style={{ display: "none" }}>
                     <button type="button" onClick={() => onDirectInsert(t)}>Chèn nhanh</button>
@@ -311,6 +324,12 @@ export function TemplateLibraryModal({
               <h3 style={{ fontSize: 13.5, fontWeight: 700, color: "#0f3f67", margin: "0 0 8px 0", lineHeight: 1.3 }}>
                 {selectedTemplate.name}
               </h3>
+
+              <div style={{ fontSize: 10, color: selectedTemplate.source.kind === "user" ? "#475569" : "#166534", marginBottom: 8 }}>
+                {selectedTemplate.source.kind === "user"
+                  ? "Mẫu cá nhân — chưa được xác minh là biểu mẫu chính thức."
+                  : `Đã xác minh: ${selectedTemplate.verification?.canonicalSource?.name ?? "Nguồn canonical"}${selectedTemplate.verification?.canonicalSource?.version ? ` • ${selectedTemplate.verification.canonicalSource.version}` : ""}`}
+              </div>
 
               {/* Description */}
               <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 4, padding: "8px 10px", marginBottom: 8 }}>

@@ -125,8 +125,8 @@ test("source and manifest versions are current", () => {
   const lock = JSON.parse(read("package-lock.json"));
   const manifest = read("manifest/manifest.xml");
 
-  assert.equal(pkg.version, "0.1.11");
-  assert.equal(lock.version, "0.1.11");
-  assert.equal(lock.packages[""].version, "0.1.11");
+  assert.equal(pkg.version, "0.1.12");
+  assert.equal(lock.version, "0.1.12");
+  assert.equal(lock.packages[""].version, "0.1.12");
   assert.match(manifest, /<Version>1\.0\.0\.25<\/Version>/);
 });

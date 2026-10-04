@@ -1,3 +1,5 @@
+import { hasCompleteVerifiedProvenance, type TemplateVerification } from "./provenance.ts";
+
 export type TemplateOrganization = "TKV" | "IEMM" | "TVCI" | "DANG";
 export type TemplateStatus = "active" | "draft" | "archived";
 
@@ -13,6 +15,8 @@ export interface TemplateRecord {
   documentType: string;
   keywords: string[];
   source: TemplateSource;
+  /** Evidence required before a bundled template may be presented as official. */
+  verification?: TemplateVerification;
   version: string;
   status: TemplateStatus;
   description?: string;
@@ -23,6 +27,25 @@ export interface TemplateRecord {
   hidden?: boolean;
   isDefault?: boolean;
   sortOrder?: number;
+}
+
+
+export function isOfficialTemplateVerified(record: TemplateRecord): boolean {
+  return record.source.kind === "bundled"
+    && record.status === "active"
+    && hasCompleteVerifiedProvenance(record.verification);
+}
+
+export function isTemplateSelectable(record: TemplateRecord): boolean {
+  if (record.status === "archived") return false;
+  return record.source.kind === "user" || isOfficialTemplateVerified(record);
+}
+
+export function selectSelectableTemplatesById(records: TemplateRecord[], ids: string[]): TemplateRecord[] {
+  const selectableById = new Map(records.filter(isTemplateSelectable).map((record) => [record.id, record]));
+  return [...new Set(ids)]
+    .map((id) => selectableById.get(id))
+    .filter((record): record is TemplateRecord => Boolean(record));
 }
 
 export interface TemplateSearchOptions {
@@ -89,6 +112,7 @@ function searchScore(record: TemplateRecord, query: string): number | null {
 
 export function searchTemplates(records: TemplateRecord[], options: TemplateSearchOptions): TemplateRecord[] {
   return records
+    .filter(isTemplateSelectable)
     .filter((record) => record.status !== "archived")
     .filter((record) => options.includeHidden || !record.hidden)
     .filter((record) => !options.organization || record.organization === options.organization)
@@ -101,6 +125,6 @@ export function searchTemplates(records: TemplateRecord[], options: TemplateSear
 }
 
 export function distinctTemplateValues(records: TemplateRecord[], field: "department" | "documentType", organization?: TemplateOrganization): string[] {
-  return [...new Set(records.filter((item) => !organization || item.organization === organization).map((item) => item[field]).filter(Boolean))]
+  return [...new Set(records.filter(isTemplateSelectable).filter((item) => !organization || item.organization === organization).map((item) => item[field]).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b, "vi"));
 }

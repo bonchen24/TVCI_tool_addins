@@ -1,5 +1,6 @@
 import { insertTemplate } from "../word/template.service";
 import { getTemplateFormSchema } from "../templates/form-schema";
+import { isTemplateSelectable } from "../templates/library";
 import { applyTemplateFormToWord } from "../word/form-content-control.service";
 import { setMultipleContentControlTexts } from "../word/content-control.service";
 import { applySettingsToWord, saveDefaultSettings } from "../models/document-settings";
@@ -275,6 +276,9 @@ export async function openOfficeDialog(view: DialogView): Promise<void> {
 
             if (data.type === "apply_template_form" && data.template && data.values) {
               logDialog("Handling apply_template_form in parent", { templateId: data.template?.id });
+              if (!isTemplateSelectable(data.template)) {
+                throw new Error("Biểu mẫu chưa được xác minh nguồn canonical và không thể áp dụng.");
+              }
               const schema = getTemplateFormSchema(data.template);
               if (schema) {
                 await applyTemplateFormToWord(schema, data.values, data.template.organization);

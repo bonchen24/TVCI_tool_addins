@@ -1,3 +1,4 @@
+from template_path_safety import assert_mutable_runtime_path, filter_runtime_docx
 import glob
 import os
 import re
@@ -7,6 +8,7 @@ import zipfile
 
 def sanitize_docx(file_path: str) -> bool:
     """Removes corrupting TVCI_HRULE sdt anchor blocks from a docx file."""
+    assert_mutable_runtime_path(file_path)
     with zipfile.ZipFile(file_path, "r") as z_in:
         entries = [(info, z_in.read(info.filename)) for info in z_in.infolist()]
 
@@ -50,9 +52,9 @@ def main():
     total = 0
     sanitized = 0
     for pattern in patterns:
-        for f in glob.glob(pattern, recursive=True):
+        for f in filter_runtime_docx(glob.glob(pattern, recursive=True)):
             total += 1
-            if sanitize_docx(f):
+            if sanitize_docx(str(f)):
                 print(f"[CLEANED] {os.path.relpath(f, root_dir)}")
                 sanitized += 1
             else:

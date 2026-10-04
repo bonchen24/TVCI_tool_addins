@@ -862,15 +862,36 @@ export function isOfficialTemplateVerified(template: AdministrativeTemplate): bo
   const verification = template.verification;
   const canonical = verification.canonicalSource;
   const runtime = verification.runtime;
-  return template.status === 'active'
-    && verification.status === 'verified'
-    && canonical?.kind === 'official-canonical-docx'
-    && /^\/?canonical_templates\//.test(canonical.path)
-    && /^[a-f0-9]{64}$/.test(canonical.sha256)
-    && runtime.path === `/templates/${template.fileName}`
-    && /^[a-f0-9]{64}$/.test(runtime.sha256 ?? '')
-    && runtime.derivedFromCanonicalSha256 === canonical.sha256
-    && (runtime.comparison === 'byte-exact' || runtime.comparison === 'content-controls-only');
+  const canonicalPath = canonical?.path.replace(/\\/g, "/") ?? "";
+  if (template.status !== 'active' || verification.status !== 'verified' || !canonical) return false;
+  if (
+    !canonicalPath
+    || canonicalPath.split("/").includes("..")
+    || !/^\/?(?:canonical_templates\/|templates\/canonical\/).+\.docx$/i.test(canonicalPath)
+    || !/^[a-f0-9]{64}$/.test(canonical.sha256)
+    || runtime.path !== `/templates/${template.fileName}`
+    || !/^[a-f0-9]{64}$/.test(runtime.sha256 ?? '')
+    || runtime.derivedFromCanonicalSha256 !== canonical.sha256
+    || (runtime.comparison !== 'byte-exact' && runtime.comparison !== 'content-controls-only')
+    || (runtime.comparison === 'byte-exact' && runtime.sha256 !== canonical.sha256)
+  ) return false;
+
+  if (canonical.kind === 'official-canonical-docx') return true;
+  return Boolean(
+    canonical.ruleSpecVersion
+      && canonical.generatorVersion
+      && /^[a-f0-9]{64}$/.test(canonical.generatorSha256)
+      && canonical.normativeSources.length > 0
+      && canonical.normativeSources.every((source) => source.label && source.id)
+      && canonical.referenceSources.length > 0
+      && canonical.structuralQa.status === 'passed'
+      && canonical.structuralQa.reportPath
+      && /^[a-f0-9]{64}$/.test(canonical.structuralQa.sha256)
+      && canonical.visualQa.status === 'passed'
+      && canonical.visualQa.renderer
+      && canonical.visualQa.reportPath
+      && /^[a-f0-9]{64}$/.test(canonical.visualQa.sha256)
+  );
 }
 
 export function requireVerifiedTemplate(templateOrId: AdministrativeTemplate | string): AdministrativeTemplate {

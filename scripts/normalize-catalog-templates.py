@@ -1,5 +1,6 @@
 """Normalize only bundled DOCX files referenced by the active catalog."""
 from __future__ import annotations
+from template_path_safety import assert_mutable_runtime_path, filter_runtime_docx
 import re
 import tempfile
 import zipfile
@@ -38,6 +39,7 @@ def paragraph(value, *, center=False, bold=False):
     return p
 
 def normalize(path, organization):
+    assert_mutable_runtime_path(path)
     with zipfile.ZipFile(path) as source:
         entries = [(info, source.read(info.filename)) for info in source.infolist()]
     root = ET.fromstring(next(data for info, data in entries if info.filename == "word/document.xml"))
@@ -196,6 +198,7 @@ def main():
     controls_by_path = controls_namespace["FORM_CONTROLS"]
     patch_controls = controls_namespace["patch_package"]
     for path, organization in paths.items():
+        assert_mutable_runtime_path(path)
         relative = path.relative_to(ROOT).as_posix()
         if relative in controls_by_path:
             patch_controls(path, controls_by_path[relative])

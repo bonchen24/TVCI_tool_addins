@@ -12,7 +12,7 @@ import { ACTIVE_RULE_PROFILES, getRuleProfile, resolveRuleProfileForOrganization
 import { validatePageSetup } from "../rules/page-validator";
 import { applyPageIssueFix, applyPageRules } from "../word/page-formatting.service";
 import { TEMPLATE_CATALOG } from "../templates/catalog";
-import { distinctTemplateValues, searchTemplates, type TemplateOrganization, type TemplateRecord } from "../templates/library";
+import { distinctTemplateValues, isOfficialTemplateVerified, isTemplateSelectable, searchTemplates, selectSelectableTemplatesById, type TemplateOrganization, type TemplateRecord } from "../templates/library";
 import { deleteUserTemplate, getUserTemplateData, listUserTemplates, saveUserTemplate } from "../templates/storage";
 import { makeUserTemplateRecord, updateUserTemplateRecord, type UserTemplateUpdateInput } from "../templates/user-template";
 import { insertTemplate } from "../word/template.service";
@@ -351,9 +351,12 @@ export default function App() {
 
   const selectedTemplateForMatch = useMemo(() => {
     if (matchedTemplateId) {
-      return TEMPLATE_CATALOG.find((t) => t.id === matchedTemplateId) || activeFormTemplate || null;
+      const catalogMatch = TEMPLATE_CATALOG.find((t) => t.id === matchedTemplateId);
+      if (catalogMatch && isTemplateSelectable(catalogMatch)) return catalogMatch;
+      return activeFormTemplate && isTemplateSelectable(activeFormTemplate) ? activeFormTemplate : null;
     }
-    return activeFormTemplate || recommendedTemplates[0] || null;
+    if (activeFormTemplate && isTemplateSelectable(activeFormTemplate)) return activeFormTemplate;
+    return recommendedTemplates[0] || null;
   }, [matchedTemplateId, activeFormTemplate, recommendedTemplates]);
 
   const selectedTemplateSchema = useMemo(() => {
@@ -511,9 +514,11 @@ export default function App() {
     query: templateQuery,
     includeHidden: showHiddenTemplates,
   }), [allTemplates, templateOrg, templateType, templateQuery, showHiddenTemplates]);
-  const templateEmptyMessage = templateQuery.trim()
-    ? "Không tìm thấy biểu mẫu phù hợp với từ khóa hoặc bộ lọc."
-    : "Không tìm thấy biểu mẫu phù hợp.";
+  const templateEmptyMessage = !TEMPLATE_CATALOG.some(isOfficialTemplateVerified) && !templateQuery.trim()
+    ? "Hiện chưa có biểu mẫu chính thức nào được xác minh nguồn canonical. Các biểu mẫu chưa có nguồn chuẩn đã bị khóa khỏi danh sách sử dụng."
+    : templateQuery.trim()
+      ? "Không tìm thấy biểu mẫu phù hợp với từ khóa hoặc bộ lọc."
+      : "Không tìm thấy biểu mẫu phù hợp.";
   const documentTypes = useMemo(() => distinctTemplateValues(allTemplates, "documentType", templateOrg), [allTemplates, templateOrg]);
   const partyDocumentTypes = useMemo(() => [...new Set([...PARTY_DOCUMENT_TYPES, ...documentTypes])], [documentTypes]);
   const filteredGuidance = useMemo(() => searchQuickGuidance(QUICK_GUIDANCE, referenceQuery), [referenceQuery]);
@@ -533,15 +538,11 @@ export default function App() {
   }).slice(0, 3), [activeFormTemplate, issues.length, selection]);
 
   const favoriteTemplates = useMemo(() => {
-    return favoriteIds
-      .map((id) => allTemplates.find((t) => t.id === id))
-      .filter((t): t is TemplateRecord => Boolean(t));
+    return selectSelectableTemplatesById(allTemplates, favoriteIds);
   }, [favoriteIds, allTemplates]);
 
   const recentTemplates = useMemo(() => {
-    return recentIds
-      .map((id) => allTemplates.find((t) => t.id === id))
-      .filter((t): t is TemplateRecord => Boolean(t));
+    return selectSelectableTemplatesById(allTemplates, recentIds);
   }, [recentIds, allTemplates]);
 
   const relatedKnowledgeCount = useMemo(() => {
@@ -846,6 +847,7 @@ export default function App() {
   };
 
   const handleOpenTemplateForm = (template: TemplateRecord, initialValues?: TemplateFormValues) => run(async () => {
+    if (!isTemplateSelectable(template)) throw new Error("Biểu mẫu chưa được xác minh nguồn canonical và không thể mở form sử dụng.");
     sendDebug(`handleOpenTemplateForm: ${template.id} (${template.name})`);
     const schema = getTemplateFormSchema(template);
     if (!schema) throw new Error("Mẫu này không thuộc phạm vi form Viện, Trung tâm hoặc Văn bản Đảng.");
@@ -871,6 +873,7 @@ export default function App() {
   });
 
   const handleInsertTemplateBlank = (template: TemplateRecord) => run(async () => {
+    if (!isTemplateSelectable(template)) throw new Error("Biểu mẫu chưa được xác minh nguồn canonical và không thể dùng như mẫu chính thức.");
     sendDebug(`handleInsertTemplateBlank: ${template.id} (${template.name})`);
     setStatus(`Đang chèn mẫu "${template.name}" vào Word...`);
     if (isDialog) {
@@ -888,6 +891,7 @@ export default function App() {
   });
 
   const handleInsertTemplateAndFill = (template: TemplateRecord) => run(async () => {
+    if (!isTemplateSelectable(template)) throw new Error("Biểu mẫu chưa được xác minh nguồn canonical và không thể dùng như mẫu chính thức.");
     const schema = getTemplateFormSchema(template);
     if (!schema) throw new Error("Mẫu này không thuộc phạm vi form Viện, Trung tâm hoặc Văn bản Đảng.");
     sendDebug(`handleInsertTemplateAndFill: ${template.id} (${template.name})`);
@@ -922,6 +926,7 @@ export default function App() {
   const handleApplyDraftDirectToTemplate = (template?: TemplateRecord) => run(async () => {
     if (!aiPreview.trim()) throw new Error("Chưa có nội dung dự thảo để áp dụng.");
     const target = template || selectedTemplateForMatch || activeFormTemplate;
+    if (target && !isTemplateSelectable(target)) throw new Error("Biểu mẫu chưa được xác minh nguồn canonical và không thể dùng như mẫu chính thức.");
     if (!target) throw new Error("Chưa chọn biểu mẫu để áp dụng.");
     const schema = getTemplateFormSchema(target);
     if (!schema) throw new Error("Mẫu này không thuộc phạm vi điền tự động.");
@@ -962,6 +967,7 @@ export default function App() {
   const handleOpenTemplateFormWithDraft = (template?: TemplateRecord) => run(async () => {
     if (!aiPreview.trim()) throw new Error("Chưa có nội dung dự thảo để đưa vào biểu mẫu.");
     const target = template || selectedTemplateForMatch || activeFormTemplate;
+    if (target && !isTemplateSelectable(target)) throw new Error("Biểu mẫu chưa được xác minh nguồn canonical và không thể dùng như mẫu chính thức.");
     if (!target) throw new Error("Chưa chọn biểu mẫu.");
     const schema = getTemplateFormSchema(target);
     if (!schema) throw new Error("Mẫu này không thuộc phạm vi form.");
@@ -979,7 +985,9 @@ export default function App() {
   };
 
   const handleApplyTemplateForm = () => run(async () => {
-    if (!activeFormTemplate || !activeFormSchema) throw new Error("Hãy mở form từ một biểu mẫu trước.");
+    if (!activeFormTemplate || !isTemplateSelectable(activeFormTemplate) || !activeFormSchema) {
+      throw new Error("Hãy mở form từ một biểu mẫu có thể sử dụng trước.");
+    }
     const normalized = normalizeTemplateFormValues(activeFormSchema, templateFormValues);
     const errors = validateTemplateForm(activeFormSchema, templateFormValues);
     saveTemplateFormDraft(activeFormTemplate.id, activeFormTemplate.organization, activeFormTemplate.documentType, templateFormValues);
@@ -1008,7 +1016,9 @@ export default function App() {
   });
 
   const handleConfirmPendingApply = () => run(async () => {
-    if (!activeFormTemplate || !activeFormSchema || !pendingApplyPlan) throw new Error("Không còn kế hoạch áp dụng để xác nhận.");
+    if (!activeFormTemplate || !isTemplateSelectable(activeFormTemplate) || !activeFormSchema || !pendingApplyPlan) {
+      throw new Error("Không còn kế hoạch áp dụng hợp lệ cho biểu mẫu đã chọn.");
+    }
     const updatedValues = { ...currentFormBaseValues, ...pendingApplyPlan.values };
     const normalizedAll = normalizeTemplateFormValues(activeFormSchema, updatedValues, activeFormTemplate.organization);
     const tagsToWrite = new Set(Object.keys(pendingApplyPlan.values));
@@ -1552,6 +1562,9 @@ export default function App() {
     setStatus(`AI đã phân tích ${fields.length} trường.`);
   });
   const handleApplyTemplateFill = () => run(async () => {
+    if (!activeFormTemplate || !isTemplateSelectable(activeFormTemplate)) {
+      throw new Error("Không thể điền biểu mẫu chưa được xác minh nguồn canonical.");
+    }
     const controls = await listTaggedContentControls();
     const safeValues = selectSafeTemplateFills(controls, templateFillFields);
     if (!safeValues.length) throw new Error("Chưa có trường đủ tin cậy để điền. Hãy rà soát hoặc chỉnh giá trị cần dùng.");

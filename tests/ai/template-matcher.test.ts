@@ -1,42 +1,75 @@
 import { suggestMatchingTemplates, getPrimaryContentField, mapDraftToFormValues } from "../../src/ai/template-matcher";
 import { TEMPLATE_CATALOG } from "../../src/templates/catalog";
 import { FORM_SCHEMA_REGISTRY } from "../../src/templates/form-schema";
+import type { TemplateRecord } from "../../src/templates/library";
+
+const matcherTestCatalog: TemplateRecord[] = TEMPLATE_CATALOG
+  .filter((record) => record.verification?.status !== "quarantined")
+  .map((record) => {
+    if (record.source.kind !== "bundled") throw new Error("Expected bundled fixture records.");
+    const hash = "a".repeat(64);
+    return {
+      ...record,
+      verification: {
+        status: "verified" as const,
+        reason: "Test-only complete provenance fixture.",
+        canonicalSource: {
+          kind: "official-canonical-docx" as const,
+          name: "Test canonical DOCX",
+          path: `/canonical_templates/tests/${record.id}.docx`,
+          sha256: hash,
+        },
+        runtime: {
+          path: record.source.path,
+          sha256: hash,
+          derivedFromCanonicalSha256: hash,
+          comparison: "byte-exact" as const,
+        },
+      },
+    };
+  });
 
 describe("Template Matcher", () => {
   describe("suggestMatchingTemplates", () => {
     it("suggests 'Tờ trình' when text indicates a proposal or submission", () => {
       const text = "TỜ TRÌNH\nV/v xin phê duyệt chủ trương đầu tư trang thiết bị thí nghiệm kiểm định mỏ năm 2026\nKính gửi: Hội đồng thành viên...";
-      const matches = suggestMatchingTemplates(text, TEMPLATE_CATALOG);
+      const matches = suggestMatchingTemplates(text, matcherTestCatalog);
       expect(matches.length).toBeGreaterThan(0);
       expect(matches[0].documentType).toBe("Tờ trình");
     });
 
     it("suggests 'Báo cáo' when text indicates a progress or periodic report", () => {
       const text = "BÁO CÁO\nKết quả thực hiện công tác an toàn vệ sinh lao động quý I năm 2026\nKính gửi: Ban Giám đốc Viện...";
-      const matches = suggestMatchingTemplates(text, TEMPLATE_CATALOG);
+      const matches = suggestMatchingTemplates(text, matcherTestCatalog);
       expect(matches.length).toBeGreaterThan(0);
       expect(matches[0].documentType).toBe("Báo cáo");
     });
 
     it("suggests 'Công văn' for general administrative correspondence", () => {
       const text = "Kính gửi: Công ty Than Thống Nhất\nV/v phối hợp khảo sát địa chất công trình...";
-      const matches = suggestMatchingTemplates(text, TEMPLATE_CATALOG);
+      const matches = suggestMatchingTemplates(text, matcherTestCatalog);
       expect(matches.length).toBeGreaterThan(0);
       expect(matches[0].documentType).toBe("Công văn");
     });
 
     it("suggests 'Biên bản' when text mentions meeting minutes", () => {
       const text = "BIÊN BẢN HỌP GIAO BAN\nThời gian: 8h30 ngày 15/09/2026\nĐịa điểm: Phòng họp số 1\nThành phần: Chủ trì: Đ/c Viện trưởng...";
-      const matches = suggestMatchingTemplates(text, TEMPLATE_CATALOG);
+      const matches = suggestMatchingTemplates(text, matcherTestCatalog);
       expect(matches.length).toBeGreaterThan(0);
       expect(matches[0].documentType).toBe("Biên bản");
     });
 
     it("suggests 'Quyết định' when text mentions decisions and articles", () => {
       const text = "QUYẾT ĐỊNH\nV/v bổ nhiệm chức vụ Trưởng phòng Thí nghiệm\nĐiều 1: Bổ nhiệm ông...";
-      const matches = suggestMatchingTemplates(text, TEMPLATE_CATALOG);
+      const matches = suggestMatchingTemplates(text, matcherTestCatalog);
       expect(matches.length).toBeGreaterThan(0);
       expect(matches[0].documentType).toBe("Quyết định");
+    });
+  });
+
+  describe("provenance filter", () => {
+    it("does not suggest shipped candidates while they remain unverified", () => {
+      expect(suggestMatchingTemplates("TỜ TRÌNH xin phê duyệt", TEMPLATE_CATALOG)).toEqual([]);
     });
   });
 

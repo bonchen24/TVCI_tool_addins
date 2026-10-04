@@ -1,4 +1,42 @@
 import type { TemplateRecord } from "./library";
+import type { TemplateVerification } from "./provenance";
+
+const RUNTIME_SHA256_BY_PATH: Record<string, string> = {
+  "/templates/dang-sample.docx": "1abd2abe6a8912f07af4f4788be039ee107efd2e13758eb022e0726a9ea78f5e",
+  "/templates/iemm/01-quyet-dinh-ca-biet.docx": "be284a9c372dd688ffb284581ea7aaf5e4f805e9dd2416f11c77c2264608fb00",
+  "/templates/iemm/02-quyet-dinh-ban-hanh-van-ban.docx": "1f27ac28c500f3cb12a7728f4c325aa23d51e0ceff66d8cf3fc13e824800c7ce",
+  "/templates/iemm/03-quy-che-quy-dinh.docx": "50ea561ecdef57299534670c96a08674f378fbf3cd227918e7c3c22b4762148b",
+  "/templates/iemm/04-van-ban-ban-hanh-kem-theo-quyet-dinh.docx": "a26ebbe798d175e6e2337479b265818aaee4a0b992caed7d8a6cfacac75cf91a",
+  "/templates/iemm/05-cong-van-hanh-chinh.docx": "9088dc7b279787a6b8f8391de4a17067e079e654493668fdd99e080522dad6f3",
+  "/templates/iemm/06-thong-bao-noi-bo-vien.docx": "1941b475c557cb98be462dd4380c624d7efdf62950d8f0a736dd17a607a02270",
+  "/templates/iemm/07-to-trinh-cua-vien.docx": "ac6faec89fc0fe336633d9560d494dd72b9064290cd78ecbe3009612a8aa8f16",
+  "/templates/iemm/08-to-trinh-cua-don-vi-gui-vien.docx": "d403ca491efdcc4aa0bba39c7cda457d6e62dc72c8276d426675817a01625338",
+  "/templates/iemm/09-bien-ban.docx": "dc96d8be0d172a2b9e3d05c8dd13ff8cebfee18f5cd06fb095c3e81ea7bfe761",
+  "/templates/iemm/10-van-ban-chung.docx": "f1a07e1e982af0ac060540b32509b7e703d64a890e4fe3c58a23fdf1780a266f",
+  "/templates/iemm/11-ban-sao-van-ban.docx": "38a25d81dae89a4207d5832963f06c689217ad8a324b10cc389271c3067daa7b",
+  "/templates/iemm/12-thu-moi-hop.docx": "8c565c85deac2c38cd06878ab2cefc6256eebc00ab35d4b510495fadd73de933",
+  "/templates/iemm/13-thu-bao-hoan-hop.docx": "55e13f1ab18f433bef053a66845b0196fd1b36b6616aeaa8b64f43e13c26cf34",
+  "/templates/iemm/14-cong-van-dinh-chinh.docx": "a8e5e5ba4e32d5bd43de31a8493039755c12abccf234d06e4cc04028f6087c3e",
+  "/templates/iemm-don-xin-nghi-phep-template.docx": "ecec4bdbd864cf0756d7ab7ec072f8e354c7878f041219be82cc80149fccfe1d",
+  "/templates/tvci-cong-van-template.docx": "29bcd69b4cadeabcdeb7495507a1c382ff6a96086ed43114d1d034704e705fa1",
+  "/templates/tvci-thong-bao-template.docx": "b53c35525ee2dd66b416143426adc556a2f61577ae3d0fb0ae17b0322a996c45",
+  "/templates/tvci-sample.docx": "aac92663d74536c7534d2f7970b69bfc5275d4b823244963256c70c3da7f9a5a",
+  "/templates/iemm-sample.docx": "b54d1edc4ff493370fe3555874ef252b4dad4f0bca97de467601b4ef3916ab9d",
+};
+
+const QUARANTINED_SAMPLE_IDS = new Set(["dang-sample-001", "iemm-sample-001", "tvci-sample-001"]);
+
+function bundledVerification(id: string, runtimePath: string): TemplateVerification {
+  const status = QUARANTINED_SAMPLE_IDS.has(id) ? "quarantined" : "unverified";
+  return {
+    status,
+    reason: status === "quarantined"
+      ? "Generic/sample DOCX retained for audit only; no official canonical DOCX is present."
+      : "No exact official canonical DOCX is present in the repository. Reference titles and bundled files do not prove the approved form.",
+    canonicalSource: null,
+    runtime: { path: runtimePath, sha256: RUNTIME_SHA256_BY_PATH[runtimePath] ?? null },
+  };
+}
 
 const IEMM_APPENDIX = "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc";
 const IEMM_FONT_RULES = "3. Phu luc IV Chi tiet mau chu- Quy che van thu Vien.doc";
@@ -8,7 +46,7 @@ const IEMM_GUIDE = "5. Van ban- Van thu (HD cu the tung loai van ban).ppt";
 const IEMM_APPENDIX_VII = "Quy chế Văn thư của Viện (QĐ 731-2023), Phụ lục VII";
 const iemmSourceReference = (sample: string) => `${IEMM_APPENDIX_VII} — ${sample}`;
 
-export const TEMPLATE_CATALOG: TemplateRecord[] = [
+const CATALOG_RECORDS: TemplateRecord[] = [
   {
     id: "dang-sample-001",
     name: "Văn bản Đảng mẫu",
@@ -343,4 +381,11 @@ export const TEMPLATE_CATALOG: TemplateRecord[] = [
     referenceSources: [IEMM_RULES],
   },
 ];
+
+export const TEMPLATE_CATALOG: TemplateRecord[] = CATALOG_RECORDS.map((record) => ({
+  ...record,
+  verification: record.source.kind === "bundled"
+    ? bundledVerification(record.id, record.source.path)
+    : undefined,
+}));
 

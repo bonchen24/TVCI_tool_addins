@@ -1,0 +1,2180 @@
+{
+  "formatVersion": 1,
+  "generatorSha256": "52fa2cbfc5a5ce60fe809b9e879b720fcdef76d794c5aa4896c9219dae2561a6",
+  "generatorVersion": "1.0.0",
+  "ruleSpecVersion": "1.0.0",
+  "sourceInventory": [
+    {
+      "driveFileId": null,
+      "id": "nd30",
+      "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+      "parentDriveFileId": null,
+      "priority": 1,
+      "reference": "30/2020/NĐ-CP"
+    },
+    {
+      "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+      "id": "iemm-q731",
+      "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+      "parentDriveFileId": null,
+      "priority": 2,
+      "reference": "QĐ 731-2023"
+    },
+    {
+      "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+      "id": "iemm-plvii",
+      "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+      "parentDriveFileId": null,
+      "priority": 2,
+      "reference": "QĐ 731-2023, Phụ lục VII"
+    },
+    {
+      "driveFileId": "1hqwE4JeEf9pnlHupr4-t3wiiE7Q26vTJ",
+      "id": "iemm-pliv",
+      "label": "3. Phu luc IV Chi tiet mau chu- Quy che van thu Vien.doc",
+      "parentDriveFileId": null,
+      "priority": 2,
+      "reference": "QĐ 731-2023, Phụ lục IV"
+    },
+    {
+      "driveFileId": "1j0XbWVFTUzUCmRNIt2a-o7_pSlx1S2Qt",
+      "id": "iemm-main-doc",
+      "label": "1. Quy che Chinh ve Cong tac van thu cua Vien.doc",
+      "parentDriveFileId": null,
+      "priority": 2,
+      "reference": "QĐ 731-2023"
+    },
+    {
+      "driveFileId": null,
+      "id": "iemm-specific-rules",
+      "label": "4. Quy dinh rieng ve Van ban cua Vien.ppt",
+      "parentDriveFileId": null,
+      "priority": 2,
+      "reference": "Quy định riêng về văn bản của Viện"
+    },
+    {
+      "driveFileId": null,
+      "id": "iemm-type-guide",
+      "label": "5. Van ban- Van thu (HD cu the tung loai van ban).ppt",
+      "parentDriveFileId": null,
+      "priority": 2,
+      "reference": "Hướng dẫn từng loại văn bản"
+    },
+    {
+      "driveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+      "id": "tkv-1456",
+      "label": "Quy chế quản lý công tác Văn thư, Lưu trữ TKV ban hành theo QĐ 1456/QĐ-TKV năm 2026",
+      "parentDriveFileId": null,
+      "priority": 2,
+      "reference": "1456/QĐ-TKV (2026)"
+    },
+    {
+      "driveFileId": null,
+      "id": "tkv-1456-app-1",
+      "label": "Phụ lục 1 của QĐ 1456/QĐ-TKV năm 2026",
+      "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+      "priority": 2,
+      "reference": "1456/QĐ-TKV, Phụ lục 1"
+    },
+    {
+      "driveFileId": null,
+      "id": "tkv-1456-app-2",
+      "label": "Phụ lục 2 của QĐ 1456/QĐ-TKV năm 2026",
+      "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+      "priority": 2,
+      "reference": "1456/QĐ-TKV, Phụ lục 2"
+    },
+    {
+      "driveFileId": null,
+      "id": "tkv-1456-app-3",
+      "label": "Phụ lục 3 của QĐ 1456/QĐ-TKV năm 2026",
+      "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+      "priority": 2,
+      "reference": "1456/QĐ-TKV, Phụ lục 3"
+    },
+    {
+      "driveFileId": null,
+      "id": "tkv-1456-app-4",
+      "label": "Phụ lục 4 của QĐ 1456/QĐ-TKV năm 2026",
+      "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+      "priority": 2,
+      "reference": "1456/QĐ-TKV, Phụ lục 4"
+    },
+    {
+      "driveFileId": "1imdd_8aeS-WYJXYkRhiZlwtbqOjxiGUi",
+      "id": "tkv-586-2021",
+      "label": "Hướng dẫn về văn bản của TKV số 586/2021",
+      "parentDriveFileId": null,
+      "priority": 3,
+      "reference": "586/2021"
+    },
+    {
+      "driveFileId": "1lKEgbA1VScYtmDznZ3QmhSFeJdn4hyl4",
+      "id": "tkv-history-2018",
+      "label": "The thuc Van ban TKV-2018(Final).docx",
+      "parentDriveFileId": null,
+      "priority": 4,
+      "reference": "Historical layout reference (2018)"
+    },
+    {
+      "driveFileId": null,
+      "id": "web-template-schemas",
+      "label": "Existing web app document-type field schemas",
+      "parentDriveFileId": null,
+      "priority": 5,
+      "reference": "web_app/src/templates/form-schema.ts"
+    },
+    {
+      "driveFileId": null,
+      "id": "internal-leave-request",
+      "label": "System-defined internal leave request form",
+      "parentDriveFileId": null,
+      "priority": 5,
+      "reference": "Internally-defined"
+    }
+  ],
+  "templates": [
+    {
+      "canonicalFile": "iemm/01-quyet-dinh-ca-biet.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/01-quyet-dinh-ca-biet.docx",
+      "canonicalSha256": "356660eeac557853e53e5d549c83116c5851a443bd372392eba685c17e0aaa46",
+      "catalogIds": [
+        "iemm-qd-001",
+        "web:iemm-01"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-quyet-dinh-ca-biet",
+      "name": "Quyết định cá biệt của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        },
+        {
+          "driveFileId": "1hqwE4JeEf9pnlHupr4-t3wiiE7Q26vTJ",
+          "id": "iemm-pliv",
+          "label": "3. Phu luc IV Chi tiet mau chu- Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục IV"
+        },
+        {
+          "driveFileId": null,
+          "id": "iemm-type-guide",
+          "label": "5. Van ban- Van thu (HD cu the tung loai van ban).ppt",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "Hướng dẫn từng loại văn bản"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "356660eeac557853e53e5d549c83116c5851a443bd372392eba685c17e0aaa46",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/01-quyet-dinh-ca-biet.docx",
+      "runtimeSha256": "356660eeac557853e53e5d549c83116c5851a443bd372392eba685c17e0aaa46",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Existing catalog specifies a centered bold document type and subject and an Articles structure."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "decision_individual",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/02-quyet-dinh-ban-hanh-van-ban.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/02-quyet-dinh-ban-hanh-van-ban.docx",
+      "canonicalSha256": "cef8ca42e6ebffc4b995c025ace5d32168a52f0504ee22f91c27e59a8bb0d549",
+      "catalogIds": [
+        "iemm-qd-ban-hanh-001",
+        "web:iemm-02"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-quyet-dinh-ban-hanh",
+      "name": "Quyết định ban hành hoặc phê duyệt văn bản của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        },
+        {
+          "driveFileId": null,
+          "id": "iemm-type-guide",
+          "label": "5. Van ban- Van thu (HD cu the tung loai van ban).ppt",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "Hướng dẫn từng loại văn bản"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "cef8ca42e6ebffc4b995c025ace5d32168a52f0504ee22f91c27e59a8bb0d549",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/02-quyet-dinh-ban-hanh-van-ban.docx",
+      "runtimeSha256": "cef8ca42e6ebffc4b995c025ace5d32168a52f0504ee22f91c27e59a8bb0d549",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Includes a separate Article for the attached/approved text and a final responsibility/effect clause."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "decision_issue",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/03-quy-che-quy-dinh.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/03-quy-che-quy-dinh.docx",
+      "canonicalSha256": "d3bd1802472a80c12f71e1e9c72e662a9e62b889a387ceb81c1f40679e8ca05c",
+      "catalogIds": [
+        "iemm-quy-che-001"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-quy-che",
+      "name": "Quy chế, quy định của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "d3bd1802472a80c12f71e1e9c72e662a9e62b889a387ceb81c1f40679e8ca05c",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/03-quy-che-quy-dinh.docx",
+      "runtimeSha256": "d3bd1802472a80c12f71e1e9c72e662a9e62b889a387ceb81c1f40679e8ca05c",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Uses chapters, articles, scope and implementation sections as the application catalog describes."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "regulation",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/04-van-ban-ban-hanh-kem-theo-quyet-dinh.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/04-van-ban-ban-hanh-kem-theo-quyet-dinh.docx",
+      "canonicalSha256": "dfb7468ea035b2143287037053b42e9fd0d344cb45a0a7d8ee7ca02143afb20a",
+      "catalogIds": [
+        "iemm-van-ban-kem-quyet-dinh-001"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-van-ban-kem-quyet-dinh",
+      "name": "Văn bản ban hành kèm theo quyết định",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "dfb7468ea035b2143287037053b42e9fd0d344cb45a0a7d8ee7ca02143afb20a",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/04-van-ban-ban-hanh-kem-theo-quyet-dinh.docx",
+      "runtimeSha256": "dfb7468ea035b2143287037053b42e9fd0d344cb45a0a7d8ee7ca02143afb20a",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Separate attached document frame, with objectives, content, timing and implementation blocks."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "accompanying_document",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/05-cong-van-hanh-chinh.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/05-cong-van-hanh-chinh.docx",
+      "canonicalSha256": "a7b083027fed4b719f0947b28ac7d8bb83a948e4bc9bdaf0a1784e8504d5cbb2",
+      "catalogIds": [
+        "iemm-cv-001",
+        "web:iemm-03"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-cong-van",
+      "name": "Công văn hành chính của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        },
+        {
+          "driveFileId": "1hqwE4JeEf9pnlHupr4-t3wiiE7Q26vTJ",
+          "id": "iemm-pliv",
+          "label": "3. Phu luc IV Chi tiet mau chu- Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục IV"
+        },
+        {
+          "driveFileId": "1j0XbWVFTUzUCmRNIt2a-o7_pSlx1S2Qt",
+          "id": "iemm-main-doc",
+          "label": "1. Quy che Chinh ve Cong tac van thu cua Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        },
+        {
+          "driveFileId": null,
+          "id": "iemm-specific-rules",
+          "label": "4. Quy dinh rieng ve Van ban cua Vien.ppt",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "Quy định riêng về văn bản của Viện"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "a7b083027fed4b719f0947b28ac7d8bb83a948e4bc9bdaf0a1784e8504d5cbb2",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/05-cong-van-hanh-chinh.docx",
+      "runtimeSha256": "a7b083027fed4b719f0947b28ac7d8bb83a948e4bc9bdaf0a1784e8504d5cbb2",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "No Công văn title. Subject uses V/v; the code does not add CV to the document symbol."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "official_letter",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/06-thong-bao-noi-bo-vien.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/06-thong-bao-noi-bo-vien.docx",
+      "canonicalSha256": "ed63eb668ceb7db1570c8de849c4b503ee0cc1f282e2e52d90b9d262f8d7a68c",
+      "catalogIds": [
+        "iemm-tb-001",
+        "web:iemm-05"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-thong-bao",
+      "name": "Thông báo nội bộ của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        },
+        {
+          "driveFileId": "1hqwE4JeEf9pnlHupr4-t3wiiE7Q26vTJ",
+          "id": "iemm-pliv",
+          "label": "3. Phu luc IV Chi tiet mau chu- Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục IV"
+        },
+        {
+          "driveFileId": null,
+          "id": "iemm-type-guide",
+          "label": "5. Van ban- Van thu (HD cu the tung loai van ban).ppt",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "Hướng dẫn từng loại văn bản"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "ed63eb668ceb7db1570c8de849c4b503ee0cc1f282e2e52d90b9d262f8d7a68c",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/06-thong-bao-noi-bo-vien.docx",
+      "runtimeSha256": "ed63eb668ceb7db1570c8de849c4b503ee0cc1f282e2e52d90b9d262f8d7a68c",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Notice title is distinct; subject is bold, centered and ruled. Symbol does not include a drafting unit."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "internal_notice",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/07-to-trinh-cua-vien.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/07-to-trinh-cua-vien.docx",
+      "canonicalSha256": "5f1e0ae5884839338db60a3dc226be0118ef376c03bc539472a238470bb5a261",
+      "catalogIds": [
+        "iemm-tt-001",
+        "web:iemm-04"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-to-trinh-vien",
+      "name": "Tờ trình của Viện gửi cấp trên",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        },
+        {
+          "driveFileId": null,
+          "id": "iemm-type-guide",
+          "label": "5. Van ban- Van thu (HD cu the tung loai van ban).ppt",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "Hướng dẫn từng loại văn bản"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "5f1e0ae5884839338db60a3dc226be0118ef376c03bc539472a238470bb5a261",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/07-to-trinh-cua-vien.docx",
+      "runtimeSha256": "5f1e0ae5884839338db60a3dc226be0118ef376c03bc539472a238470bb5a261",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Includes necessity/basis, proposal content, recommendation and recipient blocks."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "proposal_institute",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/08-to-trinh-cua-don-vi-gui-vien.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/08-to-trinh-cua-don-vi-gui-vien.docx",
+      "canonicalSha256": "cebd1dc9c7a5cd4128de5ea31c18e304bc2dcb425e1d74c9ff683bb664bab8b1",
+      "catalogIds": [
+        "iemm-to-trinh-noi-bo-001",
+        "web:iemm-tt-nb"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-to-trinh-don-vi",
+      "name": "Tờ trình của đơn vị gửi Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "cebd1dc9c7a5cd4128de5ea31c18e304bc2dcb425e1d74c9ff683bb664bab8b1",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/08-to-trinh-cua-don-vi-gui-vien.docx",
+      "runtimeSha256": "cebd1dc9c7a5cd4128de5ea31c18e304bc2dcb425e1d74c9ff683bb664bab8b1",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Internal unit sender is represented in content fields; exact sender name remains user-supplied."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "proposal_unit",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/09-bien-ban.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/09-bien-ban.docx",
+      "canonicalSha256": "0aed59a14ff2be518f64aaaed70131a48286ab0acf2d0b2ae9d168bcea7986e6",
+      "catalogIds": [
+        "iemm-bb-001",
+        "web:iemm-06"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-bien-ban",
+      "name": "Biên bản của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "0aed59a14ff2be518f64aaaed70131a48286ab0acf2d0b2ae9d168bcea7986e6",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/09-bien-ban.docx",
+      "runtimeSha256": "0aed59a14ff2be518f64aaaed70131a48286ab0acf2d0b2ae9d168bcea7986e6",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Meeting time/place, participants, proceedings, conclusion and separate chair/secretary signatures are explicit."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "minutes",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/10-van-ban-co-ten-loai.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/10-van-ban-co-ten-loai.docx",
+      "canonicalSha256": "13b26437da913013110a577a210edc82dc25611954a51d0ce2fe052af1500709",
+      "catalogIds": [
+        "iemm-van-ban-co-ten-loai-001"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-van-ban-co-ten-loai",
+      "name": "Văn bản hành chính có tên loại của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        },
+        {
+          "driveFileId": "1hqwE4JeEf9pnlHupr4-t3wiiE7Q26vTJ",
+          "id": "iemm-pliv",
+          "label": "3. Phu luc IV Chi tiet mau chu- Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục IV"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "13b26437da913013110a577a210edc82dc25611954a51d0ce2fe052af1500709",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/10-van-ban-co-ten-loai.docx",
+      "runtimeSha256": "13b26437da913013110a577a210edc82dc25611954a51d0ce2fe052af1500709",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "A distinct titled frame. Báo cáo and Kế hoạch have separate canonical files and schemas."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "general_titled_document",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/11-ban-sao-van-ban.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/11-ban-sao-van-ban.docx",
+      "canonicalSha256": "03b676edceaa19c04646ee4ef19d611dc47cc6a0fe85bfc45e177b72eccb7a7e",
+      "catalogIds": [
+        "iemm-ban-sao-001"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-ban-sao",
+      "name": "Bản sao văn bản của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "03b676edceaa19c04646ee4ef19d611dc47cc6a0fe85bfc45e177b72eccb7a7e",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/11-ban-sao-van-ban.docx",
+      "runtimeSha256": "03b676edceaa19c04646ee4ef19d611dc47cc6a0fe85bfc45e177b72eccb7a7e",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Includes source-document identity, copy form, certification/signature and distribution areas."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "certified_copy",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/12-thu-moi-hop.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/12-thu-moi-hop.docx",
+      "canonicalSha256": "9b4dd78ea6bf13b053da5f4a459a40686b427ffd7faed4ad7ff558bf895ebc3a",
+      "catalogIds": [
+        "iemm-thu-moi-001",
+        "web:iemm-10",
+        "web:iemm-thu-moi"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-thu-moi",
+      "name": "Thư mời họp của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "9b4dd78ea6bf13b053da5f4a459a40686b427ffd7faed4ad7ff558bf895ebc3a",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/12-thu-moi-hop.docx",
+      "runtimeSha256": "9b4dd78ea6bf13b053da5f4a459a40686b427ffd7faed4ad7ff558bf895ebc3a",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Distinct meeting invitation with recipient, time, place, chair and preparation request."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "meeting_invitation",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/13-thu-bao-hoan-hop.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/13-thu-bao-hoan-hop.docx",
+      "canonicalSha256": "27e00b8419750133defcef66085da847eae5dc658dd7d9e2ddf5721628760e8a",
+      "catalogIds": [
+        "iemm-thu-hoan-hop-001"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-thu-hoan-hop",
+      "name": "Thư báo hoãn họp của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "27e00b8419750133defcef66085da847eae5dc658dd7d9e2ddf5721628760e8a",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/13-thu-bao-hoan-hop.docx",
+      "runtimeSha256": "27e00b8419750133defcef66085da847eae5dc658dd7d9e2ddf5721628760e8a",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "References the original meeting and provides a new schedule field without inventing a date."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "meeting_postponement",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/14-cong-van-dinh-chinh.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/14-cong-van-dinh-chinh.docx",
+      "canonicalSha256": "56ea2d0da49a1b7b2a2a4b3558e1c045ad3fbf00ca5da20e00937e5d805ded57",
+      "catalogIds": [
+        "iemm-cong-van-dinh-chinh-001",
+        "web:iemm-14"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-cong-van-dinh-chinh",
+      "name": "Công văn đính chính văn bản của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        },
+        {
+          "driveFileId": "1j0XbWVFTUzUCmRNIt2a-o7_pSlx1S2Qt",
+          "id": "iemm-main-doc",
+          "label": "1. Quy che Chinh ve Cong tac van thu cua Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "56ea2d0da49a1b7b2a2a4b3558e1c045ad3fbf00ca5da20e00937e5d805ded57",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/14-cong-van-dinh-chinh.docx",
+      "runtimeSha256": "56ea2d0da49a1b7b2a2a4b3558e1c045ad3fbf00ca5da20e00937e5d805ded57",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Uses the official-letter layout with old/correct text; does not add a document-type title."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "correction_letter",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/15-bao-cao.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/15-bao-cao.docx",
+      "canonicalSha256": "0e06faa9cdb8c51722e8ce6c1469f29e11a1956bfa1b6e058b1d5625ff9b0a85",
+      "catalogIds": [
+        "iemm-bao-cao-001",
+        "web:iemm-07"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-bao-cao",
+      "name": "Báo cáo của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        },
+        {
+          "driveFileId": "1hqwE4JeEf9pnlHupr4-t3wiiE7Q26vTJ",
+          "id": "iemm-pliv",
+          "label": "3. Phu luc IV Chi tiet mau chu- Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục IV"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "0e06faa9cdb8c51722e8ce6c1469f29e11a1956bfa1b6e058b1d5625ff9b0a85",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/15-bao-cao.docx",
+      "runtimeSha256": "0e06faa9cdb8c51722e8ce6c1469f29e11a1956bfa1b6e058b1d5625ff9b0a85",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Report-specific result, assessment, cause and recommendation sections; no invented statistics."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "report",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/16-ke-hoach.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/16-ke-hoach.docx",
+      "canonicalSha256": "b6b147cdf0aedd75197ab87797fcdec94c1a35079020ae1f14564e1685577af0",
+      "catalogIds": [
+        "iemm-ke-hoach-001",
+        "web:iemm-08"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-ke-hoach",
+      "name": "Kế hoạch của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        },
+        {
+          "driveFileId": "1hqwE4JeEf9pnlHupr4-t3wiiE7Q26vTJ",
+          "id": "iemm-pliv",
+          "label": "3. Phu luc IV Chi tiet mau chu- Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục IV"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "b6b147cdf0aedd75197ab87797fcdec94c1a35079020ae1f14564e1685577af0",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/16-ke-hoach.docx",
+      "runtimeSha256": "b6b147cdf0aedd75197ab87797fcdec94c1a35079020ae1f14564e1685577af0",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Plan-specific objective, timeline, assignment and implementation sections; not shared with report/general titled documents."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "plan",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/17-don-xin-nghi-phep.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/17-don-xin-nghi-phep.docx",
+      "canonicalSha256": "1b2fa13632e67f2da751261787b39f71358a7be92ab99eea396676116523ab9d",
+      "catalogIds": [
+        "iemm-nghi-phep-001",
+        "web:iemm-12",
+        "web:iemm-don-np"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-don-xin-nghi-phep",
+      "name": "Đơn xin nghỉ phép của Viện",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": null,
+          "id": "internal-leave-request",
+          "label": "System-defined internal leave request form",
+          "parentDriveFileId": null,
+          "priority": 5,
+          "reference": "Internally-defined"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "1b2fa13632e67f2da751261787b39f71358a7be92ab99eea396676116523ab9d",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/17-don-xin-nghi-phep.docx",
+      "runtimeSha256": "1b2fa13632e67f2da751261787b39f71358a7be92ab99eea396676116523ab9d",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "internally-defined",
+      "sourceNotes": [
+        "Internal system form, not a statutory form. The source reference is recorded only as historical context."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "leave_request",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/18-chuong-trinh-cong-tac.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/18-chuong-trinh-cong-tac.docx",
+      "canonicalSha256": "7657423ad5ba4dd262be2c9b546ba9225edaaacc0a8e9c04d8d73a739331c823",
+      "catalogIds": [
+        "web:iemm-09"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-chuong-trinh",
+      "name": "Chương trình công tác",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": null,
+          "id": "iemm-type-guide",
+          "label": "5. Van ban- Van thu (HD cu the tung loai van ban).ppt",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "Hướng dẫn từng loại văn bản"
+        },
+        {
+          "driveFileId": null,
+          "id": "web-template-schemas",
+          "label": "Existing web app document-type field schemas",
+          "parentDriveFileId": null,
+          "priority": 5,
+          "reference": "web_app/src/templates/form-schema.ts"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "7657423ad5ba4dd262be2c9b546ba9225edaaacc0a8e9c04d8d73a739331c823",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/18-chuong-trinh-cong-tac.docx",
+      "runtimeSha256": "7657423ad5ba4dd262be2c9b546ba9225edaaacc0a8e9c04d8d73a739331c823",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Web catalog type has a separate purpose and schema; not merged into the general titled document."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "work_program",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/19-giay-gioi-thieu.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/19-giay-gioi-thieu.docx",
+      "canonicalSha256": "feac7314b65b1e9ffb2bb75d521764cb566871d42d78a3eadb3d6c68fbfdbe04",
+      "catalogIds": [
+        "web:iemm-11"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-giay-gioi-thieu",
+      "name": "Giấy giới thiệu",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": null,
+          "id": "web-template-schemas",
+          "label": "Existing web app document-type field schemas",
+          "parentDriveFileId": null,
+          "priority": 5,
+          "reference": "web_app/src/templates/form-schema.ts"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "feac7314b65b1e9ffb2bb75d521764cb566871d42d78a3eadb3d6c68fbfdbe04",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/19-giay-gioi-thieu.docx",
+      "runtimeSha256": "feac7314b65b1e9ffb2bb75d521764cb566871d42d78a3eadb3d6c68fbfdbe04",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Type is present in the web app catalog; authority-specific fields remain caller-provided."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "introduction_letter",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "iemm/20-ban-cam-ket.docx",
+      "canonicalPath": "canonical_templates/generated/iemm/20-ban-cam-ket.docx",
+      "canonicalSha256": "3c5a541a844557a3edf8bb981896e07d22422ffc7ce0f7c207ba2a4c3bd0fc0f",
+      "catalogIds": [
+        "web:iemm-13"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "iemm-ban-cam-ket",
+      "name": "Bản cam kết",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        }
+      ],
+      "organization": "IEMM",
+      "referenceSources": [
+        {
+          "driveFileId": null,
+          "id": "web-template-schemas",
+          "label": "Existing web app document-type field schemas",
+          "parentDriveFileId": null,
+          "priority": 5,
+          "reference": "web_app/src/templates/form-schema.ts"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "3c5a541a844557a3edf8bb981896e07d22422ffc7ce0f7c207ba2a4c3bd0fc0f",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/iemm/20-ban-cam-ket.docx",
+      "runtimeSha256": "3c5a541a844557a3edf8bb981896e07d22422ffc7ce0f7c207ba2a4c3bd0fc0f",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Type is present in the web app catalog; the commitment statement itself is user-supplied."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "commitment",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "tvci-cong-van.docx",
+      "canonicalPath": "canonical_templates/generated/tvci-cong-van.docx",
+      "canonicalSha256": "7af281c6ffcfe8788aa57a07efc6fade5d46fe3734b58dc28a264218d8a6e203",
+      "catalogIds": [
+        "tvci-cv-001",
+        "web:tvci-cv"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "tvci-cong-van",
+      "name": "Công văn của Trung tâm Thử nghiệm - Kiểm định Công nghiệp",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        },
+        {
+          "driveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "id": "tkv-1456",
+          "label": "Quy chế quản lý công tác Văn thư, Lưu trữ TKV ban hành theo QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "1456/QĐ-TKV (2026)"
+        }
+      ],
+      "organization": "TVCI",
+      "referenceSources": [
+        {
+          "driveFileId": null,
+          "id": "iemm-specific-rules",
+          "label": "4. Quy dinh rieng ve Van ban cua Vien.ppt",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "Quy định riêng về văn bản của Viện"
+        },
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        },
+        {
+          "driveFileId": "1hqwE4JeEf9pnlHupr4-t3wiiE7Q26vTJ",
+          "id": "iemm-pliv",
+          "label": "3. Phu luc IV Chi tiet mau chu- Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục IV"
+        },
+        {
+          "driveFileId": "1j0XbWVFTUzUCmRNIt2a-o7_pSlx1S2Qt",
+          "id": "iemm-main-doc",
+          "label": "1. Quy che Chinh ve Cong tac van thu cua Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        },
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-1",
+          "label": "Phụ lục 1 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 1"
+        },
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-2",
+          "label": "Phụ lục 2 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 2"
+        },
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-3",
+          "label": "Phụ lục 3 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 3"
+        },
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-4",
+          "label": "Phụ lục 4 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 4"
+        },
+        {
+          "driveFileId": "1imdd_8aeS-WYJXYkRhiZlwtbqOjxiGUi",
+          "id": "tkv-586-2021",
+          "label": "Hướng dẫn về văn bản của TKV số 586/2021",
+          "parentDriveFileId": null,
+          "priority": 3,
+          "reference": "586/2021"
+        },
+        {
+          "driveFileId": "1lKEgbA1VScYtmDznZ3QmhSFeJdn4hyl4",
+          "id": "tkv-history-2018",
+          "label": "The thuc Van ban TKV-2018(Final).docx",
+          "parentDriveFileId": null,
+          "priority": 4,
+          "reference": "Historical layout reference (2018)"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "7af281c6ffcfe8788aa57a07efc6fade5d46fe3734b58dc28a264218d8a6e203",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/tvci-cong-van-template.docx",
+      "runtimeSha256": "7af281c6ffcfe8788aa57a07efc6fade5d46fe3734b58dc28a264218d8a6e203",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Catalog metadata says this letter is prepared by TVCI but issued under the Institute's name with /VCNM-TTTN. QĐ1456/2026 takes precedence over older TKV guidance when different."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "tvci_official_letter",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "tvci-thong-bao.docx",
+      "canonicalPath": "canonical_templates/generated/tvci-thong-bao.docx",
+      "canonicalSha256": "29048d3affab370a8ee60c58a0a6c4d988152bc0682f9959932e12a61ae33a33",
+      "catalogIds": [
+        "tvci-tb-001",
+        "web:tvci-tb"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "tvci-thong-bao",
+      "name": "Thông báo của Trung tâm Thử nghiệm - Kiểm định Công nghiệp",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1QixLiN0n_2coMWTakVKF2VjDA1hK5Xok",
+          "id": "iemm-q731",
+          "label": "Quy chế Văn thư của Viện (QĐ 731-2023)",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023"
+        },
+        {
+          "driveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "id": "tkv-1456",
+          "label": "Quy chế quản lý công tác Văn thư, Lưu trữ TKV ban hành theo QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "1456/QĐ-TKV (2026)"
+        }
+      ],
+      "organization": "TVCI",
+      "referenceSources": [
+        {
+          "driveFileId": null,
+          "id": "iemm-specific-rules",
+          "label": "4. Quy dinh rieng ve Van ban cua Vien.ppt",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "Quy định riêng về văn bản của Viện"
+        },
+        {
+          "driveFileId": "1_l-QPjZMY_rZNZsVSbakL53PD2908rjC",
+          "id": "iemm-plvii",
+          "label": "4. Mau Chi tiet van ban cua Vien (PLVII) Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục VII"
+        },
+        {
+          "driveFileId": "1hqwE4JeEf9pnlHupr4-t3wiiE7Q26vTJ",
+          "id": "iemm-pliv",
+          "label": "3. Phu luc IV Chi tiet mau chu- Quy che van thu Vien.doc",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "QĐ 731-2023, Phụ lục IV"
+        },
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-1",
+          "label": "Phụ lục 1 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 1"
+        },
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-2",
+          "label": "Phụ lục 2 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 2"
+        },
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-3",
+          "label": "Phụ lục 3 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 3"
+        },
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-4",
+          "label": "Phụ lục 4 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 4"
+        },
+        {
+          "driveFileId": "1imdd_8aeS-WYJXYkRhiZlwtbqOjxiGUi",
+          "id": "tkv-586-2021",
+          "label": "Hướng dẫn về văn bản của TKV số 586/2021",
+          "parentDriveFileId": null,
+          "priority": 3,
+          "reference": "586/2021"
+        },
+        {
+          "driveFileId": "1lKEgbA1VScYtmDznZ3QmhSFeJdn4hyl4",
+          "id": "tkv-history-2018",
+          "label": "The thuc Van ban TKV-2018(Final).docx",
+          "parentDriveFileId": null,
+          "priority": 4,
+          "reference": "Historical layout reference (2018)"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "29048d3affab370a8ee60c58a0a6c4d988152bc0682f9959932e12a61ae33a33",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/tvci-thong-bao-template.docx",
+      "runtimeSha256": "29048d3affab370a8ee60c58a0a6c4d988152bc0682f9959932e12a61ae33a33",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Catalog specifies /TB-VCNM and says the notice uses the Institute's form; no drafting-unit code is added."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "tvci_notice",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    },
+    {
+      "canonicalFile": "tkv-quyet-dinh.docx",
+      "canonicalPath": "canonical_templates/generated/tkv-quyet-dinh.docx",
+      "canonicalSha256": "8c9e310b0fa4b6262dd462f369bf5c907d8abae6e859301525c2a1decf4b36dd",
+      "catalogIds": [
+        "web:tkv-qd"
+      ],
+      "comparison": "byte-exact",
+      "deterministicQa": {
+        "reportPath": "qa/canonical-template-reports/deterministic.json",
+        "sha256": "6dbb124515899914bc6a1f5b57796417ecfc698ede99428b33a62f4b31970a86",
+        "status": "passed"
+      },
+      "key": "tkv-quyet-dinh",
+      "name": "Quyết định Tập đoàn TKV",
+      "normativeSources": [
+        {
+          "driveFileId": null,
+          "id": "nd30",
+          "label": "Nghị định 30/2020/NĐ-CP, Phụ lục I",
+          "parentDriveFileId": null,
+          "priority": 1,
+          "reference": "30/2020/NĐ-CP"
+        },
+        {
+          "driveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "id": "tkv-1456",
+          "label": "Quy chế quản lý công tác Văn thư, Lưu trữ TKV ban hành theo QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": null,
+          "priority": 2,
+          "reference": "1456/QĐ-TKV (2026)"
+        }
+      ],
+      "organization": "TKV",
+      "referenceSources": [
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-1",
+          "label": "Phụ lục 1 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 1"
+        },
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-2",
+          "label": "Phụ lục 2 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 2"
+        },
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-3",
+          "label": "Phụ lục 3 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 3"
+        },
+        {
+          "driveFileId": null,
+          "id": "tkv-1456-app-4",
+          "label": "Phụ lục 4 của QĐ 1456/QĐ-TKV năm 2026",
+          "parentDriveFileId": "1mD8LuhIR3r6_mVGgUWxu2ujCAqAsgcMH",
+          "priority": 2,
+          "reference": "1456/QĐ-TKV, Phụ lục 4"
+        },
+        {
+          "driveFileId": "1imdd_8aeS-WYJXYkRhiZlwtbqOjxiGUi",
+          "id": "tkv-586-2021",
+          "label": "Hướng dẫn về văn bản của TKV số 586/2021",
+          "parentDriveFileId": null,
+          "priority": 3,
+          "reference": "586/2021"
+        },
+        {
+          "driveFileId": "1lKEgbA1VScYtmDznZ3QmhSFeJdn4hyl4",
+          "id": "tkv-history-2018",
+          "label": "The thuc Van ban TKV-2018(Final).docx",
+          "parentDriveFileId": null,
+          "priority": 4,
+          "reference": "Historical layout reference (2018)"
+        }
+      ],
+      "runtimeParity": {
+        "comparison": "byte-exact",
+        "reportPath": "qa/canonical-template-reports/runtime-parity.json",
+        "runtimeSha256": "8c9e310b0fa4b6262dd462f369bf5c907d8abae6e859301525c2a1decf4b36dd",
+        "sha256": "9a687162a0d8bcb99c9bfc984307134d0bf08baaee8498ca706a0f90ce2ee454",
+        "status": "passed"
+      },
+      "runtimePath": "/templates/tkv-quyet-dinh-template.docx",
+      "runtimeSha256": "8c9e310b0fa4b6262dd462f369bf5c907d8abae6e859301525c2a1decf4b36dd",
+      "semanticQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "sourceClassification": "rule-derived",
+      "sourceNotes": [
+        "Uses NĐ30 common geometry and the existing catalog decision schema while QĐ1456/2026 content is unavailable; organization hierarchy and TKV-specific overrides remain source notes, not inferred rules."
+      ],
+      "structuralQa": {
+        "reportPath": "qa/canonical-template-reports/structural.json",
+        "sha256": "1fc197732d9067c7d36614a85b3bee446ebaa7d80115963af390d3472875b86e",
+        "status": "passed"
+      },
+      "typeSchema": "tkv_decision",
+      "visualQa": {
+        "renderer": "LibreOffice 26.2.5.2",
+        "reportPath": "qa/canonical-template-reports/visual.json",
+        "sha256": "f92249c1e078ceff1a7e9c84c1240541eac25737e43676314ebb8b7a0094790b",
+        "status": "passed"
+      }
+    }
+  ],
+  "toolchain": {
+    "pythonDocxVersion": "1.2.0",
+    "pythonVersion": "3.11.15",
+    "zlibVersion": "1.3.2"
+  }
+}

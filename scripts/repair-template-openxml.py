@@ -1,3 +1,4 @@
+from template_path_safety import assert_mutable_runtime_path, filter_runtime_docx
 import glob, os, re, tempfile, zipfile
 from pathlib import Path
 
@@ -41,6 +42,7 @@ def repair_xml(xml: str) -> str:
     return xml
 
 def repair_docx(path: Path):
+    assert_mutable_runtime_path(path)
     with zipfile.ZipFile(path, 'r') as z:
         entries = [(info, z.read(info.filename)) for info in z.infolist()]
     
@@ -70,5 +72,5 @@ def repair_docx(path: Path):
     else:
         print(f"Unchanged: {path}")
 
-for p in sorted(Path('templates').rglob('*.docx')):
+for p in filter_runtime_docx(Path('templates').rglob('*.docx')):
     repair_docx(p)

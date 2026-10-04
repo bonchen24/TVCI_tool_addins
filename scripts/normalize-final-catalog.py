@@ -1,5 +1,6 @@
 """Normalize only DOCX assets referenced by the bundled catalog (idempotent)."""
 from __future__ import annotations
+from template_path_safety import assert_mutable_runtime_path, filter_runtime_docx
 import re
 import tempfile
 import zipfile
@@ -13,13 +14,13 @@ W10 = 'urn:schemas-microsoft-com:office:word'
 NS = {'w': W, 'v': V, 'w10': W10}
 q = lambda name: '{%s}%s' % (W, name)
 
-PATHS = [*sorted((ROOT / 'templates/iemm').glob('*.docx')),
+PATHS = filter_runtime_docx([*sorted((ROOT / 'templates/iemm').glob('*.docx')),
     ROOT / 'templates/iemm-don-xin-nghi-phep-template.docx',
     ROOT / 'templates/iemm-sample.docx',
     ROOT / 'templates/tvci-cong-van-template.docx',
     ROOT / 'templates/tvci-thong-bao-template.docx',
     ROOT / 'templates/tvci-sample.docx',
-    ROOT / 'templates/dang-sample.docx']
+    ROOT / 'templates/dang-sample.docx'])
 
 
 def text(p):
@@ -64,6 +65,7 @@ def remove_borders(root):
 
 
 def normalize(path):
+    assert_mutable_runtime_path(path)
     with zipfile.ZipFile(path) as z:
         entries = [(i, z.read(i.filename)) for i in z.infolist()]
     root = ET.fromstring(next(data for info, data in entries if info.filename == 'word/document.xml'))

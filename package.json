@@ -30,7 +30,14 @@
     "test:installer": "node scripts/verify-installer.mjs",
     "test:direct": "node --experimental-strip-types --test qa/direct-api.node.test.ts",
     "test:models": "node --experimental-strip-types --test qa/model-discovery.node.test.ts",
-    "test:qa": "node --experimental-strip-types --test --test-isolation=none qa/*.node.test.ts"
+    "test:qa": "node --experimental-strip-types --test --test-isolation=none qa/*.node.test.ts",
+    "test:docx": "python -m unittest discover -s tests/templates -p \"test_canonical_template_*.py\" -v",
+    "templates:generate": "python scripts/generate-canonical-templates.py generate",
+    "templates:qa": "python scripts/verify-canonical-templates.py --all",
+    "templates:render": "python scripts/render-canonical-templates.py --all",
+    "templates:determinism": "python scripts/generate-canonical-templates.py verify-determinism",
+    "templates:record-qa": "python scripts/generate-canonical-templates.py record-qa --structural-report qa/canonical-template-reports/structural.json --deterministic-report qa/canonical-template-reports/deterministic.json --visual-report qa/canonical-template-reports/visual.json",
+    "templates:sync-runtime": "python scripts/generate-canonical-templates.py sync-runtime"
   },
   "dependencies": {
     "jszip": "^3.10.2",

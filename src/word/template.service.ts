@@ -1,4 +1,6 @@
 import type { TemplateRecord } from "../templates/library";
+import { isOfficialTemplateVerified, isTemplateSelectable } from "../templates/library";
+import { TEMPLATE_CATALOG } from "../templates/catalog";
 import { getUserTemplateData } from "../templates/storage";
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
@@ -35,14 +37,25 @@ function sendDebug(msg: string) {
 }
 
 export async function insertTemplate(template: TemplateRecord): Promise<void> {
-  sendDebug(`insertTemplate starting: ${template.id} - ${template.name}`);
+  const requestedBundledPath = template.source.kind === "bundled" ? template.source.path : null;
+  const authorizedTemplate = requestedBundledPath === null
+    ? template.source.kind === "user" ? template : undefined
+    : TEMPLATE_CATALOG.find((candidate) =>
+      candidate.id === template.id
+      && candidate.source.kind === "bundled"
+      && candidate.source.path === requestedBundledPath
+      && isOfficialTemplateVerified(candidate));
+  if (!authorizedTemplate || !isTemplateSelectable(authorizedTemplate)) {
+    throw new Error("Biểu mẫu chưa được xác minh nguồn canonical và không thể dùng như mẫu chính thức.");
+  }
+  sendDebug(`insertTemplate starting: ${authorizedTemplate.id} - ${authorizedTemplate.name}`);
   try {
     try {
       if (typeof OfficeExtension !== "undefined" && OfficeExtension?.config) {
         (OfficeExtension.config as any).extendedErrorLogging = true;
       }
     } catch {}
-    const data = await resolveTemplateData(template);
+    const data = await resolveTemplateData(authorizedTemplate);
     sendDebug(`template loaded, bytes: ${data.byteLength}`);
     const base64 = arrayBufferToBase64(data);
     await Word.run(async (context) => {

@@ -1,5 +1,5 @@
 import { insertTemplate } from "../../src/word/template.service";
-import type { TemplateRecord } from "../../src/templates/library";
+import { TEMPLATE_CATALOG } from "../../src/templates/catalog";
 
 type InsertedRangeMock = {
   select: jest.Mock<void, []>;
@@ -20,17 +20,7 @@ let previousDocument: unknown;
 let activeContext: TemplateContextMock;
 let insertedRange: InsertedRangeMock;
 
-const template: TemplateRecord = {
-  id: "template-regression",
-  name: "Template regression",
-  organization: "TVCI",
-  department: "Văn bản chung",
-  documentType: "Công văn",
-  keywords: [],
-  source: { kind: "bundled", path: "/templates/template-regression.docx" },
-  version: "1.0",
-  status: "active",
-};
+const template = TEMPLATE_CATALOG.find((record) => record.id === "iemm-cv-001")!;
 
 beforeEach(() => {
   insertedRange = { select: jest.fn() };
@@ -79,14 +69,7 @@ afterEach(() => {
   else Object.defineProperty(globalThis, "document", { configurable: true, writable: true, value: previousDocument });
 });
 
-test("inserts a bundled DOCX at the end of the document and selects the inserted range", async () => {
-  await insertTemplate(template);
-
-  expect(globalThis.fetch).toHaveBeenCalledWith(
-    "https://intranet.example/tvci-word-tools/templates/template-regression.docx",
-    { cache: "no-store" },
-  );
-  expect(activeContext.document.body.insertFileFromBase64).toHaveBeenCalledWith("AQID", "end");
-  expect(insertedRange.select).toHaveBeenCalledTimes(1);
-  expect(activeContext.sync).toHaveBeenCalledTimes(1);
+test("does not insert a built-in DOCX without canonical verification", async () => {
+  await expect(insertTemplate(template)).rejects.toThrow(/canonical|x??c minh|verified/i);
+  expect(globalThis.fetch).not.toHaveBeenCalled();
 });

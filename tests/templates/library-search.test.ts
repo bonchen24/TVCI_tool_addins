@@ -1,7 +1,7 @@
 import { normalizeVietnamese, searchTemplates, type TemplateRecord } from "../../src/templates/library";
 
 function template(overrides: Partial<TemplateRecord> = {}): TemplateRecord {
-  return {
+  const record: TemplateRecord = {
     id: "template-1",
     name: "Mẫu văn bản",
     organization: "TVCI",
@@ -12,6 +12,26 @@ function template(overrides: Partial<TemplateRecord> = {}): TemplateRecord {
     version: "1.0",
     status: "active",
     ...overrides,
+  };
+  const hash = "a".repeat(64);
+  return {
+    ...record,
+    verification: {
+      status: "verified",
+      reason: "Test-only provenance fixture.",
+      canonicalSource: {
+        kind: "official-canonical-docx",
+        name: "Test canonical DOCX",
+        path: `/canonical_templates/tests/${record.id}.docx`,
+        sha256: hash,
+      },
+      runtime: {
+        path: record.source.kind === "bundled" ? record.source.path : "/templates/test-personal.docx",
+        sha256: hash,
+        derivedFromCanonicalSha256: hash,
+        comparison: "byte-exact",
+      },
+    },
   };
 }
 

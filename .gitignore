@@ -39,3 +39,7 @@ temp-format-audit/
 *.xml
 !manifest/manifest.xml
 test_*.docx
+qa/canonical-template-renders/
+*.tsbuildinfo
+
+

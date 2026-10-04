@@ -1,3 +1,4 @@
+from template_path_safety import assert_mutable_runtime_path, filter_runtime_docx
 import os
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
@@ -46,6 +47,7 @@ def add_callout_box(doc, text, title="LƯU Ý QUAN TRỌNG:", hex_bg="F0F7FF", h
     doc.add_paragraph()
 
 def create_guide_document(output_path):
+    assert_mutable_runtime_path(output_path)
     doc = Document()
     
     # Page setup: A4

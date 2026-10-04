@@ -35,6 +35,22 @@ test("Party templates support Vietnamese no-diacritic search", () => {
     version: "1.0",
     status: "active",
     source: { kind: "bundled", path: "/templates/dang-sample.docx" },
+    verification: {
+      status: "verified",
+      reason: "Test-only provenance fixture.",
+      canonicalSource: {
+        kind: "official-canonical-docx",
+        name: "Test canonical DOCX",
+        path: "/canonical_templates/tests/dang-nghi-quyet-001.docx",
+        sha256: "a".repeat(64),
+      },
+      runtime: {
+        path: "/templates/dang-sample.docx",
+        sha256: "a".repeat(64),
+        derivedFromCanonicalSha256: "a".repeat(64),
+        comparison: "byte-exact",
+      },
+    },
   }];
   const result = searchTemplates(records, { organization: "DANG", query: "nghi quyet chi bo" });
   assert.equal(result[0]?.id, "dang-nghi-quyet-001");

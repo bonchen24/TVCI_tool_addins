@@ -1,0 +1,146 @@
+{
+  "generatorSha256": "52fa2cbfc5a5ce60fe809b9e879b720fcdef76d794c5aa4896c9219dae2561a6",
+  "generatorVersion": "1.0.0",
+  "ruleSpecVersion": "1.0.0",
+  "status": "passed",
+  "templates": [
+    {
+      "canonicalSha256": "356660eeac557853e53e5d549c83116c5851a443bd372392eba685c17e0aaa46",
+      "regeneratedSha256": "356660eeac557853e53e5d549c83116c5851a443bd372392eba685c17e0aaa46",
+      "status": "passed",
+      "templateKey": "iemm-quyet-dinh-ca-biet"
+    },
+    {
+      "canonicalSha256": "cef8ca42e6ebffc4b995c025ace5d32168a52f0504ee22f91c27e59a8bb0d549",
+      "regeneratedSha256": "cef8ca42e6ebffc4b995c025ace5d32168a52f0504ee22f91c27e59a8bb0d549",
+      "status": "passed",
+      "templateKey": "iemm-quyet-dinh-ban-hanh"
+    },
+    {
+      "canonicalSha256": "d3bd1802472a80c12f71e1e9c72e662a9e62b889a387ceb81c1f40679e8ca05c",
+      "regeneratedSha256": "d3bd1802472a80c12f71e1e9c72e662a9e62b889a387ceb81c1f40679e8ca05c",
+      "status": "passed",
+      "templateKey": "iemm-quy-che"
+    },
+    {
+      "canonicalSha256": "dfb7468ea035b2143287037053b42e9fd0d344cb45a0a7d8ee7ca02143afb20a",
+      "regeneratedSha256": "dfb7468ea035b2143287037053b42e9fd0d344cb45a0a7d8ee7ca02143afb20a",
+      "status": "passed",
+      "templateKey": "iemm-van-ban-kem-quyet-dinh"
+    },
+    {
+      "canonicalSha256": "a7b083027fed4b719f0947b28ac7d8bb83a948e4bc9bdaf0a1784e8504d5cbb2",
+      "regeneratedSha256": "a7b083027fed4b719f0947b28ac7d8bb83a948e4bc9bdaf0a1784e8504d5cbb2",
+      "status": "passed",
+      "templateKey": "iemm-cong-van"
+    },
+    {
+      "canonicalSha256": "ed63eb668ceb7db1570c8de849c4b503ee0cc1f282e2e52d90b9d262f8d7a68c",
+      "regeneratedSha256": "ed63eb668ceb7db1570c8de849c4b503ee0cc1f282e2e52d90b9d262f8d7a68c",
+      "status": "passed",
+      "templateKey": "iemm-thong-bao"
+    },
+    {
+      "canonicalSha256": "5f1e0ae5884839338db60a3dc226be0118ef376c03bc539472a238470bb5a261",
+      "regeneratedSha256": "5f1e0ae5884839338db60a3dc226be0118ef376c03bc539472a238470bb5a261",
+      "status": "passed",
+      "templateKey": "iemm-to-trinh-vien"
+    },
+    {
+      "canonicalSha256": "cebd1dc9c7a5cd4128de5ea31c18e304bc2dcb425e1d74c9ff683bb664bab8b1",
+      "regeneratedSha256": "cebd1dc9c7a5cd4128de5ea31c18e304bc2dcb425e1d74c9ff683bb664bab8b1",
+      "status": "passed",
+      "templateKey": "iemm-to-trinh-don-vi"
+    },
+    {
+      "canonicalSha256": "0aed59a14ff2be518f64aaaed70131a48286ab0acf2d0b2ae9d168bcea7986e6",
+      "regeneratedSha256": "0aed59a14ff2be518f64aaaed70131a48286ab0acf2d0b2ae9d168bcea7986e6",
+      "status": "passed",
+      "templateKey": "iemm-bien-ban"
+    },
+    {
+      "canonicalSha256": "13b26437da913013110a577a210edc82dc25611954a51d0ce2fe052af1500709",
+      "regeneratedSha256": "13b26437da913013110a577a210edc82dc25611954a51d0ce2fe052af1500709",
+      "status": "passed",
+      "templateKey": "iemm-van-ban-co-ten-loai"
+    },
+    {
+      "canonicalSha256": "03b676edceaa19c04646ee4ef19d611dc47cc6a0fe85bfc45e177b72eccb7a7e",
+      "regeneratedSha256": "03b676edceaa19c04646ee4ef19d611dc47cc6a0fe85bfc45e177b72eccb7a7e",
+      "status": "passed",
+      "templateKey": "iemm-ban-sao"
+    },
+    {
+      "canonicalSha256": "9b4dd78ea6bf13b053da5f4a459a40686b427ffd7faed4ad7ff558bf895ebc3a",
+      "regeneratedSha256": "9b4dd78ea6bf13b053da5f4a459a40686b427ffd7faed4ad7ff558bf895ebc3a",
+      "status": "passed",
+      "templateKey": "iemm-thu-moi"
+    },
+    {
+      "canonicalSha256": "27e00b8419750133defcef66085da847eae5dc658dd7d9e2ddf5721628760e8a",
+      "regeneratedSha256": "27e00b8419750133defcef66085da847eae5dc658dd7d9e2ddf5721628760e8a",
+      "status": "passed",
+      "templateKey": "iemm-thu-hoan-hop"
+    },
+    {
+      "canonicalSha256": "56ea2d0da49a1b7b2a2a4b3558e1c045ad3fbf00ca5da20e00937e5d805ded57",
+      "regeneratedSha256": "56ea2d0da49a1b7b2a2a4b3558e1c045ad3fbf00ca5da20e00937e5d805ded57",
+      "status": "passed",
+      "templateKey": "iemm-cong-van-dinh-chinh"
+    },
+    {
+      "canonicalSha256": "0e06faa9cdb8c51722e8ce6c1469f29e11a1956bfa1b6e058b1d5625ff9b0a85",
+      "regeneratedSha256": "0e06faa9cdb8c51722e8ce6c1469f29e11a1956bfa1b6e058b1d5625ff9b0a85",
+      "status": "passed",
+      "templateKey": "iemm-bao-cao"
+    },
+    {
+      "canonicalSha256": "b6b147cdf0aedd75197ab87797fcdec94c1a35079020ae1f14564e1685577af0",
+      "regeneratedSha256": "b6b147cdf0aedd75197ab87797fcdec94c1a35079020ae1f14564e1685577af0",
+      "status": "passed",
+      "templateKey": "iemm-ke-hoach"
+    },
+    {
+      "canonicalSha256": "1b2fa13632e67f2da751261787b39f71358a7be92ab99eea396676116523ab9d",
+      "regeneratedSha256": "1b2fa13632e67f2da751261787b39f71358a7be92ab99eea396676116523ab9d",
+      "status": "passed",
+      "templateKey": "iemm-don-xin-nghi-phep"
+    },
+    {
+      "canonicalSha256": "7657423ad5ba4dd262be2c9b546ba9225edaaacc0a8e9c04d8d73a739331c823",
+      "regeneratedSha256": "7657423ad5ba4dd262be2c9b546ba9225edaaacc0a8e9c04d8d73a739331c823",
+      "status": "passed",
+      "templateKey": "iemm-chuong-trinh"
+    },
+    {
+      "canonicalSha256": "feac7314b65b1e9ffb2bb75d521764cb566871d42d78a3eadb3d6c68fbfdbe04",
+      "regeneratedSha256": "feac7314b65b1e9ffb2bb75d521764cb566871d42d78a3eadb3d6c68fbfdbe04",
+      "status": "passed",
+      "templateKey": "iemm-giay-gioi-thieu"
+    },
+    {
+      "canonicalSha256": "3c5a541a844557a3edf8bb981896e07d22422ffc7ce0f7c207ba2a4c3bd0fc0f",
+      "regeneratedSha256": "3c5a541a844557a3edf8bb981896e07d22422ffc7ce0f7c207ba2a4c3bd0fc0f",
+      "status": "passed",
+      "templateKey": "iemm-ban-cam-ket"
+    },
+    {
+      "canonicalSha256": "7af281c6ffcfe8788aa57a07efc6fade5d46fe3734b58dc28a264218d8a6e203",
+      "regeneratedSha256": "7af281c6ffcfe8788aa57a07efc6fade5d46fe3734b58dc28a264218d8a6e203",
+      "status": "passed",
+      "templateKey": "tvci-cong-van"
+    },
+    {
+      "canonicalSha256": "29048d3affab370a8ee60c58a0a6c4d988152bc0682f9959932e12a61ae33a33",
+      "regeneratedSha256": "29048d3affab370a8ee60c58a0a6c4d988152bc0682f9959932e12a61ae33a33",
+      "status": "passed",
+      "templateKey": "tvci-thong-bao"
+    },
+    {
+      "canonicalSha256": "8c9e310b0fa4b6262dd462f369bf5c907d8abae6e859301525c2a1decf4b36dd",
+      "regeneratedSha256": "8c9e310b0fa4b6262dd462f369bf5c907d8abae6e859301525c2a1decf4b36dd",
+      "status": "passed",
+      "templateKey": "tkv-quyet-dinh"
+    }
+  ]
+}

@@ -16,7 +16,7 @@ describe("canonical production source build", () => {
     expect(copyPlugin?.patterns).toEqual(expect.arrayContaining([
       expect.objectContaining({
         from: "templates",
-        globOptions: { ignore: ["**/*.fixed.*"] },
+        globOptions: { ignore: ["**/*.fixed.*", "**/canonical/**"] },
       }),
     ]));
   });

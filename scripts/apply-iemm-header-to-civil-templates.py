@@ -1,4 +1,5 @@
 from __future__ import annotations
+from template_path_safety import assert_mutable_runtime_path, filter_runtime_docx
 
 import copy
 import os
@@ -251,6 +252,7 @@ def patch_document(document_xml: bytes, canonical_table: ET.Element, notice_temp
 
 
 def patch_docx(path: Path, canonical_table: ET.Element) -> None:
+    assert_mutable_runtime_path(path)
     notice_template = path.name in NOTICE_TEMPLATE_NAMES
     with ZipFile(path, "r") as source:
         entries = [(info, source.read(info.filename)) for info in source.infolist()]
@@ -284,7 +286,7 @@ def main() -> int:
     if canonical_table is None:
         raise SystemExit("Canonical IEMM template has no first-page header table")
 
-    targets = sorted(path for path in template_root.rglob("*.docx") if path.name != "dang-sample.docx")
+    targets = filter_runtime_docx(path for path in template_root.rglob("*.docx") if path.name != "dang-sample.docx")
     if len(targets) != 30:
         raise SystemExit(f"Expected 30 civil templates, found {len(targets)}")
     for path in targets:

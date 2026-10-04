@@ -1,4 +1,5 @@
 from __future__ import annotations
+from template_path_safety import assert_mutable_runtime_path, filter_runtime_docx
 
 import argparse
 import re
@@ -501,19 +502,20 @@ def normalize_national_header_document(path: Path) -> tuple[bytes, int]:
 
 
 def template_paths(root: Path) -> list[Path]:
-    return sorted(
+    return sorted(filter_runtime_docx(
         path for path in root.glob("**/*.docx")
         if path.name.lower() not in ACTIVE_EXCLUDED
         and ".fixed." not in path.name.lower()
         and ".manual." not in path.name.lower()
-    )
+    ))
 
 
 def header_template_paths(root: Path) -> list[Path]:
-    return sorted(path for path in root.glob("**/*.docx") if path.name.lower() != "dang-sample.docx")
+    return sorted(filter_runtime_docx(path for path in root.glob("**/*.docx") if path.name.lower() != "dang-sample.docx"))
 
 
 def rewrite_package(path: Path, document_xml: bytes) -> None:
+    assert_mutable_runtime_path(path)
     with zipfile.ZipFile(path, "r") as source:
         entries = [(info, source.read(info.filename)) for info in source.infolist()]
     with tempfile.NamedTemporaryFile(prefix="tvci-format-", suffix=".docx", dir=path.parent, delete=False) as handle:
